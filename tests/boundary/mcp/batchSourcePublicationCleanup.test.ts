@@ -15,26 +15,36 @@ import { createTestTempDirectory } from "../../fixtures/temporaryDirectory.js";
 import { parseMcpToolError } from "../../fixtures/mcpToolError.js";
 import { awaitAcknowledgement } from "../../fixtures/lifecycleAcknowledgement.js";
 
-const expectRecoveredBatch = (response: CallToolResult, owned: string) => {
+const expectBatchCleanupFailure = (
+  response: CallToolResult,
+  owned: string,
+  sourceId: string,
+) => {
   expect(parseMcpToolError(response).error).toMatchObject({
-    code: "resource_constraint",
+    code: "cleanup_incomplete",
     details: {
-      completed_observation: {
+      resources: [owned],
+      partial_observation: {
         evidence: {
+          operation: "batch_decompile",
+          evidence_links: [sourceId],
           normalized_result: {
-            items: [
-              { status: "ok" },
-              {
-                status: "error",
-                error: {
-                  code: "cleanup_incomplete",
-                  details: { resources: [owned] },
-                },
-              },
-            ],
+            items: [{ status: "ok", address: "first" }],
           },
         },
       },
+      secondary_failures: [
+        {
+          code: "resource_constraint",
+          details: {
+            operation: "record_evidence",
+            partial_observation: {
+              kind: "unretained-evidence",
+              evidence: { evidence_id: sourceId },
+            },
+          },
+        },
+      ],
     },
   });
 };
@@ -135,7 +145,7 @@ it("keeps a mixed batch cleanup owner after source retention fails and retries i
     const response = await call("batch_decompile", {
       addresses: ["first", "second"],
     });
-    expectRecoveredBatch(response, owned);
+    expectBatchCleanupFailure(response, owned, source.evidence_id);
     expect(pending).toBe(true);
     expect(failure.cleanupIncomplete).toBe(true);
     await expect(access(owned)).resolves.toBeUndefined();

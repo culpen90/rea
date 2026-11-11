@@ -96,15 +96,34 @@ describe("local application workflow verifier", () => {
     );
     const result = JSON.parse(stdout);
     expect(result.export_shape_comparison).toMatchObject({
-      summary: { added: 1, removed: 0, changed: 0, unknown: 0 },
-      changes: [
-        {
-          status: "added",
-          path: "/depth",
-          right: { availability: "literal", value: 1 },
-        },
-      ],
+      summary: { added: 1, removed: 0, changed: 0, unknown: 3 },
+      coverage: { status: "partial", paired_variants: 3 },
     });
+    expect(result.export_shape_comparison).not.toHaveProperty(
+      "runtime_validation",
+    );
+    const { changes } = result.export_shape_comparison;
+    expect(changes).toHaveLength(4);
+    expect(changes).toContainEqual(
+      expect.objectContaining({
+        status: "added",
+        path: "/depth",
+        discriminant: { path: "/type", value: "heading" },
+        left: { availability: "absent" },
+        right: { availability: "literal", value: 1 },
+      }),
+    );
+    for (const value of ["heading", "strong", "paragraph"]) {
+      expect(changes).toContainEqual(
+        expect.objectContaining({
+          status: "unknown",
+          path: "/text",
+          discriminant: { path: "/type", value },
+          left: expect.objectContaining({ availability: "unknown" }),
+          right: expect.objectContaining({ availability: "unknown" }),
+        }),
+      );
+    }
   }, 20_000);
 });
 

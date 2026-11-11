@@ -79,7 +79,7 @@ function expectKnownAuthorityHints(tools: readonly ToolSchemas[]): void {
       idempotentHint: true,
       openWorldHint: true,
     },
-    unset_bookmark: {
+    set_address_name: {
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: true,
