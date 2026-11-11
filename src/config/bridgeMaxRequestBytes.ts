@@ -21,12 +21,11 @@ export {
 };
 
 /**
- * Smallest ceiling that still admits the largest bounded bridge request.
- * The Cutter sizing fixture uses 1024 JSON-escaped code units in a
- * representative authenticated command frame of 7464 bytes. A Cutter recovery
- * status of 64 receipts with an unknown path is smaller. A path that fits is kept. A path that
- * does not fit is null, so the client does not reuse the descriptor path with
- * the new generation. Hello and a minimal command frame are smaller.
+ * The minimum ceiling of 7464 bytes fits a representative authenticated
+ * Cutter command carrying 1024 control characters with JSON escaping. It also
+ * fits a Cutter recovery status with 64 receipts and an unknown path. The
+ * path is included when it fits. Otherwise it is null, so the client does not
+ * reuse the descriptor path with the new generation.
  * Comments, search text, and Cutter command text are unbounded; this ceiling
  * is what limits them. The floor stays below the 16 MiB default so a caller
  * can lower the ceiling.
@@ -63,7 +62,7 @@ export const DEFAULT_BRIDGE_MAX_REQUEST: BridgeMaxRequestBytes = {
  */
 export type BridgePeer = "Cutter" | "Ghidra";
 
-const bridgeMaxRequestBytesConstraint = `${BRIDGE_MAX_REQUEST_BYTES_SETTING} must be a positive decimal integer from ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)} to ${String(MAXIMUM_BRIDGE_MAX_REQUEST_BYTES)} bytes; the default is ${String(DEFAULT_BRIDGE_MAX_REQUEST_BYTES)} bytes (16 MiB). A value below ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)} bytes cannot carry the required authenticated Cutter frame, and a larger value is refused so the encoded payload plus its framing LF stays one string under Node's single-string ceiling.`;
+const bridgeMaxRequestBytesConstraint = `${BRIDGE_MAX_REQUEST_BYTES_SETTING} must be a positive decimal integer from ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)} to ${String(MAXIMUM_BRIDGE_MAX_REQUEST_BYTES)} bytes; the default is ${String(DEFAULT_BRIDGE_MAX_REQUEST_BYTES)} bytes (16 MiB). The floor fits a representative authenticated Cutter frame. The maximum leaves room for the framing LF under Node's single-string ceiling.`;
 
 /** Optional decimal byte count for the Ghidra and Cutter request payload ceiling. */
 export const bridgeMaxRequestBytesSchema = positiveDecimalIntegerSchema(

@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { expect } from "vitest";
@@ -147,11 +147,12 @@ cliTest.for([
 );
 
 cliTest(
-  "stops Hopper from claiming a caller-supplied raw-binary image",
+  "rejects the retired Hopper selector before opening a valid raw image",
   async ({ cli }) => {
     const root = await createTestTempDirectory("rea-raw-cli-hopper-");
     const path = join(root, "ecu.bin");
-    await writeFile(path, Buffer.from("1eff2fe1", "hex"));
+    const original = Buffer.from("1eff2fe1", "hex");
+    await writeFile(path, original);
     const result = await cli.run({
       arguments: [
         "inspect",
@@ -173,9 +174,17 @@ cliTest(
       },
     });
     expect(result.exitCode).toBe(1);
-    expect(JSON.stringify(result.json)).toMatch(/Hopper|ghidra|Ghidra|hopper/i);
-    expect(JSON.stringify(result.json)).not.toMatch(
-      /unsupported binary format/i,
-    );
+    expect(result.json).toMatchObject({
+      code: "capability_unavailable",
+      message: expect.stringContaining(
+        "Select ghidra and open the original binary",
+      ),
+      details: {
+        selection_reason: "unknown_provider",
+        requested_provider_id: "hopper",
+        candidate_ids: ["ghidra"],
+      },
+    });
+    expect((await readFile(path)).equals(original)).toBe(true);
   },
 );

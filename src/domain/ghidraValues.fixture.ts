@@ -231,7 +231,7 @@ export const ghidraFunctionDossier = (): JsonValue => {
     limitations: [
       "Unresolved computed or indirect flows without target addresses are not represented as reference edges.",
       "Thunk and external classifications are Ghidra FunctionManager observations; they do not resolve targetless calls.",
-      "Pseudocode and assembly are Ghidra-specific representations, not original source or Hopper-equivalent text.",
+      "Pseudocode and assembly are Ghidra-specific representations, and do not recover original source.",
     ],
   };
 };

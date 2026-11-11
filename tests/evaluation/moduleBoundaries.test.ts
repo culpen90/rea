@@ -34,9 +34,7 @@ describe("process capture implementation ownership", () => {
 
 describe("binary production construction ownership", () => {
   it.each([
-    "hopper/HopperProvider.js",
     "ghidra/GhidraProvider.js",
-    "ida/IdaProvider.js",
     "artifacts/ArtifactProvider.js",
     "dotnet/ManagedStaticProvider.js",
     "native/NativeMacOSProvider.js",
@@ -269,7 +267,7 @@ describe("incremental module import boundaries", () => {
     ["src/server/probe.ts", "../composition/android.js", true],
     ["src/application/probe.ts", "../browser/CdpCaptureValues.js", true],
     ["src/ghidra/probe.ts", "../generatedPackageMetadata.js", true],
-    ["src/hopper/probe.ts", "../contracts/officialToolContracts.js", true],
+    ["src/ghidra/probe.ts", "../contracts/officialToolContracts.js", true],
   ])("checks %s importing %s", (file, dependency, allowed) => {
     const violations = inspectModuleBoundaries(
       file,

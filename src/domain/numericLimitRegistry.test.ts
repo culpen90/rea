@@ -19,15 +19,19 @@ const cells = (line: string): string[] =>
     .slice(1, -1)
     .map((cell) => cell.trim());
 
-/** A markdown table row whose first cell is exactly this name. */
-const exceptionRow = (name: string): string[] => {
-  const line = inventoryRows.find((row) => cells(row)[0] === `\`${name}\``);
-  expect(line, name).toBeDefined();
-  return cells(line ?? "");
-};
+const restartOnlyRows = inventory
+  .split(/^## /mu)
+  .find((section) => section.startsWith("Restart-only numeric limits\n"))
+  ?.split("\n")
+  .filter((line) => line.startsWith("|"))
+  .map(cells)
+  .filter(([name]) => name?.startsWith("`"));
 
 it("gives every numeric exception a reason and a matching inventory row", () => {
   const names = NUMERIC_LIMIT_REGISTRY.map((entry) => entry.name);
+  expect(restartOnlyRows?.map(([name]) => name).sort()).toEqual(
+    names.map((name) => `\`${name}\``).sort(),
+  );
   expect(new Set(names).size).toBe(names.length);
   const runtimeEnvironments = new Set<string>(
     Object.values(ANALYSIS_SETTINGS).flatMap((definition) =>
@@ -42,11 +46,10 @@ it("gives every numeric exception a reason and a matching inventory row", () => 
     expect(entry.policy).toBe("restart-only");
     expect(["startup", "construction"]).toContain(entry.read);
     expect(runtimeEnvironments.has(entry.name)).toBe(false);
-    const row = exceptionRow(entry.name);
-    expect(row.length).toBeGreaterThanOrEqual(5);
-    expect(row[1]?.length ?? 0).toBeGreaterThan(0);
+    const row = restartOnlyRows?.find(([name]) => name === `\`${entry.name}\``);
+    expect(row?.length ?? 0, entry.name).toBeGreaterThanOrEqual(5);
+    expect(row?.[1]?.length ?? 0).toBeGreaterThan(0);
   }
-  expect(NUMERIC_LIMIT_REGISTRY).toHaveLength(15);
   for (const definition of Object.values(ANALYSIS_SETTINGS)) {
     if (!("environment" in definition) || definition.environment === undefined)
       continue;
@@ -55,6 +58,5 @@ it("gives every numeric exception a reason and a matching inventory row", () => 
     );
     expect(listed, definition.environment).toBe(true);
   }
-  expect(inventory).not.toMatch(/^\| `REA_MANAGED_LINUX_HOPPER_LAUNCHER`/mu);
   expect(inventory).not.toMatch(/^\| `REA_WORKFLOW_PROVIDER`/mu);
 });

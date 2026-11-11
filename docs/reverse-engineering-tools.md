@@ -269,8 +269,8 @@ The client checks the final encoded request against
 `REA_BRIDGE_MAX_REQUEST_BYTES` before dispatch. The budget applies to request
 payload bytes and excludes the terminating LF. Unset, the ceiling is 16777216
 bytes (16 MiB). A decimal integer from 7464 to 536870887 is accepted. The floor
-fits the largest bounded symbol-name command inside an authenticated Cutter
-frame. A Cutter status keeps its session id, connection proof, and up to 64
+fits a representative authenticated Cutter frame with 1024 escaped control
+characters. A Cutter status keeps its session id, connection proof, and up to 64
 completion receipts when the frame is tight. The observed `current_file` is
 included when it fits. When it does not, the status reports that path as
 unknown, and the client does not reuse the descriptor path with the new

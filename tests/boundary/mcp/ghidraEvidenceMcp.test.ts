@@ -672,7 +672,9 @@ describe("Ghidra MCP evidence parity", () => {
         provider: { id: "ghidra", version: "12.1.4" },
         normalized_result: expect.stringContaining("return 42"),
         limitations: expect.arrayContaining([
-          expect.stringMatching(/not text.equivalent to Hopper/iu),
+          expect.stringMatching(
+            /Ghidra decompiler output.*not original source/iu,
+          ),
         ]),
       });
 
@@ -724,7 +726,7 @@ describe("Ghidra MCP evidence parity", () => {
       ).toEqual(
         expect.arrayContaining([
           expect.stringMatching(/indirect flows without target addresses/iu),
-          expect.stringMatching(/not original source.*Hopper.equivalent/iu),
+          expect.stringMatching(/do not recover original source/iu),
         ]),
       );
       const directAnalyzed = await new EnhancedTools(session).execute(

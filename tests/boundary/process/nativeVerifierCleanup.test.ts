@@ -21,16 +21,3 @@ processTest.for(["none", "client", "transport", "both", "early"])(
     });
   },
 );
-
-processTest(
-  "finishes IDA verifier cleanup without replacing the analysis failure",
-  async ({ processes }) => {
-    const result = await processes.run(process.execPath, [
-      fileURLToPath(
-        new URL("../../fixtures/idaVerifierCleanup.mjs", import.meta.url),
-      ),
-    ]);
-    expect(result.exitCode, result.stderr).toBe(0);
-    expect(result.stdout.trim().split("\n")).toHaveLength(2);
-  },
-);

@@ -28,7 +28,7 @@ describe("ordinary MCP progress and cancellation", () => {
             message,
           });
         }
-        return observed("0x1000");
+        return observed(["fixture-program"]);
       },
     };
     const server = createServer({ kind: "fixed", analysis });
@@ -49,6 +49,9 @@ describe("ordinary MCP progress and cancellation", () => {
       );
 
       expect(result.isError).not.toBe(true);
+      expect(result.structuredContent).toMatchObject({
+        normalized_result: ["fixture-program"],
+      });
       expect(progress[0]?.progress).toBe(1);
       expect(progress.map((update) => update.message)).toEqual(
         expect.arrayContaining([

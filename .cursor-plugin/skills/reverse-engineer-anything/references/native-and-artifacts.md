@@ -541,7 +541,8 @@ timeout does not establish complete analysis or absence of code. See the
 Ghidra and Cutter use `REA_BRIDGE_MAX_REQUEST_BYTES`. For Cutter, the bridge and client default to
 16777216 bytes. The payload budget excludes the terminating LF. A decimal
 integer from 7464 to 536870887 raises or lowers that ceiling. The floor fits
-the largest bounded symbol-name command. A tight Cutter status still returns
+a representative authenticated Cutter frame with 1024 escaped control characters.
+A tight Cutter status still returns
 its session id and up to 64 completion receipts. Its path is included when it
 fits, and is unknown when it does not, so an older descriptor path is not
 paired with the new generation. The maximum is the encoded payload, one byte under Node's string ceiling so

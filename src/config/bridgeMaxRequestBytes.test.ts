@@ -20,7 +20,7 @@ import {
 const configured = (maximumBytes: number) =>
   ({ maximumBytes, source: "setting" }) as const;
 
-const symbolName = "\u0001".repeat(1024);
+const controlText = "\u0001".repeat(1024);
 const session = "00000000-0000-4000-8000-000000000001";
 
 it("advertises the bridge ceiling for every bridge-backed operation", () => {
@@ -63,6 +63,14 @@ it("accepts a caller-selected ceiling inside the floor and maximum", () => {
   });
   if (!environment.ok) throw new Error("doctor rejected a valid ceiling");
   expect(environment.ok).toBe(true);
+  for (const boundary of [
+    MINIMUM_BRIDGE_MAX_REQUEST_BYTES,
+    MAXIMUM_BRIDGE_MAX_REQUEST_BYTES,
+  ])
+    expect(parseBridgeMaxRequestBytes(String(boundary))).toEqual({
+      ok: true,
+      value: configured(boundary),
+    });
 });
 
 it("sets the maximum to the serialized string bound minus the framing LF", () => {
@@ -86,7 +94,7 @@ it("locks the floor to a representative authenticated Cutter frame", () => {
     kind: "command",
     request_id: session,
     expected_generation: Number.MAX_SAFE_INTEGER,
-    command: symbolName,
+    command: controlText,
     json: false,
     session_id: session,
   });
@@ -131,7 +139,9 @@ it.each([
   expect(parsed.error.message).toMatch(/positive decimal integer/i);
   expect(parsed.error.message).toMatch(/7464 to 536870887 bytes/i);
   expect(parsed.error.message).toMatch(/default.*16777216 bytes/i);
-  expect(parsed.error.message).toMatch(/symbol.name/i);
+  expect(parsed.error.message).toMatch(
+    /representative authenticated Cutter frame/i,
+  );
   expect(parsed.error.message).toMatch(/framing/i);
   expect(parsed.error.settings).toEqual([
     {

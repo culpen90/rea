@@ -36,7 +36,7 @@ except ImportError:
 
 # Request and response frame budget in bytes, excluding the trailing LF.
 # REA_BRIDGE_MAX_REQUEST_BYTES selects it. Unset stays 16777216.
-# 7464 is the authenticated frame of the largest bounded symbol name.
+# 7464 fits a representative authenticated command with 1024 escaped control characters.
 # The 64-receipt recovery status is smaller with current_file null. A path
 # that fits is kept. A path that does not fit is null, not the descriptor path.
 # 536870887 is Node's 536870888-character string ceiling minus the framing LF.
@@ -78,15 +78,13 @@ def _bridge_max_request_bytes_constraint():
     return (
         "REA_BRIDGE_MAX_REQUEST_BYTES must be a positive decimal integer "
         "from %d to %d bytes; the default is %d bytes (16 MiB). "
-        "A value below %d bytes cannot carry the largest admitted "
-        "symbol-name command, and a larger value is refused so the encoded "
-        "payload plus its framing LF stays one string under Node's "
+        "The floor fits a representative authenticated Cutter frame. "
+        "The maximum leaves room for the framing LF under Node's "
         "single-string ceiling."
         % (
             MINIMUM_BRIDGE_MAX_REQUEST_BYTES,
             MAXIMUM_BRIDGE_MAX_REQUEST_BYTES,
             DEFAULT_BRIDGE_MAX_REQUEST_BYTES,
-            MINIMUM_BRIDGE_MAX_REQUEST_BYTES,
         )
     )
 
