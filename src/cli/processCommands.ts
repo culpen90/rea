@@ -3,6 +3,7 @@ import { Cli, z } from "incur";
 import {
   captureProcessScenarioFile,
   compareProcessEvidenceFiles,
+  projectRetainedProcessCaptureFailure,
 } from "../application/process/ProcessCli.js";
 import { logCliCommand } from "../cliLogging.js";
 import type { Logger } from "pino";
@@ -24,7 +25,10 @@ export const registerProcessCommands = (
     run: ({ args }) =>
       withCommandCancellation((signal) =>
         logCliCommand(logger, "capture-process", () =>
-          captureProcessScenarioFile(args.scenario, environment, signal),
+          captureProcessScenarioFile(args.scenario, environment, signal).catch(
+            (cause: unknown) =>
+              projectRetainedProcessCaptureFailure(cause, signal),
+          ),
         ),
       ),
   });
