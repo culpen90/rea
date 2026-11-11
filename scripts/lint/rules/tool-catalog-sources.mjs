@@ -82,8 +82,7 @@ export const collectToolCatalogSources = (
             composition(element.argument, localPath);
         return;
       }
-      // Calls such as HOPPER_MEMORY_TOOL_DEFINITIONS.map(official) construct
-      // entries locally; they are not imported catalog arrays. Do not execute
+      // Computed entries are not imported catalog arrays. Do not execute
       // or infer catalog ownership from arbitrary computed expressions.
       if (expression?.type !== "Identifier") return;
       const binding = facts.imports.get(expression.name);

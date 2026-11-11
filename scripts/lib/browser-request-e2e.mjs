@@ -116,7 +116,7 @@ const cliOf = (commands, entrypoint) => async (args, maxBuffer) =>
       env: {
         ...process.env,
         REA_LOG_LEVEL: "silent",
-        HOPPER_LAUNCHER_PATH: "/rea-unconfigured-provider/hopper",
+        GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
       },
       timeout: 120_000,
       maxBuffer,

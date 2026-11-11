@@ -58,10 +58,6 @@ const registerSetupCommand = (
         .boolean()
         .default(false)
         .describe("Approve user-owned setup actions without prompting"),
-      installHopper: z
-        .boolean()
-        .default(false)
-        .describe("Also approve Hopper installation with --yes"),
       desktopBuild: z
         .boolean()
         .default(false)
@@ -226,7 +222,6 @@ const registerMaintenanceCommands = (
 
 interface SetupCommandOptions {
   readonly yes: boolean;
-  readonly installHopper: boolean;
   readonly desktopBuild: boolean;
   readonly installAgentenv: boolean;
   readonly client: readonly string[];
@@ -295,11 +290,9 @@ const setupRunOptions = (
     (options.client.length > 0 || options.skillClient.length > 0);
   return {
     approved: options.yes && !options.dryRun,
-    installHopper: options.installHopper,
     structured: input.formatExplicit || options.dryRun,
     dryRun: options.dryRun,
     allDetectedClients: options.allDetected,
-    proposeHopper: interactive || options.installHopper,
     ...desktopBuildOptions(options),
     ...(hasSelectedClients ? { clientIds: options.client } : {}),
     ...(options.skillClient.length > 0
@@ -319,7 +312,7 @@ const setupRunOptions = (
             ...(options.skillClient.length > 0
               ? { skillClients: options.skillClient }
               : {}),
-            providers: setupProviders(options),
+            providers: desktopBuild ? [DESKTOP_BUILD_PROVIDER_ID] : [],
             skill: options.skill ?? agentIntegrationSelected,
           },
         }
@@ -337,12 +330,6 @@ const desktopBuildOptions = (
   desktopBuildSelected(options)
     ? { desktopBuild: true, installAgentenv: options.installAgentenv }
     : {};
-
-/** Providers whose readiness the selected setup requires. */
-const setupProviders = (options: SetupCommandOptions): readonly string[] => [
-  ...(options.installHopper ? ["hopper"] : []),
-  ...(desktopBuildSelected(options) ? [DESKTOP_BUILD_PROVIDER_ID] : []),
-];
 
 const setupIsInteractive = (
   options: SetupCommandOptions,
@@ -363,7 +350,6 @@ const setupHasExplicitScope = (options: SetupCommandOptions): boolean =>
   options.client.length > 0 ||
   options.skillClient.length > 0 ||
   options.skill !== undefined ||
-  options.installHopper ||
   options.desktopBuild ||
   options.installAgentenv;
 

@@ -38,7 +38,6 @@ for (const [setting, profile] of [
       const environment = {
         HOME: home,
         USERPROFILE: home,
-        HOPPER_LAUNCHER_PATH: join(home, "unconfigured-hopper"),
       };
       const setup = await cli.run({
         arguments: [
@@ -106,7 +105,6 @@ cliTest(
     const environment = {
       HOME: home,
       USERPROFILE: home,
-      HOPPER_LAUNCHER_PATH: join(home, "unconfigured-hopper"),
     };
     const arguments_ = [
       "setup",
@@ -226,7 +224,6 @@ cliTest(
         environment: {
           HOME: home,
           USERPROFILE: home,
-          HOPPER_LAUNCHER_PATH: join(home, "unconfigured-hopper"),
           PI_CODING_AGENT_DIR: "custom-agent",
           OMP_PROFILE: "work",
           PI_PROFILE: "legacy",
@@ -342,7 +339,6 @@ cliTest(
         environment: {
           HOME: home,
           USERPROFILE: home,
-          HOPPER_LAUNCHER_PATH: join(home, "unconfigured-hopper"),
           PI_CODING_AGENT_DIR: "custom-agent",
         },
         timeoutMs: 20_000,
@@ -452,7 +448,6 @@ cliTest(
         environment: {
           HOME: home,
           USERPROFILE: home,
-          HOPPER_LAUNCHER_PATH: join(home, "unconfigured-hopper"),
           PI_CODING_AGENT_DIR: "file:///agent%2fdir",
           REA_DARWIN_MODULE_CACHE_PATH: moduleCache,
         },

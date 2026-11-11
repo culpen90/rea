@@ -164,6 +164,7 @@ describe("CLI successful setup outcomes", () => {
       const result = await runSetup(
         {
           ...setupOptions(false),
+          installSkill: true,
           dryRun: status === "planned",
           structured: status === "planned",
         },
@@ -179,7 +180,6 @@ describe("CLI successful setup outcomes", () => {
       );
       expect(output).toBe(result);
       expect(process.exitCode).toBeUndefined();
-      expect(host.hopperInstalls).toBe(0);
       expect(host.configurations).toBe(0);
       expect(host.skillInstalls).toBe(0);
     },

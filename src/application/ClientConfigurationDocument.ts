@@ -1513,7 +1513,7 @@ const tomlTextHolds = (
 };
 
 // jsonc-parser declares SyntaxKind as an ambient const enum, so keep its token
-// code local and type-checked as in the JSON scanner used by IDA diagnostics.
+// code local and type-checked.
 const JSON_COMMA = 5 satisfies SyntaxKind;
 
 /** Find the next non-trivia JSONC token at or after `offset`. */

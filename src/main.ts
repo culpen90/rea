@@ -106,7 +106,7 @@ export const run = async (
   if (
     RECORDED_MCP_CATALOG_SHA256 !== undefined &&
     dependencies.transport !== "http" &&
-    config.value.hopperTargetPath === undefined &&
+    config.value.initialTargetPath === undefined &&
     fullOutputCatalog &&
     !scopedToolFamilies &&
     dependencies.createServer === undefined &&

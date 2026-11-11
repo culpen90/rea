@@ -7,7 +7,6 @@ import { FakeSetupHost, options } from "./Setup.fixture.js";
 import { runSetup } from "./Setup.js";
 import { currentClientRegistrationCommand } from "./ClientRegistrationIdentity.js";
 import { CURRENT_ENTRYPOINT_PATH } from "../process/CurrentEntrypointPath.js";
-import { discoverSetupState } from "./SetupPlan.js";
 import type { MsixPackageView } from "./MsixPackageStorage.js";
 import {
   supportedClientRegistrationProfile,
@@ -52,7 +51,7 @@ const msixClaudeDesktop = (
 describe("setup workflow", () => {
   it("omits an aligned managed skill from an otherwise empty plan", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     const result = await runSetup(options(false), host);
     expect(result.status).toBe("ready");
@@ -61,56 +60,7 @@ describe("setup workflow", () => {
     expect(host.skillInstalls).toBe(0);
   });
 
-  it("installs missing Linux demo dependencies for existing Hopper", async () => {
-    const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
-    host.hopper = "/opt/hopper/bin/Hopper";
-    host.linuxDemoRuntimeMissing = true;
-    const result = await runSetup(
-      { ...options(false), structured: false },
-      host,
-      () => Promise.resolve(true),
-    );
-    expect(result.status).toBe("ready");
-    expect(host.hopperInstalls).toBe(1);
-    expect(result.plannedActions.map(({ kind }) => kind)).toContain(
-      "install_hopper",
-    );
-  });
-
-  it("does not reinstall Hopper for an unsupported configured path", async () => {
-    const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
-    host.hopper = "/custom/Hopper";
-    host.unsupportedHopperVersion = true;
-    const result = await runSetup(
-      {
-        ...options(true),
-        clientIds: [],
-        installSkill: false,
-        proposeHopper: false,
-        readinessScope: { providers: ["hopper"] },
-      },
-      host,
-    );
-    expect(result.status).toBe("needs_human");
-    expect(host.hopperInstalls).toBe(0);
-    expect(result.plannedActions.map(({ kind }) => kind)).not.toContain(
-      "install_hopper",
-    );
-  });
-
-  it("blocks malformed client configuration before Hopper or file mutation", async () => {
+  it("blocks malformed client configuration before file mutation", async () => {
     const host = new FakeSetupHost();
     host.clients = [
       {
@@ -126,20 +76,19 @@ describe("setup workflow", () => {
     });
 
     const result = await runSetup(
-      { ...options(true, true), clientIds: ["codex"] },
+      { ...options(true), clientIds: ["codex"] },
       host,
     );
 
     expect(result.status).toBe("needs_human");
     expect(result.remediation).toBe("Codex: Repair the existing TOML.");
-    expect(host.hopperInstalls).toBe(0);
     expect(host.configurations).toBe(0);
     expect(host.skillInstalls).toBe(0);
   });
 
   it("blocks malformed configuration before unrelated writes with an existing provider", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = [
       {
@@ -173,221 +122,11 @@ describe("setup workflow", () => {
     expect(host.configurations).toBe(0);
     expect(host.skillInstalls).toBe(0);
   });
-
-  it("plans a client update when Hopper installation changes its desired environment", async () => {
-    const host = new FakeSetupHost();
-    host.clients = [
-      {
-        name: "codex",
-        registrationProfile: supportedClientRegistrationProfile("codex"),
-        displayName: "Codex",
-        configPath: "/codex.toml",
-      },
-    ];
-    host.clientInspections.set("codex", { status: "already_current" });
-
-    const result = await runSetup(
-      { ...options(false, true), clientIds: ["codex"] },
-      host,
-    );
-
-    expect(
-      result.plannedActions.map(({ id, operation }) => ({
-        id,
-        operation,
-      })),
-    ).toContainEqual({
-      id: "configure_client:codex",
-      operation: "update",
-    });
-    expect(host.configurations).toBe(0);
-  });
-});
-
-describe("optional Hopper installation failures", () => {
-  it("reports a failed Hopper installation and still configures the selected clients", async () => {
-    // Hopper is optional; a package conflict must not cost the approved client
-    // registrations and skill (#5113).
-    const host = new FakeSetupHost();
-    host.hopperInstallSucceeds = false;
-    host.clients = [
-      {
-        name: "cursor",
-        registrationProfile: supportedClientRegistrationProfile("cursor"),
-        configPath: "/cursor.json",
-      },
-    ];
-    const result = await runSetup(
-      {
-        ...options(true, true),
-        clientIds: ["cursor"],
-        skillClientIds: ["cursor"],
-      },
-      host,
-    );
-    expect(result.status).toBe("needs_human");
-    expect(result.code).toBe("download_failed");
-    expect(result.remediation).toBe("Download failed.");
-    expect(result.appliedActions).not.toContain("installed_hopper");
-    expect(host.configurations).toBe(1);
-    expect(host.configuredProviderEnvironments).toEqual([{}]);
-    expect(host.skillInstalls).toBe(1);
-  });
-
-  it("keeps the Hopper failure when a client write also fails", async () => {
-    const host = new FakeSetupHost();
-    host.hopperInstallSucceeds = false;
-    host.clients = [
-      {
-        name: "cursor",
-        registrationProfile: supportedClientRegistrationProfile("cursor"),
-        configPath: "/cursor.json",
-      },
-    ];
-    host.clientResults.set("cursor", { status: "failed", reason: "write" });
-    const result = await runSetup(
-      { ...options(true, true), clientIds: ["cursor"] },
-      host,
-    );
-    expect(result.code).toBe("download_failed");
-    expect(result.remediation).toContain("Download failed.");
-    expect(result.remediation).toContain("could not be updated");
-    expect(result.clients.cursor).toMatchObject({
-      status: "failed",
-      reason: "write",
-    });
-    expect(host.configurations).toBe(1);
-  });
-
-  it("keeps the Hopper repair steps when the skill install also fails", async () => {
-    const host = new FakeSetupHost();
-    host.hopperInstallSucceeds = false;
-    host.skill = "failed";
-    host.clients = [
-      {
-        name: "cursor",
-        registrationProfile: supportedClientRegistrationProfile("cursor"),
-        configPath: "/cursor.json",
-      },
-    ];
-    const result = await runSetup(
-      {
-        ...options(true, true),
-        clientIds: ["cursor"],
-        skillClientIds: ["cursor"],
-      },
-      host,
-    );
-    expect(result.code).toBe("skill_install_failed");
-    expect(result.remediation).toContain("Download failed.");
-    expect(result.remediation).toContain("injected skill write failure");
-    expect(host.skillInstalls).toBe(1);
-  });
-
-  it("returns the failed Hopper request facts beside its code, including after a later failure", async () => {
-    const download = {
-      request: "package",
-      url: "https://www.hopperapp.com:443/downloader/public/Hopper-demo.dmg",
-      kind: "http_status",
-      httpStatus: 503,
-    } as const;
-    const ready = new FakeSetupHost();
-    ready.hopperInstallSucceeds = false;
-    ready.hopperInstallFailure = {
-      status: "failed",
-      code: "download_failed",
-      remediation: "Package returned HTTP 503.",
-      download,
-    };
-    expect(await runSetup(options(true, true), ready)).toMatchObject({
-      status: "needs_human",
-      code: "download_failed",
-      remediation: "Package returned HTTP 503.",
-      download,
-    });
-
-    const skillFailure = new FakeSetupHost();
-    skillFailure.hopperInstallSucceeds = false;
-    skillFailure.hopperInstallFailure = ready.hopperInstallFailure;
-    skillFailure.skill = "failed";
-    skillFailure.clients = [
-      {
-        name: "cursor",
-        registrationProfile: supportedClientRegistrationProfile("cursor"),
-        configPath: "/cursor.json",
-      },
-    ];
-    expect(
-      await runSetup(
-        {
-          ...options(true, true),
-          clientIds: ["cursor"],
-          skillClientIds: ["cursor"],
-        },
-        skillFailure,
-      ),
-    ).toMatchObject({ code: "skill_install_failed", download });
-  });
-
-  it("omits request facts when the Hopper failure observed none", async () => {
-    const host = new FakeSetupHost();
-    host.hopperInstallSucceeds = false;
-    expect(await runSetup(options(true, true), host)).not.toHaveProperty(
-      "download",
-    );
-  });
-});
-
-describe("configured Linux Hopper selection", () => {
-  it("keeps an explicitly configured launcher even when demo checks fail", async () => {
-    const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
-    host.hopper = "/opt/hopper/bin/Hopper";
-    host.hopperLauncherConfigured = true;
-    host.linuxDemoRuntimeMissing = true;
-    const doctor = await host.doctor();
-    const initial = await host.initialSetupState();
-    const discovery = await discoverSetupState({
-      host,
-      providerConfigured: initial.providerConfigured,
-      forceHopperInstall: false,
-      proposeHopper: true,
-      hopperLauncherConfigured: true,
-      initialDoctor: doctor,
-    });
-    expect(discovery.installHopper).toBe(false);
-  });
-
-  it("still offers repair for an unconfigured REA managed install", async () => {
-    const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
-    host.hopper = "/opt/hopper/bin/Hopper";
-    host.unsupportedHopperVersion = true;
-    const initial = await host.initialSetupState();
-    const discovery = await discoverSetupState({
-      host,
-      providerConfigured: initial.providerConfigured,
-      forceHopperInstall: false,
-      proposeHopper: true,
-      initialDoctor: await host.doctor(),
-    });
-    expect(discovery.installHopper).toBe(true);
-  });
 });
 
 it("offers shared skill intent when the detected personal copy is current", async () => {
   const host = new FakeSetupHost();
-  host.hopper = "/Applications/Hopper";
+  host.ghidra = "/opt/ghidra";
   host.clients = [
     {
       name: "claude_code",
@@ -426,7 +165,7 @@ it("offers shared skill intent when the detected personal copy is current", asyn
 describe("setup workflow action selection", () => {
   it("executes only actions selected by the interactive adapter", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = [
       {
@@ -463,7 +202,7 @@ describe("setup workflow action selection", () => {
 
   it("preflights only selected clients and offers supported clients without markers", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = [];
     host.availableClients = [
@@ -503,7 +242,7 @@ describe("setup workflow action selection", () => {
 
   it("does not default to a foreign command registered under the rea key", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = [
       {
@@ -592,7 +331,7 @@ describe("setup configuration failure recovery", () => {
     ],
   ] as const)("explains %s configuration recovery", async (reason, message) => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.clients = [
       {
         name: "internal_client_key",
@@ -628,12 +367,11 @@ describe("setup configuration failure recovery", () => {
     expect(host.configurations).toBe(1);
     expect(host.skillDirectoryValidations).toEqual([]);
     expect(host.skillInstalls).toBe(0);
-    expect(host.hopperInstalls).toBe(0);
   });
 
   it("names the recovery backup that holds the restored original after a readback failure", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.clients = [
       {
         name: "cursor",
@@ -660,7 +398,7 @@ describe("setup configuration failure recovery", () => {
 describe("MSIX Claude Desktop setup", () => {
   it("discloses which file MSIX Claude Desktop reads and that it must be quit", async () => {
     const host = new FakeSetupHost("win32");
-    host.hopper = join(PROFILE, "Hopper");
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = [msixClaudeDesktop("direct")];
 
@@ -693,7 +431,7 @@ describe("MSIX Claude Desktop setup", () => {
 
   it("refuses AppData writes from a process the MSIX package started", async () => {
     const host = new FakeSetupHost("win32");
-    host.hopper = join(PROFILE, "Hopper");
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     const vscode = join(ROAMING, "Code", "User", "mcp.json");
     host.clients = [
@@ -751,7 +489,7 @@ describe("MSIX Claude Desktop setup", () => {
     await symlink(privateRoaming, roaming, "junction");
 
     const host = new FakeSetupHost("win32");
-    host.hopper = join(home, "Hopper");
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = supportedClients(home, "win32", {
       APPDATA: roaming,
@@ -775,7 +513,7 @@ describe("MSIX Claude Desktop setup", () => {
 
   it("refuses registrations whose launcher only one MSIX package can see", async () => {
     const host = new FakeSetupHost("win32");
-    host.hopper = join(PROFILE, "Hopper");
+    host.ghidra = "/opt/ghidra";
     host.registrationCommandBlocker = "Install REA outside the package.";
     host.clients = [
       {
@@ -841,34 +579,5 @@ describe("setup tool family scope", () => {
     expect(host.configuredProviderEnvironments).toContainEqual({
       REA_MCP_TOOL_FAMILIES: "session,application",
     });
-  });
-
-  it("still offers Hopper on an unconfigured machine when a scope is set", async () => {
-    const host = new FakeSetupHost("darwin");
-    host.version = "14.5";
-    host.skill = "unchanged";
-    host.clients = [
-      {
-        name: "cursor",
-        registrationProfile: supportedClientRegistrationProfile("cursor"),
-        configPath: "/cursor.json",
-      },
-    ];
-
-    const result = await runSetup(
-      {
-        ...options(false),
-        clientIds: ["cursor"],
-        toolFamilies: "session",
-        proposeHopper: true,
-      },
-      host,
-    );
-
-    // The advertised family scope is a registration setting, not provider
-    // discovery; it must not suppress the Hopper installation offer.
-    expect(result.plannedActions.map(({ kind }) => kind)).toContain(
-      "install_hopper",
-    );
   });
 });

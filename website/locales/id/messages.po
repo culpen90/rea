@@ -2511,36 +2511,6 @@ msgstr ""
 " dan sumber daya yang dikemas. {ph0}Lihat studi kasus{ph1} untuk investigasi"
 " yang berhasil."
 
-#: website/public/faq/index.html:354
-msgctxt "page:faq/index.html"
-msgid "Do I need Hopper, Ghidra or IDA?"
-msgstr "Apakah saya memerlukan Hopper, Ghidra atau IDA ?"
-
-#: website/public/faq/index.html:355
-msgctxt "page:faq/index.html"
-msgid ""
-"Deep native analysis uses one of them. Static JavaScript and .NET inspection"
-" work with the supplied files and do not need a native analysis engine."
-msgstr ""
-"Analisis mendalam terhadap program kode mesin menggunakan salah satunya. "
-"Pemeriksaan JavaScript dan. NET statis bekerja dengan file yang disediakan "
-"dan tidak memerlukan analisis program kode mesin mesin."
-
-#. {ph0}: <a href="../get-started/#native">
-#. {ph1}: </a>
-#: website/public/faq/index.html:360
-#, python-brace-format
-msgctxt "page:faq/index.html"
-msgid ""
-"Connect your existing Ghidra or IDA installation, or let setup detect Hopper"
-" and propose an installation. Your host and target determine which provider "
-"can be used. {ph0}Set up native analysis{ph1}."
-msgstr ""
-"Hubungkan instalasi Ghidra atau IDA Anda yang sudah ada, atau biarkan setup "
-"mendeteksi Hopper dan usulkan instalasi. Host dan target Anda menentukan "
-"penyedia mana yang dapat digunakan. {ph0}Menyiapkan analisis program kode "
-"mesin{ph1}."
-
 #: website/public/faq/index.html:368
 msgctxt "page:faq/index.html"
 msgid "Can I use REA without a coding agent?"
@@ -2704,25 +2674,6 @@ msgstr ""
 "Tinjau rencananya dan mulai ulang klien. Jika pendaftaran sehat tetapi alat "
 "tetap tidak ada, periksa kesalahan koneksi MCP klien. {ph0}Lebih banyak "
 "diagnostik pengaturan{ph1}."
-
-#: website/public/faq/index.html:502
-msgctxt "page:faq/index.html"
-msgid "Do I need to start Hopper first?"
-msgstr "Apakah saya harus memulai Hopper terlebih dahulu?"
-
-#. {ph0}: <a href="../get-started/#native">
-#. {ph1}: </a >
-#: website/public/faq/index.html:503
-#, python-brace-format
-msgctxt "page:faq/index.html"
-msgid ""
-"REA starts Hopper when an operation needs it. On macOS, complete the first-"
-"run choice of demo mode or license activation before unattended analysis. "
-"{ph0}See native provider setup{ph1}."
-msgstr ""
-"REA memulai Hopper saat operasi membutuhkannya. Pada macOS, selesaikan "
-"pilihan mode demo atau aktivasi lisensi yang dijalankan pertama kali sebelum"
-" analisis tanpa pengawasan. {ph0}Lihat penyiapan penyedia asli{ph1}."
 
 #: website/public/faq/index.html:512
 msgctxt "page:faq/index.html"
@@ -3672,34 +3623,12 @@ msgctxt "page:get-started/index.html"
 msgid "Connect Ghidra on Windows"
 msgstr "Hubungkan Ghidra di Windows"
 
-#: website/public/get-started/index.html:1159
-msgctxt "page:get-started/index.html"
-msgid ""
-"Windows x64 has experimental, read-only support for native x86 and x64 PE "
-"applications and DLLs on fixed local NTFS drives. Use an existing Ghidra "
-"12.1.x installation and a 64-bit JDK 21 or newer:"
-msgstr ""
-"Windows x64 memiliki dukungan eksperimental hanya-baca untuk aplikasi dan "
-"DLL native x86 dan x64 berformat PE pada drive NTFS lokal tetap. Gunakan "
-"instalasi Ghidra 12.1.x yang sudah ada dan JDK 64-bit versi 21 atau lebih "
-"baru:"
-
 #: website/public/get-started/index.html:1182
 msgctxt "page:get-started/index.html"
 msgid ""
 "Replace the two paths with your installations, then review setup's plan."
 msgstr ""
 "Ganti kedua jalur dengan penginstalan Anda, lalu tinjau paket penyiapan."
-
-#: website/public/get-started/index.html:1061
-msgctxt "page:get-started/index.html"
-msgid ""
-"Connect Hopper on macOS or Linux. Run the setup command above; it detects an"
-" existing installation or offers an installation plan for your approval."
-msgstr ""
-"Hubungkan Hopper ke macOS atau Linux . Jalankan perintah pengaturan di atas;"
-" itu mendeteksi instalasi yang ada atau menawarkan rencana instalasi untuk "
-"persetujuan Anda."
 
 #: website/public/get-started/index.html:1725
 msgctxt "page:get-started/index.html"
@@ -5192,43 +5121,6 @@ msgstr ""
 msgctxt "page:guides/native/index.html"
 msgid "Ask about the behavior"
 msgstr "Tanyakan tentang perilakunya"
-
-#. {ph0}: <a href="../../get-started/#agent" >
-#. {ph1}: </a >
-#. {ph2}: <a href="../../get-started/#native" >
-#. {ph3}: </a >
-#: website/public/guides/native/index.html:302
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"After {ph0}connecting REA to your agent{ph1} and {ph2}setting up a native "
-"analysis tool{ph3}, provide the local executable and a question:"
-msgstr ""
-"Setelah {ph0}menghubungkan REA ke agen Anda{ph1} dan {ph2}menyiapkan alat "
-"analisis program kode mesin{ph3}, berikan executable lokal dan pertanyaan:"
-
-#: website/public/guides/native/index.html:313
-msgctxt "page:guides/native/index.html"
-msgid "Which analysis tool should I use?"
-msgstr "Alat analisis mana yang harus saya gunakan?"
-
-#: website/public/guides/native/index.html:314
-msgctxt "page:guides/native/index.html"
-msgid "REA needs one of these to read native programs:"
-msgstr "REA membutuhkan salah satunya untuk membaca program asli:"
-
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:323
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"{ph0}Ghidra{ph1} (macOS or Linux; experimental on Windows): free, but needs "
-"an existing Ghidra 12.1.x installation and a 64-bit JDK 21 or newer."
-msgstr ""
-"{ph0} Ghidra {ph1} ( macOS atau Linux; eksperimental pada Windows): gratis, "
-"tetapi membutuhkan Ghidra 12.1 yang sudah ada.instalasi x dan JDK 64-bit 21 "
-"atau yang lebih baru."
 
 #. {ph0}: <a href="../../get-started/#native">
 #. {ph1}: </a>
@@ -13586,15 +13478,6 @@ msgstr ""
 "MCP adalah koneksi yang memungkinkan agen memanggil REA. Skill memberinya "
 "alur kerja untuk menyelidiki perangkat lunak."
 
-#: website/public/get-started/index.html:873
-msgctxt "page:get-started/index.html"
-msgid ""
-"For the first exercise, you can skip the optional Hopper installation. "
-"Restart your client when setup finishes."
-msgstr ""
-"Untuk latihan pertama, kamu bisa melewati instalasi Hopper yang opsional. "
-"Mulai ulang aplikasi agen setelah penyiapan selesai."
-
 #. {ph0}: <code>codex</code>
 #. {ph1}: <code>"healthy": true</code>
 #: website/public/get-started/index.html:906
@@ -13740,84 +13623,15 @@ msgstr ""
 "Pilih bagian untuk targetmu. Penyedia analisis adalah alat lokal yang "
 "digunakan REA untuk jenis perangkat lunak tersebut."
 
-#: website/public/get-started/index.html:1019
-msgctxt "page:get-started/index.html"
-msgid "Native executables and libraries · Hopper, Ghidra or IDA"
-msgstr "Program dan pustaka native · Hopper, Ghidra, atau IDA"
-
-#: website/public/get-started/index.html:1022
-msgctxt "page:get-started/index.html"
-msgid ""
-"Install one analysis tool on the computer running REA. The host is your "
-"operating system; the target is the program you want to inspect."
-msgstr ""
-"Instal satu alat analisis di komputer yang menjalankan REA. Host adalah "
-"sistem operasimu; target adalah program yang ingin kamu periksa."
-
 #: website/public/get-started/index.html:1031
 msgctxt "page:get-started/index.html"
 msgid "Provider"
 msgstr "Penyedia analisis"
 
-#: website/public/get-started/index.html:1040
-msgctxt "page:get-started/index.html"
-msgid "Unavailable"
-msgstr "Tidak tersedia"
-
 #: website/public/get-started/index.html:1046
 msgctxt "page:get-started/index.html"
 msgid "x64 · experimental"
 msgstr "x64 · eksperimental"
-
-#: website/public/get-started/index.html:1052
-msgctxt "page:get-started/index.html"
-msgid "Verified profiles"
-msgstr "Profil yang sudah diverifikasi"
-
-#: website/public/get-started/index.html:1053
-msgctxt "page:get-started/index.html"
-msgid "Verified headless profile"
-msgstr "Profil tanpa antarmuka grafis yang sudah diverifikasi"
-
-#: website/public/get-started/index.html:1054
-msgctxt "page:get-started/index.html"
-msgid "See provider guide"
-msgstr "Lihat panduan penyedia analisis"
-
-#: website/public/get-started/index.html:1060
-msgctxt "page:get-started/index.html"
-msgid "Hopper · let setup install or connect it"
-msgstr "Hopper · biarkan penyiapan menginstal atau menghubungkannya"
-
-#: website/public/get-started/index.html:1066
-msgctxt "page:get-started/index.html"
-msgid ""
-"Choose Hopper in setup and review its separate installation plan. On macOS, "
-"choose demo mode or activate your license when Hopper first opens. On Linux,"
-" setup prepares the supported demo and its private display."
-msgstr ""
-"Pilih Hopper saat penyiapan dan tinjau rencana instalasinya yang terpisah. "
-"Di macOS, pilih mode demo atau aktifkan lisensi saat Hopper pertama kali "
-"dibuka. Di Linux, penyiapan menyiapkan demo yang didukung beserta tampilan "
-"privatnya."
-
-#: website/public/get-started/index.html:1094
-msgctxt "page:get-started/index.html"
-msgid ""
-"If macOS asks for Automation permission, allow the app that starts REA in "
-"System Settings → Privacy & Security → Automation, then retry."
-msgstr ""
-"Jika macOS meminta izin Automation, izinkan aplikasi yang menjalankan REA di"
-" System Settings → Privacy & Security → Automation, lalu coba lagi."
-
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/getting-
-#. started/installation.md#hopper" >
-#. {ph1}: </a >
-#: website/public/get-started/index.html:1099
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid "{ph0}Hopper setup and troubleshooting{ph1}"
-msgstr "{ph0}Penyiapan Hopper dan pemecahan masalah{ph1}"
 
 #: website/public/get-started/index.html:1107
 msgctxt "page:get-started/index.html"
@@ -13908,64 +13722,6 @@ msgid ""
 msgstr ""
 "{ph0}Penyiapan Ghidra dan kebutuhan arsitektur{ph1} · {ph2}Panduan Ghidra "
 "untuk Windows{ph3}"
-
-#: website/public/get-started/index.html:1271
-msgctxt "page:get-started/index.html"
-msgid "IDA · connect an existing installation"
-msgstr "IDA · hubungkan instalasi yang sudah ada"
-
-#: website/public/get-started/index.html:1272
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use the IDA provider guide to prepare an upstream MCP registration. Choose "
-"an attached GUI with the original binary open, or a headless supervisor that"
-" opens a private database."
-msgstr ""
-"Gunakan panduan penyedia IDA untuk menyiapkan registrasi MCP server "
-"upstream. Pilih GUI terhubung dengan berkas biner asli terbuka, atau "
-"supervisor tanpa antarmuka grafis yang membuka basis data privat."
-
-#: website/public/get-started/index.html:1277
-msgctxt "page:get-started/index.html"
-msgid ""
-"Verified profiles include the Windows legacy GUI and headless supervisor, "
-"plus a macOS arm64 headless supervisor with IDA Professional 9.1. The "
-"optional native GUI bridge has its own version and platform requirements."
-msgstr ""
-"Profil yang sudah diverifikasi mencakup GUI legacy dan supervisor tanpa "
-"antarmuka grafis di Windows, serta supervisor tanpa antarmuka grafis di "
-"macOS arm64 dengan IDA Professional 9.1. Bridge GUI native yang opsional "
-"memiliki kebutuhan versi dan platform sendiri."
-
-#: website/public/get-started/index.html:1372
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use the JSON registration file you prepared with the provider guide, then "
-"rerun setup and restart your agent."
-msgstr ""
-"Gunakan berkas registrasi JSON yang kamu siapkan dengan panduan penyedia, "
-"lalu jalankan kembali penyiapan dan mulai ulang agenmu."
-
-#. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/providers/ida-
-#. provider.md" >
-#. {ph1}: </a >
-#: website/public/get-started/index.html:1376
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid "{ph0}IDA profiles, registration examples and verified platforms{ph1}"
-msgstr ""
-"{ph0}Profil IDA, contoh registrasi, dan platform yang sudah "
-"diverifikasi{ph1}"
-
-#: website/public/get-started/index.html:1384
-msgctxt "page:get-started/index.html"
-msgid ""
-"Once connected, give your agent the original executable's full path and name"
-" your provider:"
-msgstr ""
-"Setelah terhubung, berikan jalur lengkap berkas program asli kepada agen dan"
-" sebutkan penyedia analisismu:"
 
 #. {ph0}: <a href="../guides/native/">
 #. {ph1}: </a>
@@ -14301,55 +14057,6 @@ msgstr ""
 msgctxt "page:get-started/index.html"
 msgid "OpenCode · choose an AI model"
 msgstr "OpenCode · pilih model AI"
-
-#: website/public/get-started/index.html:1299
-msgctxt "page:get-started/index.html"
-msgid "Prepare the IDA registration file"
-msgstr "Siapkan berkas registrasi IDA"
-
-#. {ph0}: <code>ida-mcp.json</code>
-#. {ph1}: <code>.txt</code>
-#: website/public/get-started/index.html:1300
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"Install and configure the upstream server using the IDA guide below. Then "
-"save its working registration as {ph0} in a text editor. On Windows, choose "
-"“All files” when saving in Notepad so it doesn't add {ph1}."
-msgstr ""
-"Instal dan konfigurasikan server upstream menggunakan panduan IDA di bawah. "
-"Lalu simpan registrasinya yang sudah berfungsi sebagai {ph0} dalam editor "
-"teks. Di Windows, pilih “All files” saat menyimpan di Notepad agar tidak "
-"menambahkan {ph1}."
-
-#. {ph0}: <code>idb_open</code>
-#. {ph1}: <code>idb_list</code>
-#. {ph2}: <code>idb_close</code>
-#: website/public/get-started/index.html:1307
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"For a headless supervisor providing {ph0}, {ph1} and {ph2}, the file can "
-"look like this:"
-msgstr ""
-"Untuk supervisor tanpa antarmuka grafis yang menyediakan {ph0}, {ph1}, dan "
-"{ph2}, berkasnya bisa seperti ini:"
-
-#. {ph0}: <code>command</code>
-#. {ph1}: <code>args</code>
-#. {ph2}: <code>env</code>
-#: website/public/get-started/index.html:1330
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"For an attached legacy 1.4.0 GUI server, copy its working {ph0}, {ph1} and "
-"optional {ph2} into the file. Open the original binary in IDA and start its "
-"upstream plugin before asking REA to inspect it."
-msgstr ""
-"Untuk server GUI legacy 1.4.0 yang terhubung, salin {ph0}, {ph1}, dan {ph2} "
-"opsional dari registrasinya yang sudah berfungsi ke berkas. Buka berkas "
-"biner asli di IDA dan mulai plugin upstream-nya sebelum meminta REA "
-"memeriksanya."
 
 #: website/public/get-started/index.html:1499
 msgctxt "page:get-started/index.html"
@@ -14880,36 +14587,6 @@ msgstr ""
 "Ikuti petunjuk penyiapan untuk menghubungkan agenmu. Jika petunjuknya tidak "
 "muncul, jalankan {ph0}."
 
-#. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
-#. setup" >
-#. {ph1}: </a >
-#. {ph2}: <code>6.4.0</code>
-#: website/public/get-started/index.html:1283
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"The macOS headless profile and native GUI bridge require a {ph0}REA source "
-"build{ph1} or a release containing those changes. npm {ph2} does not include"
-" them."
-msgstr ""
-"Profil tanpa antarmuka macOS dan penghubung GUI native memerlukan {ph0}REA "
-"yang dibangun dari kode sumber{ph1} atau rilis yang memuat perubahan ini. "
-"npm {ph2} belum memuatnya."
-
-#. {ph0}: <code>node scripts/rea.mjs doctor --provider ida --json</code>
-#. {ph1}: <code>node scripts/rea.mjs setup</code>
-#. {ph2}: <code>npx</code>
-#: website/public/get-started/index.html:1292
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"From the built checkout, run {ph0} and {ph1} instead of the {ph2} commands "
-"below."
-msgstr ""
-"Dari direktori kode sumber yang sudah dibangun, jalankan {ph0} dan {ph1} "
-"alih-alih perintah {ph2} di bawah."
-
 #. {ph0}: <code>rea</code>
 #. {ph1}: <code>"$HOME/.local/bin/rea" setup</code>
 #: website/public/get-started/index.html:1716
@@ -14921,19 +14598,6 @@ msgid ""
 msgstr ""
 "Jika shell tidak menemukan {ph0}, gunakan jalur file eksekusi yang "
 "ditampilkan installer. Di Linux, perintah penyiapan default adalah {ph1}."
-
-#. {ph0}: <code>/absolute/path/to/program</code>
-#: website/public/get-started/index.html:1389
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use REA with my configured provider to inspect {ph0}. List its functions and"
-" strings, then explain the part that handles user input with references to "
-"the code."
-msgstr ""
-"Gunakan REA dengan alat analisis yang sudah saya konfigurasikan untuk "
-"memeriksa {ph0}. Daftarkan fungsi dan string-nya, lalu jelaskan bagian yang "
-"menangani input pengguna dengan referensi ke kode."
 
 #: website/public/blog/index.html:244
 #: website/public/blog/reverse-engineering-models/index.html:883
@@ -15840,22 +15504,6 @@ msgid ""
 "later. {ph7} requires npm 6.8.0 or later."
 msgstr ""
 
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:328
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"{ph0}IDA{ph1} (Windows; macOS arm64 headless): use an existing IDA setup "
-"with an MCP registration. The macOS headless profile requires a source build"
-" or a release that includes it."
-msgstr ""
-
-#: website/public/get-started/index.html:1042
-msgctxt "page:get-started/index.html"
-msgid "x86_64 installer on supported distributions"
-msgstr ""
-
 #. {ph0}: <a href="../../get-started/">
 #. {ph1}: </a>
 #. {ph2}: <a
@@ -15873,27 +15521,406 @@ msgid ""
 "another option."
 msgstr ""
 
-#: website/public/get-started/index.html:1072
-msgctxt "page:get-started/index.html"
-msgid ""
-"Automated Linux setup requires an x86_64 host running Ubuntu 24.04+, Fedora "
-"41+, Nobara 44+, Arch Linux, CachyOS or Omarchy. An existing Hopper launcher"
-" can also be configured on other supported Linux distributions. On Linux "
-"arm64, use Ghidra. Hopper is commercial software; its demo has vendor-"
-"defined limits."
+#: website/public/faq/index.html:356
+msgctxt "page:faq/index.html"
+msgid "When do I need Ghidra?"
 msgstr ""
 
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:316
+#: website/public/faq/index.html:357
+msgctxt "page:faq/index.html"
+msgid ""
+"REA uses Ghidra for deep native analysis. Static JavaScript and .NET "
+"inspection work with the supplied files."
+msgstr ""
+
+#. {ph0}: <a href="../get-started/#native">
+#. {ph1}: </a>
+#: website/public/faq/index.html:361
+#, python-brace-format
+msgctxt "page:faq/index.html"
+msgid ""
+"Point REA at your Ghidra installation. Your host and target determine which "
+"Ghidra operations are available. {ph0}Set up native analysis{ph1}."
+msgstr ""
+
+#: website/public/faq/index.html:502
+msgctxt "page:faq/index.html"
+msgid "Do I need to start Ghidra first?"
+msgstr ""
+
+#. {ph0}: <a href="../get-started/#native">
+#. {ph1}: </a >
+#: website/public/faq/index.html:503
+#, python-brace-format
+msgctxt "page:faq/index.html"
+msgid ""
+"REA starts Ghidra in headless mode when an operation needs it. {ph0}See "
+"native provider setup{ph1}."
+msgstr ""
+
+#: website/public/get-started/index.html:875
+msgctxt "page:get-started/index.html"
+msgid ""
+"Restart your client when setup finishes. The first exercise uses static "
+"JavaScript analysis and runs without Ghidra."
+msgstr ""
+
+#: website/public/get-started/index.html:1021
+msgctxt "page:get-started/index.html"
+msgid "Native executables and libraries · Ghidra"
+msgstr ""
+
+#: website/public/get-started/index.html:1022
+msgctxt "page:get-started/index.html"
+msgid ""
+"Install Ghidra on the computer running REA. The host is your operating "
+"system. The target is the program you want to inspect."
+msgstr ""
+
+#: website/public/get-started/index.html:1209
+msgctxt "page:get-started/index.html"
+msgid ""
+"Once connected, give your agent the original executable's full path and a "
+"question about the program."
+msgstr ""
+
+#. {ph0}: <code>/absolute/path/to/program</code>
+#: website/public/get-started/index.html:1214
+#, python-brace-format
+msgctxt "page:get-started/index.html"
+msgid ""
+"Use REA to inspect {ph0}. List its functions and strings, then explain the "
+"part that handles user input with references to the code."
+msgstr ""
+
+#. {ph0}: <a href="../../get-started/#agent" >
+#. {ph1}: </a >
+#. {ph2}: <a href="../../get-started/#native">
+#. {ph3}: </a>
+#: website/public/guides/native/index.html:304
 #, python-brace-format
 msgctxt "page:guides/native/index.html"
 msgid ""
-"{ph0}Hopper{ph1} (macOS or Linux): REA's setup detects it or offers to "
-"install it. On macOS, open Hopper once and choose demo mode or activate a "
-"license before your first analysis. Automated Linux setup requires x86_64; "
-"use Ghidra on Linux arm64."
+"After {ph0}connecting REA to your agent{ph1} and {ph2}setting up "
+"Ghidra{ph3}, provide the local executable and a question:"
 msgstr ""
+
+#: website/public/guides/native/index.html:314
+msgctxt "page:guides/native/index.html"
+msgid "What does Ghidra require?"
+msgstr ""
+
+#: website/public/get-started/index.html:1099
+msgctxt "page:get-started/index.html"
+msgid ""
+"Windows x64 has experimental, read-only support for native x86 and x64 PE "
+"applications and DLLs on fixed local NTFS drives. This example uses Ghidra "
+"12.1.4 and a 64-bit JDK 21:"
+msgstr ""
+
+#: website/public/guides/native/index.html:315
+msgctxt "page:guides/native/index.html"
+msgid ""
+"REA uses a local Ghidra installation and the 64-bit JDK required by that "
+"release. Ghidra support is experimental on Windows."
+msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Windows x64 has experimental, read-only support for native x86 and x64 PE "
+#~ "applications and DLLs on fixed local NTFS drives. Use an existing Ghidra "
+#~ "12.1.x installation and a 64-bit JDK 21 or newer:"
+#~ msgstr ""
+#~ "Windows x64 memiliki dukungan eksperimental hanya-baca untuk aplikasi dan "
+#~ "DLL native x86 dan x64 berformat PE pada drive NTFS lokal tetap. Gunakan "
+#~ "instalasi Ghidra 12.1.x yang sudah ada dan JDK 64-bit versi 21 atau lebih "
+#~ "baru:"
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid "Do I need Hopper, Ghidra or IDA?"
+#~ msgstr "Apakah saya memerlukan Hopper, Ghidra atau IDA ?"
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "Deep native analysis uses one of them. Static JavaScript and .NET inspection"
+#~ " work with the supplied files and do not need a native analysis engine."
+#~ msgstr ""
+#~ "Analisis mendalam terhadap program kode mesin menggunakan salah satunya. "
+#~ "Pemeriksaan JavaScript dan. NET statis bekerja dengan file yang disediakan "
+#~ "dan tidak memerlukan analisis program kode mesin mesin."
+
+#, python-brace-format
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "Connect your existing Ghidra or IDA installation, or let setup detect Hopper"
+#~ " and propose an installation. Your host and target determine which provider "
+#~ "can be used. {ph0}Set up native analysis{ph1}."
+#~ msgstr ""
+#~ "Hubungkan instalasi Ghidra atau IDA Anda yang sudah ada, atau biarkan setup "
+#~ "mendeteksi Hopper dan usulkan instalasi. Host dan target Anda menentukan "
+#~ "penyedia mana yang dapat digunakan. {ph0}Menyiapkan analisis program kode "
+#~ "mesin{ph1}."
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid "Do I need to start Hopper first?"
+#~ msgstr "Apakah saya harus memulai Hopper terlebih dahulu?"
+
+#, python-brace-format
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "REA starts Hopper when an operation needs it. On macOS, complete the first-"
+#~ "run choice of demo mode or license activation before unattended analysis. "
+#~ "{ph0}See native provider setup{ph1}."
+#~ msgstr ""
+#~ "REA memulai Hopper saat operasi membutuhkannya. Pada macOS, selesaikan "
+#~ "pilihan mode demo atau aktivasi lisensi yang dijalankan pertama kali sebelum"
+#~ " analisis tanpa pengawasan. {ph0}Lihat penyiapan penyedia asli{ph1}."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Connect Hopper on macOS or Linux. Run the setup command above; it detects an"
+#~ " existing installation or offers an installation plan for your approval."
+#~ msgstr ""
+#~ "Hubungkan Hopper ke macOS atau Linux . Jalankan perintah pengaturan di atas;"
+#~ " itu mendeteksi instalasi yang ada atau menawarkan rencana instalasi untuk "
+#~ "persetujuan Anda."
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "After {ph0}connecting REA to your agent{ph1} and {ph2}setting up a native "
+#~ "analysis tool{ph3}, provide the local executable and a question:"
+#~ msgstr ""
+#~ "Setelah {ph0}menghubungkan REA ke agen Anda{ph1} dan {ph2}menyiapkan alat "
+#~ "analisis program kode mesin{ph3}, berikan executable lokal dan pertanyaan:"
+
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid "Which analysis tool should I use?"
+#~ msgstr "Alat analisis mana yang harus saya gunakan?"
+
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid "REA needs one of these to read native programs:"
+#~ msgstr "REA membutuhkan salah satunya untuk membaca program asli:"
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}Ghidra{ph1} (macOS or Linux; experimental on Windows): free, but needs "
+#~ "an existing Ghidra 12.1.x installation and a 64-bit JDK 21 or newer."
+#~ msgstr ""
+#~ "{ph0} Ghidra {ph1} ( macOS atau Linux; eksperimental pada Windows): gratis, "
+#~ "tetapi membutuhkan Ghidra 12.1 yang sudah ada.instalasi x dan JDK 64-bit 21 "
+#~ "atau yang lebih baru."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For the first exercise, you can skip the optional Hopper installation. "
+#~ "Restart your client when setup finishes."
+#~ msgstr ""
+#~ "Untuk latihan pertama, kamu bisa melewati instalasi Hopper yang opsional. "
+#~ "Mulai ulang aplikasi agen setelah penyiapan selesai."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Native executables and libraries · Hopper, Ghidra or IDA"
+#~ msgstr "Program dan pustaka native · Hopper, Ghidra, atau IDA"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Install one analysis tool on the computer running REA. The host is your "
+#~ "operating system; the target is the program you want to inspect."
+#~ msgstr ""
+#~ "Instal satu alat analisis di komputer yang menjalankan REA. Host adalah "
+#~ "sistem operasimu; target adalah program yang ingin kamu periksa."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Unavailable"
+#~ msgstr "Tidak tersedia"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Verified profiles"
+#~ msgstr "Profil yang sudah diverifikasi"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Verified headless profile"
+#~ msgstr "Profil tanpa antarmuka grafis yang sudah diverifikasi"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "See provider guide"
+#~ msgstr "Lihat panduan penyedia analisis"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Hopper · let setup install or connect it"
+#~ msgstr "Hopper · biarkan penyiapan menginstal atau menghubungkannya"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Choose Hopper in setup and review its separate installation plan. On macOS, "
+#~ "choose demo mode or activate your license when Hopper first opens. On Linux,"
+#~ " setup prepares the supported demo and its private display."
+#~ msgstr ""
+#~ "Pilih Hopper saat penyiapan dan tinjau rencana instalasinya yang terpisah. "
+#~ "Di macOS, pilih mode demo atau aktifkan lisensi saat Hopper pertama kali "
+#~ "dibuka. Di Linux, penyiapan menyiapkan demo yang didukung beserta tampilan "
+#~ "privatnya."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "If macOS asks for Automation permission, allow the app that starts REA in "
+#~ "System Settings → Privacy & Security → Automation, then retry."
+#~ msgstr ""
+#~ "Jika macOS meminta izin Automation, izinkan aplikasi yang menjalankan REA di"
+#~ " System Settings → Privacy & Security → Automation, lalu coba lagi."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "{ph0}Hopper setup and troubleshooting{ph1}"
+#~ msgstr "{ph0}Penyiapan Hopper dan pemecahan masalah{ph1}"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "IDA · connect an existing installation"
+#~ msgstr "IDA · hubungkan instalasi yang sudah ada"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use the IDA provider guide to prepare an upstream MCP registration. Choose "
+#~ "an attached GUI with the original binary open, or a headless supervisor that"
+#~ " opens a private database."
+#~ msgstr ""
+#~ "Gunakan panduan penyedia IDA untuk menyiapkan registrasi MCP server "
+#~ "upstream. Pilih GUI terhubung dengan berkas biner asli terbuka, atau "
+#~ "supervisor tanpa antarmuka grafis yang membuka basis data privat."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Verified profiles include the Windows legacy GUI and headless supervisor, "
+#~ "plus a macOS arm64 headless supervisor with IDA Professional 9.1. The "
+#~ "optional native GUI bridge has its own version and platform requirements."
+#~ msgstr ""
+#~ "Profil yang sudah diverifikasi mencakup GUI legacy dan supervisor tanpa "
+#~ "antarmuka grafis di Windows, serta supervisor tanpa antarmuka grafis di "
+#~ "macOS arm64 dengan IDA Professional 9.1. Bridge GUI native yang opsional "
+#~ "memiliki kebutuhan versi dan platform sendiri."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use the JSON registration file you prepared with the provider guide, then "
+#~ "rerun setup and restart your agent."
+#~ msgstr ""
+#~ "Gunakan berkas registrasi JSON yang kamu siapkan dengan panduan penyedia, "
+#~ "lalu jalankan kembali penyiapan dan mulai ulang agenmu."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "{ph0}IDA profiles, registration examples and verified platforms{ph1}"
+#~ msgstr ""
+#~ "{ph0}Profil IDA, contoh registrasi, dan platform yang sudah "
+#~ "diverifikasi{ph1}"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Once connected, give your agent the original executable's full path and name"
+#~ " your provider:"
+#~ msgstr ""
+#~ "Setelah terhubung, berikan jalur lengkap berkas program asli kepada agen dan"
+#~ " sebutkan penyedia analisismu:"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Prepare the IDA registration file"
+#~ msgstr "Siapkan berkas registrasi IDA"
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Install and configure the upstream server using the IDA guide below. Then "
+#~ "save its working registration as {ph0} in a text editor. On Windows, choose "
+#~ "“All files” when saving in Notepad so it doesn't add {ph1}."
+#~ msgstr ""
+#~ "Instal dan konfigurasikan server upstream menggunakan panduan IDA di bawah. "
+#~ "Lalu simpan registrasinya yang sudah berfungsi sebagai {ph0} dalam editor "
+#~ "teks. Di Windows, pilih “All files” saat menyimpan di Notepad agar tidak "
+#~ "menambahkan {ph1}."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For a headless supervisor providing {ph0}, {ph1} and {ph2}, the file can "
+#~ "look like this:"
+#~ msgstr ""
+#~ "Untuk supervisor tanpa antarmuka grafis yang menyediakan {ph0}, {ph1}, dan "
+#~ "{ph2}, berkasnya bisa seperti ini:"
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For an attached legacy 1.4.0 GUI server, copy its working {ph0}, {ph1} and "
+#~ "optional {ph2} into the file. Open the original binary in IDA and start its "
+#~ "upstream plugin before asking REA to inspect it."
+#~ msgstr ""
+#~ "Untuk server GUI legacy 1.4.0 yang terhubung, salin {ph0}, {ph1}, dan {ph2} "
+#~ "opsional dari registrasinya yang sudah berfungsi ke berkas. Buka berkas "
+#~ "biner asli di IDA dan mulai plugin upstream-nya sebelum meminta REA "
+#~ "memeriksanya."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "The macOS headless profile and native GUI bridge require a {ph0}REA source "
+#~ "build{ph1} or a release containing those changes. npm {ph2} does not include"
+#~ " them."
+#~ msgstr ""
+#~ "Profil tanpa antarmuka macOS dan penghubung GUI native memerlukan {ph0}REA "
+#~ "yang dibangun dari kode sumber{ph1} atau rilis yang memuat perubahan ini. "
+#~ "npm {ph2} belum memuatnya."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "From the built checkout, run {ph0} and {ph1} instead of the {ph2} commands "
+#~ "below."
+#~ msgstr ""
+#~ "Dari direktori kode sumber yang sudah dibangun, jalankan {ph0} dan {ph1} "
+#~ "alih-alih perintah {ph2} di bawah."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use REA with my configured provider to inspect {ph0}. List its functions and"
+#~ " strings, then explain the part that handles user input with references to "
+#~ "the code."
+#~ msgstr ""
+#~ "Gunakan REA dengan alat analisis yang sudah saya konfigurasikan untuk "
+#~ "memeriksa {ph0}. Daftarkan fungsi dan string-nya, lalu jelaskan bagian yang "
+#~ "menangani input pengguna dengan referensi ke kode."
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}IDA{ph1} (Windows; macOS arm64 headless): use an existing IDA setup "
+#~ "with an MCP registration. The macOS headless profile requires a source build"
+#~ " or a release that includes it."
+#~ msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "x86_64 installer on supported distributions"
+#~ msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Automated Linux setup requires an x86_64 host running Ubuntu 24.04+, Fedora "
+#~ "41+, Nobara 44+, Arch Linux, CachyOS or Omarchy. An existing Hopper launcher"
+#~ " can also be configured on other supported Linux distributions. On Linux "
+#~ "arm64, use Ghidra. Hopper is commercial software; its demo has vendor-"
+#~ "defined limits."
+#~ msgstr ""
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}Hopper{ph1} (macOS or Linux): REA's setup detects it or offers to "
+#~ "install it. On macOS, open Hopper once and choose demo mode or activate a "
+#~ "license before your first analysis. Automated Linux setup requires x86_64; "
+#~ "use Ghidra on Linux arm64."
+#~ msgstr ""
 
 #~ msgctxt "page:get-started/index.html"
 #~ msgid ""

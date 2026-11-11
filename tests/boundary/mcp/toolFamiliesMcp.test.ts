@@ -91,9 +91,7 @@ const sessionWithDirectOperations = () => {
             {
               operations: [
                 "open_binary",
-                "get_navigation_context",
-                "current_document",
-                "current_address",
+                "list_documents",
                 "resolve_containing_procedure",
                 "inspect_macho",
               ],
@@ -124,7 +122,7 @@ interface SessionReport {
       readonly names: readonly string[];
       readonly available: boolean;
       readonly reason: string | null;
-      readonly default_mode_available?: boolean;
+      readonly effects?: readonly string[];
     }[];
   };
 }
@@ -325,8 +323,8 @@ it.each([
 );
 
 describe("MCP tool family availability", () => {
-  it("reports only advertised operations without erasing composed availability", async () => {
-    // `session` advertises `get_navigation_context`, while `direct` owns the
+  it("reports only advertised operations without erasing composed effects", async () => {
+    // `session` advertises `inspect_address_context`, while `direct` owns the
     // operations its default mode composes.
     const server = scopedServer(new Set(["session"]));
     registerSessionStatusTool({
@@ -347,7 +345,7 @@ describe("MCP tool family availability", () => {
     await withClient(server, async (client) => {
       const result = await client.callTool({
         name: "binary_session",
-        arguments: {},
+        arguments: { detail: "complete" },
       });
       expect(result.isError, JSON.stringify(result)).not.toBe(true);
       content = jsonObjectSchema.parse(
@@ -360,16 +358,15 @@ describe("MCP tool family availability", () => {
     const reported = report?.capabilities
       ?.flatMap((set) => set.groups.flatMap(({ operations }) => operations))
       .sort();
-    expect(reported).toEqual(["get_navigation_context", "open_binary"]);
-    // Availability was built from the complete provider facts: the composed
-    // tool needs operations the public report hides.
+    expect(reported).toEqual(["open_binary"]);
+    // The composed tool inherits effects from direct operations hidden by this scope.
     const available = report?.tool_availability?.groups.find(({ names }) =>
-      names.includes("get_navigation_context"),
+      names.includes("inspect_address_context"),
     );
     expect(available).toMatchObject({
       available: true,
       reason: "available",
-      default_mode_available: true,
+      effects: expect.arrayContaining(["mutatesTarget"]),
     });
   });
 });

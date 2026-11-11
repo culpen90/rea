@@ -182,8 +182,8 @@ it. Incomplete or unreported discovery also remains a residual unknown and an
 unresolved `find_changed_behavior` finding, including when observed sets match.
 A structural reconstruction claim about calls remains unknown unless both
 directions have established static direct-call discovery. An independent
-observed change in another dimension can still fail an overall claim. Ghidra and Hopper declare their observed dossier facets and complete
-provider-observed caller/callee sets, including empty sets. Missing decompiler
+observed change in another dimension can still fail an overall claim. Ghidra
+declares its observed dossier facets and complete provider-observed caller/callee sets, including empty sets. Missing decompiler
 output remains unavailable; complete call coverage does not claim every runtime
 target. When Ghidra's decompiler fails on one function, its dossier is still
 returned: `pseudocode`, `native_api` and `native_value_flow` are unavailable
@@ -194,17 +194,16 @@ can observe backend recovery. Ghidra function dossiers also skip snapshot reuse
 so each new operation honors its accepted value-flow budgets; completed source
 Evidence remains accessible through retained views and bundle export. Other
 healthy provider observations keep their existing cache policy.
-`procedure_pseudo_code` still fails for that function. Hopper's unavailable reference-kind metadata and reported unresolved
-calls still prevent equality conclusions for those dimensions. Analysis profiles
-version these declarations so older snapshots are not reused as current results.
+`procedure_pseudo_code` still fails for that function. Unavailable reference
+metadata and unresolved calls in imported Evidence limit equality conclusions.
+Analysis profiles keep older snapshots from being reused as current results.
 For `strings_names`, a string marked with `decoding.available: false` keeps its
 provider display text in the source Evidence, but that text is not compared as
 decoded content. If no independently known string, name, or literal fact differs,
 the dimension remains `unknown` with the decoding reason. Known content and typed
 string-object differences can establish a change; missing typed metadata remains
 unknown, and `encoding_status` describes provenance rather than content.
-IDA declares the facets its selected adapter cannot provide; an empty
-unsupported array does not prove observed absence.
+An empty unsupported array in older Evidence leaves observed absence unknown.
 Evidence and bundle imports reject unsupported fields in their envelopes,
 identities, manifests and other fixed metadata before authentication. Imports
 leave retained session state unchanged when validation fails. Keep application
@@ -269,14 +268,14 @@ graph, while `search_scope.discovery` describes whether discovery of applicable
 direct relationships is established. A missing goal is `unknown` when either
 discovery or a relationship read is unestablished. A found path is shortest
 within the observed graph; undiscovered calls may produce a shorter path.
-`truncated` describes relationship reads, not unestablished discovery. Ghidra's recorded incoming references do not establish every computed caller; computed outgoing candidates likewise retain unknown callee discovery. IDA function-edge replies retain their observed truncation status while unclassified call targets remain unknown in discovery.
+`truncated` describes relationship reads, not unestablished discovery. Ghidra's recorded incoming references do not establish every computed caller; computed outgoing candidates likewise retain unknown callee discovery.
 `build_call_path` applies the same distinction to supplied function Evidence:
 its `search_scope.exhaustive` describes the supplied graph and
 `search_scope.observed_status` preserves that graph's result. Evidence without
 discovery metadata has unknown discovery. Cancellation remains a tool error.
 
 `trace_feature` validates each reference's containing-procedure resolution using
-the same contract as navigation context. Explicit absence remains a successful
+the same contract as `inspect_address_context`. Explicit absence remains a successful
 negative observation. If the provider reports a non-retryable capability refusal
 attributed to the owner lookup without incomplete cleanup, the reference remains visible
 with `containing_procedure.status: "unavailable"` and a residual unknown. That
@@ -1109,8 +1108,8 @@ availability can still be true; it does not promise that value flow is present.
 The trace's returned observations and unknowns remain authoritative for that call.
 
 `trace_native_ui_action` reports authored-UI and native-seed modes separately.
-Apple dispatch metadata requires a Mach-O target; another provider may supply
-the symbol-only alternative on other formats. If neither mode is available,
+Apple dispatch metadata requires a Mach-O target. Where Ghidra supports a
+target's symbols and references, the native-seed mode is available separately. If neither mode is available,
 read each mode's missing operations and remediation: a remedy for an authored
 app-bundle route does not by itself describe the native-seed route. Availability
 does not guarantee that every selector or provider operation will succeed.
@@ -1137,8 +1136,7 @@ Contracts whose handlers dispatch through that session declare it explicitly.
 Cutter, GDB and Rizin debugger tools use their independent session/input owners,
 so discovery does not ask them to open an unrelated binary. Session tool effects
 also retain the applicable provider composition's UI, process, network and
-filesystem declarations; for example, attached IDA navigation may show UI while
-a headless profile launches a worker. In each
+filesystem declarations. In each
 set, `shared_limitations` is the ordered common prefix; append a group's ordered
 `limitations` suffix to recover each operation's exact limitations. Group
 `effects` arrays use the same true-only closed-vocabulary rule as tool
@@ -1159,25 +1157,24 @@ new analysis profile or start a provider client. Later transitions and analysis
 calls wait for the inspection to finish, including cleanup. Current-route capabilities
 remain those of the bound session. Candidate statuses can still be unknown when
 an inspection cannot complete.
-`open_binary` with an explicit `provider_id` performs a new selection. Reopening
-the same target without `provider_id` reuses its current route. A changed route
-can retire the previous engine and its ephemeral edits. Each candidate's capability sets, returned with complete detail,
-describe that possible provider;
-they do not select it. The top-level `capabilities` describe the current route,
-while `analysis_provider_binding` identifies the concrete selected route. These
-fields are not interchangeable. Target-free discovery is sorted by provider ID,
-reports host availability and `unknown` target support, and does not create an
-analysis client. `open_binary.provider_id` accepts a concrete provider ID or
-`auto`; it uses the same parser and selection policy as CLI `--provider` and
-`REA_ANALYSIS_PROVIDER`. A successful deep open exposes one immutable provider,
-concrete version, selection source, and complete analysis profile through
-`analysis_provider_binding`. Ambiguity and unknown, unavailable, or unsupported
-choices return typed selection details. A selected provider is never replaced
-automatically after a runtime failure. When the bound route does not declare an
-operation, its error points to `binary_session` with `detail: "complete"` for
-candidate capabilities and an explicit `open_binary` provider choice. A
-candidate's availability does not guarantee support for the selected target;
-switching may discard provider session edits, and retained Evidence does not restore them.
+`open_binary` accepts `provider_id: "ghidra"` to require a Ghidra binding.
+An omitted `provider_id` uses the launch setting `REA_ANALYSIS_PROVIDER`,
+which defaults to `"auto"`. In automatic mode, REA uses Ghidra if the
+installation is ready and the target is supported. Otherwise it can open
+an unbound target for static inspection. A later deep analysis request
+reports the readiness or target restriction. Older provider selections return
+typed migration guidance.
+
+An explicit `provider_id` performs a new selection. Reopening the same target
+without it reuses the current route. Changing targets or routes can discard
+ephemeral Ghidra edits, and retained Evidence does not restore them. The
+top-level `capabilities` describe the current route. With complete detail,
+candidate capabilities describe Ghidra's available operations and limitations.
+Target-free discovery reports host readiness and unknown target support
+without starting analysis. A successful Ghidra binding reports its concrete
+version, selection source, and complete profile in
+`analysis_provider_binding`. If an operation is unavailable, inspect
+`binary_session` with `detail: "complete"` and follow the reported remediation.
 
 When the selected provider reports `release_verification` in its binding,
 the status compares its reported release version at binding with the provider's
@@ -1298,19 +1295,16 @@ do not report this hint either, even when their cleanup remains pending.
 
 ## Initial target at startup
 
-MCP normally starts without a target; use `open_binary` to select one during the
-session. To open a target before serving MCP, set `HOPPER_TARGET_PATH` to the
-selected path in REA's launch environment. `HOPPER_TARGET_KIND` accepts
-`executable` (the default) or `database`. Despite the names, these are initial
-session settings; the configured provider still determines how the target is
-opened. If the initial open fails, REA reports the failure and exits with code 1
-without serving MCP. Shutdown during startup cancels and cleans up the open as
-described below.
+MCP normally starts without a target. Use `open_binary` to select one during the
+session, or set `REA_TARGET_PATH` in REA's launch environment to open an
+executable before serving MCP. If the initial open fails, REA reports the
+failure and exits with code 1. Shutdown during startup cancels and cleans up
+the open.
 
 The source-checkout helper `node scripts/print-mcp-config.mjs /path/to/target`
-prints a registration containing these settings; `--kind database` selects the
-database kind. The helper is not part of the installed npm package. `rea setup`
-does not copy these one-shot target settings into generated registrations.
+prints a registration with the initial target. The helper is outside the
+installed npm package. `rea setup` leaves initial-target settings out of
+generated registrations.
 
 ## Transports
 
@@ -1430,7 +1424,7 @@ cleanup status in `message`. A client
 that does not send a progress token receives no progress notifications. The
 tool result is unchanged either way.
 Provider calls receive the request cancellation signal. Artifact traversal,
-hashing, version comparisons, Hopper requests, and process capture
+hashing, version comparisons, Ghidra requests, and process capture
 check the same signal. Cancellation is distinct from timeout. A cleanup failure
 uses `cleanup_incomplete` and lists only the owned resource kinds that remain.
 Once those owners confirm cleanup, composed failures recover their original
@@ -1560,8 +1554,8 @@ REA runs the declared request directly and does not infer a broader target or
 action from it.
 
 REA does not require permission grants or per-call approval flags. Setup still
-prints its plan and requires confirmation before changing configuration or
-installing Hopper. MCP clients control their own confirmation UI.
+prints its plan and requires confirmation before changing configuration. MCP
+clients control their own confirmation UI.
 
 Tool annotations describe effects and are hints, not authorization controls
 ([MCP ToolAnnotations](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations)).
@@ -1584,12 +1578,6 @@ Screen Recording, or native mounting; provider tools require their selected
 analysis runtime. These failures are reported at the operation that needs
 them. A configured provider or an endpoint alone does not establish that a
 target is supported.
-
-Composite Hopper regex searches report failures against the accepted
-`search_strings` or `search_procedures` operation. The underlying inventory
-method and request ID remain in `details.diagnostics.provider_request`, with
-the bridge error code and diagnostic type when available. Reattribution
-preserves the failure class, captured output, and live cleanup ownership.
 
 Evidence bundles, snapshots, and extraction use the paths and output behavior
 declared by their tools. Artifact extraction materializes the selected regular
@@ -1649,15 +1637,15 @@ For implementation ownership, accepted-operation snapshots, provider wiring,
 and extension guidance, see the
 [maintainer design](../design/limits-and-recovery.md#ownership-and-data-flow).
 
-Ghidra and Hopper startup updates apply to the next startup attempt without
+Ghidra startup updates apply to the next startup attempt without
 restarting REA. Ghidra decompile timeout updates apply on the existing Program.
 An operation already accepted retains its original budgets.
 
 ## Ghidra first-query deadlines and recovery
 
 A successful MCP initialize handshake establishes the REA connection.
-`open_binary` then selects a target and provider binding; it does not establish
-that Ghidra has finished importing the target. The first Ghidra-backed query,
+For a supported target, `open_binary` establishes the Ghidra binding before
+any import begins. The first Ghidra-backed query,
 such as `binary_overview`, starts the engine and waits for import, default
 auto-analysis, bridge connection, and health readiness before returning analysis.
 With `REA_GHIDRA_PROJECT_PATH`, shared CLI/MCP configuration instead selects an
@@ -1672,7 +1660,6 @@ These deadlines have different owners:
 | Deadline             | Owner and effect                                                                                                                                                                                                                                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | MCP initialize       | The client bounds transport/REA connection startup, before any target query.                                                                                                                                                                                                                                        |
-| Hopper startup       | REA allows 120,000 ms by default; `REA_HOPPER_STARTUP_TIMEOUT_MS` accepts decimal integers from 1–2,147,483,647 ms. Invalid values fail configuration validation. Startup failure is reported by the first provider query.                                                                                          |
 | Ghidra startup       | REA allows 330,000 ms by default; `REA_GHIDRA_STARTUP_TIMEOUT_MS` accepts decimal integers from 1–2,147,483,647 ms. Invalid supplied values fail configuration validation. Startup failure is reported by the first provider query.                                                                                 |
 | Darwin swiftc helper | REA allows 120,000 ms by default for ownership-helper compilation; `REA_SWIFTC_COMPILE_TIMEOUT_MS` accepts decimal integers from 1–2,147,483,647 ms. Invalid values fail configuration validation. Set it in the environment that starts REA and restart REA; the next ownership-helper compile uses the new value. |
 | Individual tool call | The client bounds its wait, including cold engine startup. The pinned client SDK 2.3.1 defaults to 60,000 ms and can cancel earlier than REA's startup deadline.                                                                                                                                                    |
@@ -1789,28 +1776,22 @@ These operation markers do not measure analysis work completed or extend the
 client's deadline. Each new provider session still imports the target into a
 fresh temporary project.
 
-REA cleans only resources it owns and never switches to another provider
-automatically. A provider timeout, installation failure, or host permission
-denial needs its own reported recovery; increasing a client deadline alone does
+REA cleans only resources it owns. A provider timeout, installation failure,
+or host permission denial needs its own reported recovery; increasing a client deadline alone does
 not fix those failures.
 
 ## Aggregate native context
 
-`get_navigation_context` composes the selected document, current address, and
-current/containing procedure. Its capability inventory exposes a
-`current_selection` mode and an `explicit_document` mode; the latter works when
-the caller supplies `document` and the provider lacks `current_document`. A
-cursor outside a procedure is represented as
-`procedure: null` only after a valid explicit absence result. Malformed
-procedure resolution returns typed unreadable output; provider errors never
-become absence from their message text. `inspect_address_context` requires an explicit address and
-returns name, procedure, comment, inline-comment, and bookmark facets;
-unsupported facets are local `unavailable` outcomes. A facet rejected for
-invalid input, source Evidence integrity or a resource constraint includes its canonical `error`
-projection, including structured issues or reported limits and recovery,
-alongside the other facet outcomes. Use `current_document`,
-`current_address`, and `current_procedure` for direct single-field lookups; use
-the aggregate tools when you need related context together.
+`inspect_address_context` requires an explicit address and returns the
+observed name and containing-procedure facets. An address outside a procedure
+returns explicit absence after a valid provider resolution. Malformed
+procedure output remains a typed failure. Unsupported facets report their
+availability individually, and input, Evidence integrity and resource
+failures carry their projected error alongside the other facet.
+
+Use `list_documents` for the active Ghidra Program and `analyze_function`
+for function entry comments. Where the session allows metadata edits,
+`annotate_native_function` can change those comments.
 
 If unretained facet Evidence makes the context response exceed an MCP delivery
 limit, REA omits those partial records in estimated size order until the reply
@@ -2327,16 +2308,14 @@ commitments retain the exact selected Mach-O image where available and a digest
 of the loader's mapping inputs. They exclude unrelated analysis settings, so
 changing an analyzer option alone does not invalidate coordinate correspondence.
 Equal coordinates in different slices or mappings cannot establish equality.
-Hopper's default executable profile and Ghidra's supported deterministic imports
-publish these commitments. Hopper loader overrides and attached databases, IDA
-profiles, Ghidra universal-image imports without an exact slice commitment, and
-older or imported Evidence without a commitment leave coordinate identity
-unknown. Unparseable coordinates also remain unknown.
+Ghidra's supported deterministic imports publish these commitments.
+Historical Evidence without a commitment leaves coordinate identity unknown.
+Unparseable coordinates also remain unknown.
 
 Across different artifacts, endpoints use nonempty procedure names whose observed
 symbol facts establish a named origin. Dynamic/default symbols and unknown origin
 remain unknown. Ghidra emits the same source/dynamic symbol facts for inventories
-and procedure identities; Hopper, IDA and older imported dossiers without verified
+and procedure identities. Older imported dossiers without verified
 origin facts cannot establish correspondence from display labels. No name-spelling
 rule classifies `EntryPoint` or a `FUN_` prefix as generated. A name observed at
 multiple procedure entries retains its label constraint but cannot establish equal

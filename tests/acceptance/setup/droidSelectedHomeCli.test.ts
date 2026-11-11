@@ -31,7 +31,6 @@ cliTest(
           HOME: home,
           USERPROFILE: home,
           FACTORY_HOME_OVERRIDE: selected,
-          HOPPER_LAUNCHER_PATH: join(home, "missing-hopper"),
           GHIDRA_INSTALL_DIR: join(home, "missing-ghidra"),
           JAVA_HOME: join(home, "missing-java"),
         },

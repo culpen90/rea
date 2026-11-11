@@ -381,114 +381,6 @@ Keep builds/imports sequential on small hosts; scope `GHIDRA_HEADLESS_MAXMEM`
 or upgrade Java, Ghidra, .NET or native toolchains. See
 [the supported layout and provenance](providers/ghidra-nativeaot.md).
 
-## IDA MCP adapter
-
-`npm run verify:ida -- --target /absolute/path/to/program --procedure main`
-uses the existing `REA_IDA_MCP_CONFIG` registration. It installs no engine,
-Python package, or compiler. The target must already be open in the GUI for
-the legacy or native attached profile; the database-supervisor headless profile opens
-a digest-verified private copy. A caller-supplied fixture keeps prerequisites
-limited to the selected engine and host. `tests/conformance/ida/inventory.c`
-provides an optional small native fixture source with exported
-`rea_fixture_add` and `rea_fixture_subtract` functions. For their switching check,
-use `--second-procedure rea_fixture_subtract --second-marker='- 13'`.
-
-The lane invokes the production CLI dispatcher and connects the pinned MCP
-client SDK to the production REA server. It verifies function Evidence and
-CLI/MCP parity, inventory/search, pseudocode, instructions, xrefs, malformed
-input, original-input preservation, and lifecycle cleanup. The headless
-profile also checks containing procedures, the admitted program as the
-document, address context, and feature tracing. For headless
-analysis it confirms that the owned database IDs disappear from upstream
-discovery and private workspaces are removed. For attached analysis it confirms
-the existing GUI target remains reachable with the same input identity.
-`--package-root` selects an installed/extracted REA artifact. `--report` writes
-private local observations with mode `0600`; the console summary contains no
-target paths or upstream output.
-
-Adapter and composition tests cover producer parsing, pagination, canonical
-entries, external callees, target switches, cancellation draining, snapshot
-replay exclusion, ownership failures, and incomplete cleanup. They do not
-establish real IDA operation. The initial real workflows cover legacy upstream
-1.4.0 on a Windows GUI and the modern supervisor at upstream commit
-`c133c3853faa111a9b00ee615c013b720d0c4acd` with Windows x64 IDA 9.3, and the
-headless profile on macOS arm64 with IDA Professional 9.1 (build 9.1.250226)
-at the same upstream commit, using `tests/conformance/ida/inventory.c` built
-with `clang -O0 -arch arm64` and the procedure `_rea_fixture_add` (Mach-O C
-symbols carry a leading underscore). Before the headless session waited out
-the transient `busy` health a worker can report right after opening, that lane
-failed intermittently on that host. Linux headless, modern attached GUI tools,
-other engine versions and architectures remain unverified; see the
-[provider guide](providers/ida-provider.md).
-
-Native IDA MCP verification uses `"protocol": "native"` with an already-running native plugin and requires `--second-procedure other_function --second-marker unique_second_body_text` to exercise GUI function switching and a return to the first function. These options remain optional for other profiles. The literal marker must appear in the second function's pseudocode and be absent from the first. Native cloud/widget failures are reported without hidden retries.
-
-The initial Linux x64 IDA Free 9.4 run used native MCP 1.1.2 with a local navigation correction. Windows x64 verification uses **IDA Pro 9.3**, the two-function public fixture, and the shipped Windows `whoami.exe` application. The native plugin was built from upstream `c9d15d98e8a143fc74f6e14037c48f63889b6d6c`, including the merged navigation fix, with a local loopback-listener change. Production CLI/MCP parity, switching, identity and cleanup passed. Correctness and performance measurements are recorded in the [Windows native verification notes](https://github.com/morluto/rea/blob/a2e2c29b59e8775b0e6aedb09a9eb16adf32646b/experiments/analysis-efficiency/ida-native-windows.md). Stock 1.1.2 switching, native macOS, and Windows IDA Free remain unverified. See the [native bridge prerequisites](providers/ida-provider.md#optional-native-ida-mcp-bridge).
-
-## Kuna lane
-
-`npm run verify:kuna` requires a caller-supplied `kuna` in `REA_KUNA_COMMAND`
-and a host C compiler (`REA_CC`, default `cc`) with `strip` and `nm`. It builds a
-source-owned fixture with non-inlined calls, with symbols and stripped, then verifies through MCP that
-callers, callees and exact incoming xrefs agree with those calls, graph/path
-composition reaches the callee, reference-only queries leave project/staging
-entries unchanged, repeated relationships reuse the graph, and
-the first cold pseudocode answer comes from a single-function run or an export
-that already finished, assembly waits for and serves from that export, and
-pseudocode and both dossier facets match their recorded file spans and digests,
-a fresh server reuses the export without rebuilding it, staging is empty after
-a completed export, and no owned process survives. A separate forced 1 ms
-project deadline checks that a timed-out inventory recommends raising the
-project deadline without changing jobs; a fresh server retries with 60 seconds
-and the same two-worker setting. Pass
-`--targets DIR --functions a,b` to add caller-built binaries laid out as
-`DIR/<flavor>/<name>` beside `<name>.stripped`; addresses come from the
-symbol-bearing build. `--compare-ghidra` with `GHIDRA_INSTALL_DIR` runs those
-caller-built functions through Ghidra (it refuses to run without `--targets` and
-`--functions`, an empty matrix, or names missing from every supplied target) and
-reports latency, sampled process-tree CPU and peak memory, UTF-8 response size,
-and goto and warning-marker counts. Those counts are not a correctness judgement,
-and model tokens are not measured. Reference timings and response sizes are
-reported separately; reference caches expire when the server closes. The report's
-`caller_target_selection` retains the selected directory, the original functions
-argument, and each examined binary's requested names matched against `nm` text
-symbols. `symbol_scan_complete` means the scan of non-`.stripped` entries in
-the immediate flavor directories finished; it does not cover other directory
-entries. An `inspection_failed` entry and `symbol_scan_complete: false` retain
-partial discovery when symbol inspection fails. A missing symbol is not proof
-that code is absent, and selection does not establish that a stripped counterpart
-was verified; consult `results` for completed variants. `--report PATH` writes
-the JSON report.
-
-The first matrix run used Kuna 1.833 and Ghidra 12.1.4 with JDK 21 on macOS
-arm64. It covered zlib 1.3.2 `minigzip`, coreutils 9.9 `sort` and the sqlite
-3.54.0 shell, built at `-O2` for ELF x86-64, ELF AArch64, Mach-O arm64 and
-Mach-O x86-64, each with symbols and stripped. A separate Linux x86-64 run verified
-the fixture and system zlib 1.2.13 / SQLite 3.40.1 libraries through MCP, including
-cached byte spans and a Ghidra comparison. See the [Linux report](https://github.com/morluto/rea/pull/3854#issuecomment-6185870391)
-for measured scope and limitations. Windows, PE and universal Mach-O remain
-unverified by this lane.
-
-Kuna 1.986 passed the fixture and a separate small, source-owned Mach-O with
-symbols and stripped on macOS arm64, including the Ghidra comparison and owned
-cleanup. Linux and other hosts have not been verified with 1.986; this check is
-not a repeat of the larger 1.833 matrix.
-
-Kuna 1.988 passed the real-provider lane on macOS arm64 with the generated
-Mach-O fixture and caller-built symbol-bearing and stripped x86-64 ELF fixtures.
-Linux and other hosts have not been verified with 1.988; this is not a repeat
-of the larger 1.833 matrix.
-
-Kuna 1.989 passed the real-provider lane on macOS arm64 with the generated
-symbol-bearing and stripped Mach-O fixtures, including cold and warm reads,
-references, and cleanup. Linux, other hosts, and the larger 1.833 target matrix
-were not verified with 1.989.
-
-Kuna 1.990 passed the real-provider lane on macOS arm64 with the generated
-symbol-bearing and stripped Mach-O fixtures, including cold and warm reads,
-references, timeout recovery, and cleanup. Linux, other hosts, and the larger
-1.833 target matrix were not verified with 1.990.
-
 ## DOS Ghidra analysis
 
 `npm run verify:ghidra:dos` requires the supported Ghidra and JDK installation
@@ -939,7 +831,7 @@ as a prerequisite: a delayed build can delay provider admission. Compare queue
 and execution times before claiming an end-to-end speedup.
 
 These native baseline checks complement the Linux source-test shards and the
-separate Apple-artifact and real-provider lanes. Actual Hopper, Ghidra, IDA,
+separate Apple-artifact and real-provider lanes. Actual Ghidra,
 browser and managed-tool claims require their corresponding verification lanes.
 Runner labels follow the [GitHub hosted-runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 
@@ -1100,7 +992,7 @@ source-map point tracing through CLI and stdio MCP. It requires absolute
 `REA_BROWSER_EXECUTABLE` and `REA_WEB_SOURCE_MAP_COMPILER` pointing to esbuild
 0.25.10's `lib/main.js` in a caller-owned isolated installation. Preflight reports
 missing prerequisites for this lane. The compiler is used only to generate the
-source-owned fixture. No Hopper, Ghidra or application dependency installation
+source-owned fixture. No native analysis provider or application dependency installation
 is required.
 
 ```bash

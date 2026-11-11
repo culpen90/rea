@@ -64,25 +64,17 @@ const RESOURCE_SCOPED_OPERATIONS: ReadonlySet<AnalysisOperation> = new Set([
 
 const STATEFUL_OPERATIONS: ReadonlySet<AnalysisOperation> = new Set([
   "health",
-  "current_address",
-  "current_procedure",
-  "current_document",
-  "goto_address",
   "list_documents",
 ]);
 
 const CURSOR_DEFAULT_OPERATIONS: ReadonlySet<AnalysisOperation> = new Set([
   "address_name",
-  "comment",
-  "inline_comment",
-  "next_address",
-  "prev_address",
   "xrefs",
 ]);
 
 const DOCUMENT_SCOPED_OPERATIONS: ReadonlySet<string> = new Set(
   OFFICIAL_TOOL_CONTRACTS.map(({ name }) => name).filter(
-    (name) => name !== "current_document" && name !== "list_documents",
+    (name) => name !== "list_documents",
   ),
 );
 

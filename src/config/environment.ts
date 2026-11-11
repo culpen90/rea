@@ -11,7 +11,7 @@ import {
   type ConfigurationSettingIssue,
 } from "../domain/configurationErrors.js";
 import { err, ok, type Result } from "../domain/result.js";
-import { analysisProviderSelectorSchema } from "../domain/providerSelection.js";
+import { nativeAnalysisProviderSelectorSchema } from "../domain/providerSelection.js";
 import {
   ghidraCompilerSpecIdSchema,
   ghidraLanguageIdSchema,
@@ -33,13 +33,13 @@ import {
   mcpToolsListBudgetMsSchema,
 } from "./mcpStartupBudgets.js";
 import { mcpToolFamiliesSchema } from "./mcpToolFamilies.js";
-import { parseLoaderArgs, parseStringArray } from "./parsers.js";
+import { parseStringArray } from "./parsers.js";
 import { processStartConfigurationSchema } from "./processStart.js";
 import { parseJebMcpEndpoint } from "./jebMcpEndpoint.js";
 
 const environmentSchema = z.object({
   ...debuggerSessionLimitEnvironmentShape,
-  REA_ANALYSIS_PROVIDER: analysisProviderSelectorSchema.default("auto"),
+  REA_ANALYSIS_PROVIDER: nativeAnalysisProviderSelectorSchema.default("auto"),
   REA_MCP_MAX_RESPONSE_BYTES: mcpResponseBudgetSchema.optional(),
   REA_MCP_MAX_INPUT_ELEMENTS: mcpInputBudgetSchema.optional(),
   REA_MCP_INITIALIZE_BUDGET_MS: mcpInitializeBudgetMsSchema.optional(),
@@ -50,11 +50,6 @@ const environmentSchema = z.object({
   REA_MCP_TOOL_FAMILIES: mcpToolFamiliesSchema.optional(),
   REA_MCP_OUTPUT_SCHEMA_PROFILE: mcpOutputSchemaProfileSchema.optional(),
   REA_MCP_TOOL_CATALOG_PROFILE: mcpToolCatalogProfileSchema.optional(),
-  REA_IDA_MCP_CONFIG: z
-    .string()
-    .min(1)
-    .refine(isAbsolute, "REA_IDA_MCP_CONFIG must be absolute")
-    .optional(),
   REA_JEB_MCP_URL: z
     .string()
     .superRefine((value, context) => {
@@ -110,10 +105,7 @@ const environmentSchema = z.object({
     .min(1)
     .refine(isAbsolute, "REA_ILSPY_CMD_PATH must be absolute")
     .optional(),
-  HOPPER_LAUNCHER_PATH: z.string().min(1).optional(),
-  HOPPER_TARGET_PATH: z.string().min(1).optional(),
-  HOPPER_TARGET_KIND: z.enum(["executable", "database"]).default("executable"),
-  HOPPER_LOADER_ARGS_JSON: z.string().optional(),
+  REA_TARGET_PATH: z.string().min(1).optional(),
   REA_LOG_LEVEL: processStartConfigurationSchema.shape.REA_LOG_LEVEL,
   REA_REFERENCE_SECRET_PATTERNS_JSON: z.string().default("[]"),
 });
@@ -166,9 +158,8 @@ export const parseJebMcpTimeoutMs = (
 
 export type Environment = Omit<
   z.infer<typeof environmentSchema>,
-  "HOPPER_LOADER_ARGS_JSON" | "REA_REFERENCE_SECRET_PATTERNS_JSON"
+  "REA_REFERENCE_SECRET_PATTERNS_JSON"
 > & {
-  readonly loaderArgs: readonly string[];
   readonly referenceSecretPatterns: readonly string[];
 };
 
@@ -220,13 +211,8 @@ export const parseEnvironmentValues = (
       }),
     );
   }
-  const {
-    HOPPER_LOADER_ARGS_JSON: encodedLoaderArgs,
-    REA_REFERENCE_SECRET_PATTERNS_JSON: encodedSecretPatterns,
-    ...env
-  } = parsed.data;
-  const loaderArgs = parseLoaderArgs(encodedLoaderArgs);
-  if (!loaderArgs.ok) return loaderArgs;
+  const { REA_REFERENCE_SECRET_PATTERNS_JSON: encodedSecretPatterns, ...env } =
+    parsed.data;
   const secretPatterns = parseStringArray(
     encodedSecretPatterns,
     "REA_REFERENCE_SECRET_PATTERNS_JSON",
@@ -234,7 +220,6 @@ export const parseEnvironmentValues = (
   if (!secretPatterns.ok) return secretPatterns;
   return ok({
     ...env,
-    loaderArgs: loaderArgs.value,
     referenceSecretPatterns: secretPatterns.value,
   });
 };

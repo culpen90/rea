@@ -6,7 +6,6 @@ import { promisify } from "node:util";
 
 import {
   generateLargeFixture,
-  HOPPER_C_ORACLE,
   LARGE_FIXTURE_COUNT,
   sha256,
   sourceDigest,
@@ -66,7 +65,6 @@ async function buildPortableFixtures() {
         (name) => `${symbolPrefix}${name}`,
       ),
       stringMarkers: ["REA_C_ENTRY", "REA_C_LEAF"],
-      hopperOracle: HOPPER_C_ORACLE,
     },
   });
   for (const version of ["v1", "v2"]) {

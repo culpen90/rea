@@ -156,7 +156,7 @@ it("reports the active resource session's dispatch policy without limiting indep
     "inspect_artifact",
     "extract_artifact",
     "trace_dylib_resolution",
-    "get_navigation_context",
+    "inspect_address_context",
   ])
     expect(entries.find((item) => item.name === name)).toMatchObject({
       available: false,
@@ -333,34 +333,34 @@ describe("capability failure reasons", () => {
   it.each([
     {
       label: "requires a target",
-      name: "current_address",
+      name: "address_name",
       sessionStatus: status(),
       reason: "target_required",
       remediation: "open_binary",
     },
     {
       label: "rejects an incompatible target family",
-      name: "current_address",
+      name: "address_name",
       sessionStatus: status({ open: true, kind: "archive" }),
       reason: "target_unsupported",
       remediation: "native executable",
     },
     {
       label: "reports a missing provider operation",
-      name: "current_address",
+      name: "address_name",
       sessionStatus: status({ open: true, kind: "executable" }),
       reason: "provider_missing",
       remediation: "provider",
     },
     {
       label: "distinguishes an unsupported host",
-      name: "current_address",
+      name: "address_name",
       sessionStatus: status({
         open: true,
         kind: "executable",
         capabilities: [
           {
-            operation: "current_address",
+            operation: "address_name",
             available: false,
             availability_code: "unsupported_host",
             reason: "Operation requires macOS",
@@ -372,13 +372,13 @@ describe("capability failure reasons", () => {
     },
     {
       label: "retains a provider failure",
-      name: "current_address",
+      name: "address_name",
       sessionStatus: status({
         open: true,
         kind: "executable",
         capabilities: [
           {
-            operation: "current_address",
+            operation: "address_name",
             available: false,
             reason: "Provider session is unhealthy",
           },
@@ -389,13 +389,13 @@ describe("capability failure reasons", () => {
     },
     {
       label: "reports an available provider operation",
-      name: "current_address",
+      name: "address_name",
       sessionStatus: status({
         open: true,
         kind: "executable",
         capabilities: [
           {
-            operation: "current_address",
+            operation: "address_name",
             available: true,
             reason: null,
           },
@@ -561,172 +561,6 @@ describe("compact tool availability", () => {
   });
 });
 
-it("reports target restrictions for navigation modes even when providers are declared", () => {
-  const capabilities = [
-    "current_document",
-    "current_address",
-    "resolve_containing_procedure",
-  ].map((operation) => ({ operation, available: true, reason: null }));
-  for (const kind of ["artifact", "archive"] as const) {
-    const navigation = entry(
-      "get_navigation_context",
-      status({ open: true, kind, capabilities }),
-    );
-    expect(navigation).toMatchObject({
-      available: false,
-      reason: "target_unsupported",
-      default_mode_available: false,
-      modes: [
-        { name: "current_selection", available: false },
-        { name: "explicit_document", available: false },
-      ],
-    });
-    for (const mode of navigation.modes ?? [])
-      expect(mode.remediation).toBe(navigation.remediation);
-  }
-});
-
-describe("partial navigation availability", () => {
-  it("requires a target before diagnosing navigation provider modes", () => {
-    expect(entry("get_navigation_context", status())).toMatchObject({
-      available: false,
-      reason: "target_required",
-      default_mode_available: false,
-      modes: [
-        { name: "current_selection", available: false },
-        { name: "explicit_document", available: false },
-      ],
-    });
-    expect(
-      TOOL_CONTRACTS.find((tool) => tool.name === "get_navigation_context"),
-    ).toMatchObject({
-      requiresActiveTarget: true,
-    });
-  });
-  it("allows explicit documents when the provider has no current-document getter", () => {
-    const capabilities = [
-      "current_document",
-      "current_address",
-      "resolve_containing_procedure",
-    ].map((operation) => ({
-      operation,
-      available: true,
-      reason: null,
-    }));
-    expect(
-      entry(
-        "get_navigation_context",
-        status({ open: true, kind: "executable", capabilities }),
-      ),
-    ).toMatchObject({
-      available: true,
-      reason: "available",
-      default_mode_available: true,
-      modes: [
-        { name: "current_selection", available: true },
-        { name: "explicit_document", available: true },
-      ],
-    });
-    expect(
-      entry(
-        "get_navigation_context",
-        status({
-          open: true,
-          kind: "executable",
-          capabilities: capabilities.slice(1),
-        }),
-      ),
-    ).toMatchObject({
-      available: true,
-      reason: "available",
-      default_mode_available: false,
-      modes: [
-        { name: "current_selection", available: false },
-        { name: "explicit_document", available: true },
-      ],
-    });
-    expect(
-      entry(
-        "get_navigation_context",
-        status({
-          open: true,
-          kind: "executable",
-          capabilities: capabilities.slice(1, 2),
-        }),
-      ),
-    ).toMatchObject({
-      available: false,
-      reason: "provider_missing",
-      remediation: expect.stringContaining("resolve_containing_procedure"),
-    });
-  });
-
-  it("preserves the most specific navigation mode failure", () => {
-    expect(
-      entry(
-        "get_navigation_context",
-        status({
-          open: true,
-          kind: "executable",
-          capabilities: [
-            {
-              operation: "current_address",
-              available: false,
-              availability_code: "unsupported_host",
-              reason: "Navigation requires macOS.",
-            },
-            {
-              operation: "resolve_containing_procedure",
-              available: true,
-              reason: null,
-            },
-          ],
-        }),
-      ),
-    ).toMatchObject({
-      available: false,
-      reason: "unsupported_host",
-      remediation: "Navigation requires macOS.",
-    });
-  });
-
-  it("lists shared missing operations once in combined remediation", () => {
-    const availability = entry(
-      "get_navigation_context",
-      status({ open: true, kind: "executable" }),
-    );
-
-    expect(availability).toMatchObject({
-      reason: "provider_missing",
-      remediation: expect.stringMatching(/configure.*provider/i),
-      modes: [
-        {
-          name: "current_selection",
-          missing_operations: [
-            "current_document",
-            "current_address",
-            "resolve_containing_procedure",
-          ],
-        },
-        {
-          name: "explicit_document",
-          missing_operations: [
-            "current_address",
-            "resolve_containing_procedure",
-          ],
-        },
-      ],
-    });
-    for (const operation of [
-      "current_document",
-      "current_address",
-      "resolve_containing_procedure",
-    ]) {
-      expect(availability.remediation?.split(operation)).toHaveLength(2);
-    }
-  });
-});
-
 it("reports host denial before target mismatch but keeps composed workflow prerequisites", () => {
   const capability = {
     operation: "inspect_macho",
@@ -776,23 +610,6 @@ describe("binary_overview capability requirements", () => {
       ),
     ).toMatchObject({ available: true, reason: "available" });
   });
-  it("admits a provider with current_document and other mandatory capabilities", () => {
-    const capabilities = [
-      "current_document",
-      "list_procedures",
-      "list_strings",
-    ].map((operation) => ({ operation, available: true, reason: null }));
-    expect(
-      entry(
-        "binary_overview",
-        status({ open: true, kind: "executable", capabilities }),
-      ),
-    ).toMatchObject({
-      available: true,
-      reason: "available",
-      remediation: null,
-    });
-  });
 
   it("admits a provider with list_documents and other mandatory capabilities", () => {
     const capabilities = [
@@ -812,7 +629,7 @@ describe("binary_overview capability requirements", () => {
     });
   });
 
-  it("reports document selection remediation when neither current_document nor list_documents is declared", () => {
+  it("reports document selection remediation when list_documents is not declared", () => {
     const capabilities = [
       "list_segments",
       "list_procedures",
@@ -827,7 +644,7 @@ describe("binary_overview capability requirements", () => {
       available: false,
       reason: "provider_missing",
       remediation: expect.stringMatching(
-        /configure.*provider.*current_document.*list_documents/i,
+        /configure.*provider.*list_documents/i,
       ),
     });
   });
@@ -855,7 +672,7 @@ describe("binary_overview capability requirements", () => {
     const capabilities = [
       { operation: "list_segments", available: true, reason: null },
       {
-        operation: "current_document",
+        operation: "list_documents",
         available: false,
         reason: "Document view is closed",
       },

@@ -44,7 +44,7 @@ describe("ordinary MCP progress and cancellation", () => {
       await server.connect(serverTransport);
       await client.connect(clientTransport);
       const result = await client.callTool(
-        { name: "current_address", arguments: {} },
+        { name: "list_documents", arguments: {} },
         { onprogress: (update) => progress.push(update) },
       );
 
@@ -146,7 +146,7 @@ describe("ordinary MCP progress and cancellation", () => {
       await server.connect(serverTransport);
       await client.connect(clientTransport);
       const request = client.callTool(
-        { name: "current_address", arguments: {} },
+        { name: "list_documents", arguments: {} },
         { signal: controller.signal },
       );
       await awaitAcknowledgement(providerStarted, request, "provider request");

@@ -11,8 +11,6 @@ const OWNERS = {
   firmware: ["src/firmware/**", "tests/boundary/firmware/**"],
   flutter: ["src/flutter/**"],
   ghidra: ["src/ghidra/**", "tests/boundary/providers/ghidra/**"],
-  hopper: ["src/hopper/**", "tests/boundary/providers/hopper/**"],
-  ida: ["src/ida/**", "tests/boundary/providers/ida/**"],
   jeb: ["src/jeb/**"],
   pcap: ["src/pcap/**", "tests/boundary/pcap/**"],
   sqlite: ["src/sqlite/**", "tests/boundary/sqlite/**"],

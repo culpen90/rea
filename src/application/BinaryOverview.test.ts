@@ -85,8 +85,8 @@ const fallbackOverview = (procedures: JsonValue, strings: JsonValue) =>
           ),
         );
       const result =
-        operation === "current_document"
-          ? "selected"
+        operation === "list_documents"
+          ? ["selected"]
           : operation === "list_procedures"
             ? procedures
             : strings;

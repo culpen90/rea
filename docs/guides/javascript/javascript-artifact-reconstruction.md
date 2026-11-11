@@ -61,7 +61,7 @@ validated without resolving their paths against the live filesystem.
 The result retains the canonical local path, root artifact digest, artifact
 manifest and graph commitments, JavaScript Application Graph, static
 Electron summary, reconstruction statistics, and explicit limitations. It does
-not require a live Hopper, Ghidra, browser, or Electron process.
+not require a live native analysis engine, browser, or Electron process.
 Selected directories require read and search access. A denied root remains a
 typed host access failure; omission handling for denied descendants does not
 make an inaccessible selected root analyzable. Other host filesystem failures

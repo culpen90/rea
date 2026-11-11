@@ -11,7 +11,7 @@ import { readClientRegistrationStatuses } from "../../../src/application/ClientR
 import { createTestTempDirectory } from "../../fixtures/temporaryDirectory.js";
 
 describe("setup with configured but unavailable providers", () => {
-  it("preserves Hopper settings and makes the second setup perform no writes", async () => {
+  it("preserves Ghidra settings and makes the second setup perform no writes", async () => {
     const root = await createTestTempDirectory("rea-setup-unavailable-");
     const client = supportedClients(root, "darwin", {}).find(
       (candidate) => candidate.name === "cursor",
@@ -20,10 +20,9 @@ describe("setup with configured but unavailable providers", () => {
     const original = '{"theme":"dark"}\n';
     await mkdir(dirname(client.configPath), { recursive: true });
     await writeFile(client.configPath, original);
-    const environment = { HOPPER_LAUNCHER_PATH: "/custom/Hopper" };
+    const environment = { GHIDRA_INSTALL_DIR: "/custom/Ghidra" };
     const doctor = createDoctorHostFixture({
       validTarget: () => Promise.resolve(false),
-      executable: () => Promise.resolve(false),
       clientRegistrations: () =>
         readClientRegistrationStatuses(root, undefined, {
           platform: "darwin",
@@ -32,17 +31,17 @@ describe("setup with configured but unavailable providers", () => {
       providerInspections: () =>
         Promise.resolve([
           {
-            id: "hopper",
+            id: "ghidra",
             configured: true,
             available: false,
-            providerVersion: "6",
+            providerVersion: null,
             registrationEnvironment: environment,
             checks: [
               {
-                name: "hopper-license",
+                name: "configuration",
                 ok: false,
                 code: "unavailable",
-                detail: "Runtime license is unavailable",
+                detail: "Selected installation is unavailable",
                 classification: "missing_analysis_engine",
                 remediation: null,
               },
@@ -59,7 +58,6 @@ describe("setup with configured but unavailable providers", () => {
       ...options(true),
       clientIds: ["cursor"],
       installSkill: false,
-      proposeHopper: false,
       // This lane checks registration effects; no deep provider is required.
       readinessScope: { clients: [], providers: [], skill: false },
     };

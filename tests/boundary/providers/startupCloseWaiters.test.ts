@@ -6,7 +6,6 @@ import { expect, it, vi } from "vitest";
 import { withVerifierCleanup } from "../../../scripts/lib/verifier-cleanup.mjs";
 
 import { GhidraClient } from "../../../src/ghidra/GhidraClient.js";
-import { HopperClient } from "../../../src/hopper/HopperClient.js";
 import { PrivateRuntimeRoot } from "../../../src/process/PrivateRuntimeRoot.js";
 import { createDeferred } from "../../fixtures/binarySession.js";
 import { awaitAcknowledgement } from "../../fixtures/lifecycleAcknowledgement.js";
@@ -14,7 +13,6 @@ import {
   GhidraFixtureLauncher,
   ghidraFixturePath,
 } from "./ghidra/ghidraClient.fixture.js";
-import { HopperFixtureLauncher } from "./hopper/hopperClient.fixture.js";
 
 const providers = [
   {
@@ -35,22 +33,6 @@ const providers = [
       return {
         client,
         roots: fixture.runtimeRoots,
-        children: fixture.processes,
-      };
-    },
-  },
-  {
-    name: "Hopper",
-    cancelled: { _tag: "HopperCancelledError" },
-    create() {
-      const fixture = new HopperFixtureLauncher();
-      const client = new HopperClient({
-        launcher: fixture,
-        startupTimeoutMs: 10_000,
-      });
-      return {
-        client,
-        roots: fixture.directories,
         children: fixture.processes,
       };
     },

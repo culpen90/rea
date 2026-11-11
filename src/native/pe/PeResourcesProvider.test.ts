@@ -10,7 +10,7 @@ import {
   MAX_INSPECT_PE_FILE_BYTES,
   inspectPeResourcesInputSchema,
 } from "../../domain/native/peResources.js";
-import { kunaQueryFailureForCaller } from "../../kuna/KunaQueryErrors.js";
+import { analysisClientFailureForOperation } from "../../providers/AnalysisClientFailure.js";
 import { createTestTempDirectory } from "../../../tests/fixtures/temporaryDirectory.js";
 import {
   inputBudgetRemediation,
@@ -127,7 +127,11 @@ describe("PE resource provider budget reporting", () => {
     );
     const redacted = redactExplicitFailure(source, ["secret"]);
     expect(redacted).toMatchObject({ retryable: false });
-    const copied = kunaQueryFailureForCaller(source, "other_operation");
+    const copied = analysisClientFailureForOperation(
+      source,
+      "ghidra",
+      "other_operation",
+    );
     expect(copied).toMatchObject({ retryable: false });
     // An undeclared retryability stays undeclared, so the shared projection
     // keeps its resource-kind default.

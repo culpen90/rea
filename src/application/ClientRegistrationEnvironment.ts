@@ -2,12 +2,8 @@ import { launchAnalysisSetting } from "../config/analysisSettings.js";
 import {
   parseEnvironment,
   parseEnvironmentValues,
-  type Environment,
 } from "../config/environment.js";
-import {
-  DEFAULT_GHIDRA_STARTUP_TIMEOUT_MS,
-  DEFAULT_HOPPER_STARTUP_TIMEOUT_MS,
-} from "../domain/analysisResourceLimits.js";
+import { DEFAULT_GHIDRA_STARTUP_TIMEOUT_MS } from "../domain/analysisResourceLimits.js";
 import { ConfigurationError } from "../domain/configurationErrors.js";
 import { err, ok, type Result } from "../domain/result.js";
 import {
@@ -23,13 +19,6 @@ import {
 } from "../process/snapshotEnvironment.js";
 import { dshDocument } from "./DshCordisPatch.js";
 import type { McpToolTimeoutInputs } from "../mcpStartupPolicy.js";
-import type { AnalysisProviderSelector } from "../domain/providerSelection.js";
-
-export type ProviderRequestBudgetResolver = (
-  analysisProvider: AnalysisProviderSelector,
-  environment: Readonly<Record<string, string>>,
-) => Promise<Result<number | undefined, ConfigurationError>>;
-
 export interface ClientRegistrationEnvironmentDetails {
   readonly values: Readonly<Record<string, string>>;
   readonly unresolvedSettings: ReadonlySet<string>;
@@ -41,10 +30,8 @@ interface ResolvedClientRegistrationEnvironmentDetails extends ClientRegistratio
 }
 
 const TIMEOUT_INPUT_SETTINGS: ReadonlySet<string> = new Set([
-  "REA_ANALYSIS_PROVIDER",
   "REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS",
   "REA_GHIDRA_STARTUP_TIMEOUT_MS",
-  "REA_HOPPER_STARTUP_TIMEOUT_MS",
   "REA_JEB_MCP_TIMEOUT_MS",
 ]);
 
@@ -128,7 +115,6 @@ export const clientRegistrationEnvironmentDetails = (
     return ok(
       environmentDetails(
         environment.value.values,
-        environment.value.configuration,
         environment.value.unresolvedSettings,
       ),
     );
@@ -255,17 +241,14 @@ export const recordedProviderSettings = (
     : { ...facts, ...(owned.length === 0 ? {} : { owned }) };
 };
 
-/** Resolve the async provider-specific budget through its retained reader owner. */
-export const clientRegistrationEnvironmentDetailsWithBudget = async (
+/** Require literal settings where deriving a request budget depends on them. */
+export const clientRegistrationEnvironmentDetailsForTimeouts = (
   parsed: ClientConfigurationDocument | undefined,
   clientName: string | undefined,
   overrides: Readonly<Record<string, string>>,
   validation: "fragment" | "effective",
-  resolveProviderRequestBudget: ProviderRequestBudgetResolver | undefined,
   platform: NodeJS.Platform = process.platform,
-): Promise<
-  Result<ResolvedClientRegistrationEnvironmentDetails, ConfigurationError>
-> => {
+): Result<ResolvedClientRegistrationEnvironmentDetails, ConfigurationError> => {
   const details = clientRegistrationEnvironmentDetails(
     parsed,
     clientName,
@@ -274,30 +257,25 @@ export const clientRegistrationEnvironmentDetailsWithBudget = async (
     platform,
   );
   if (!details.ok) return details;
-  const unresolved = [...details.value.unresolvedSettings].filter(
-    (setting) =>
-      resolveProviderRequestBudget !== undefined ||
-      TIMEOUT_INPUT_SETTINGS.has(setting),
-  );
-  if (details.value.timeoutInputs === undefined || unresolved.length > 0)
+  if (details.value.timeoutInputs === undefined)
     return err(
       new ConfigurationError(
         "Cannot derive a provider request budget from expression-backed settings",
         {
-          settings: unresolved.map((setting) => ({
-            setting,
-            constraint:
-              "Resolve this setting to a literal before deriving a request budget",
-          })),
+          settings: [...details.value.unresolvedSettings]
+            .filter((setting) => TIMEOUT_INPUT_SETTINGS.has(setting))
+            .map((setting) => ({
+              setting,
+              constraint:
+                "Resolve this setting to a literal before deriving a request budget",
+            })),
         },
       ),
     );
-  const resolved = {
+  return ok({
     ...details.value,
     timeoutInputs: details.value.timeoutInputs,
-  };
-  if (resolveProviderRequestBudget === undefined) return ok(resolved);
-  return validatedBudget(resolved, resolveProviderRequestBudget, platform);
+  });
 };
 
 const validatedDetails = (
@@ -320,7 +298,7 @@ const validatedDetails = (
       ? parseEnvironmentValues(runtimeEnvironment, unresolved)
       : parseEnvironment(runtimeEnvironment, unresolved);
   if (!validated.ok) return validated;
-  return ok(environmentDetails(environment, validated.value, unresolved));
+  return ok(environmentDetails(environment, unresolved));
 };
 
 const admittedTimeout = (
@@ -338,10 +316,7 @@ const registrationTimeoutInputs = (
   environment: Readonly<Record<string, string>>,
 ): Pick<
   McpToolTimeoutInputs,
-  | "ghidraStartupTimeoutMs"
-  | "hopperStartupTimeoutMs"
-  | "ghidraDecompileTimeoutMs"
-  | "jebMcpTimeoutMs"
+  "ghidraStartupTimeoutMs" | "ghidraDecompileTimeoutMs" | "jebMcpTimeoutMs"
 > => {
   const decompile = launchAnalysisSetting(
     "ghidra.decompile_timeout_seconds",
@@ -353,11 +328,6 @@ const registrationTimeoutInputs = (
       "ghidra.startup_timeout_ms",
       environment,
       DEFAULT_GHIDRA_STARTUP_TIMEOUT_MS,
-    ),
-    hopperStartupTimeoutMs: admittedTimeout(
-      "hopper.startup_timeout_ms",
-      environment,
-      DEFAULT_HOPPER_STARTUP_TIMEOUT_MS,
     ),
     ...(decompile.ok &&
     decompile.value.source === "setting" &&
@@ -375,7 +345,6 @@ const registrationTimeoutInputs = (
 
 const environmentDetails = (
   environment: Readonly<Record<string, string>>,
-  configuration: Environment,
   unresolvedSettings: ReadonlySet<string> = new Set(),
 ): ClientRegistrationEnvironmentDetails => ({
   values: Object.fromEntries(
@@ -388,31 +357,5 @@ const environmentDetails = (
     TIMEOUT_INPUT_SETTINGS.has(setting),
   )
     ? undefined
-    : {
-        analysisProvider: configuration.REA_ANALYSIS_PROVIDER,
-        ...registrationTimeoutInputs(environment),
-      },
+    : registrationTimeoutInputs(environment),
 });
-
-const validatedBudget = async (
-  details: ResolvedClientRegistrationEnvironmentDetails,
-  resolveProviderRequestBudget: ProviderRequestBudgetResolver,
-  platform: NodeJS.Platform,
-): Promise<
-  Result<ResolvedClientRegistrationEnvironmentDetails, ConfigurationError>
-> => {
-  const providerBudget = await resolveProviderRequestBudget(
-    details.timeoutInputs.analysisProvider,
-    snapshotEnvironment(details.values, platform),
-  );
-  if (!providerBudget.ok) return providerBudget;
-  return ok({
-    ...details,
-    timeoutInputs: {
-      ...details.timeoutInputs,
-      ...(providerBudget.value === undefined
-        ? {}
-        : { providerRequestTimeoutMs: providerBudget.value }),
-    },
-  });
-};

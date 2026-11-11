@@ -136,7 +136,7 @@ def _bridge_max_request_bytes_recovery():
         "(source %s; default %d, floor %d, maximum %d). "
         "Set REA_BRIDGE_MAX_REQUEST_BYTES in the environment that starts REA "
         "to a decimal integer from %d to %d, then restart REA. "
-        "Restart Hopper or Cutter from that same environment so the bridge "
+        "Restart Cutter from that same environment so the bridge "
         "uses this ceiling."
         % (
             MAX_FRAME_BYTES,

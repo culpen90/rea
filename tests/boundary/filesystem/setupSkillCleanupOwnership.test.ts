@@ -123,7 +123,7 @@ describe("setup skill backup cleanup ownership", () => {
           },
         );
         const failure = await runSetup(
-          { approved: true, installHopper: false, structured: true },
+          { approved: true, structured: true },
           {
             ...host,
             nodeVersion: "24.22.1",

@@ -64,7 +64,6 @@ cliTest.skipIf(process.platform === "win32")(
           HOME: home,
           USERPROFILE: home,
           CODEX_HOME: codexHome,
-          HOPPER_LAUNCHER_PATH: join(root, "missing-hopper"),
           GHIDRA_INSTALL_DIR: join(root, "missing-ghidra"),
           JAVA_HOME: join(root, "missing-java"),
         },
@@ -205,17 +204,7 @@ cliTest.skipIf(process.platform === "win32")(
         name.startsWith(".rea-skill-"),
       ),
     ).toEqual([]);
-    const cacheRelative =
-      process.platform === "darwin"
-        ? "Library/Caches/rea/kuna"
-        : process.platform === "linux"
-          ? ".cache/rea/kuna"
-          : undefined;
-    const cacheDirectories = [
-      ".rea/cache",
-      ".rea/state",
-      ...(cacheRelative === undefined ? [] : [cacheRelative]),
-    ];
+    const cacheDirectories = [".rea/cache", ".rea/state"];
     for (const relative of cacheDirectories) {
       await mkdir(join(selected, relative), { recursive: true });
       await mkdir(join(root, relative), { recursive: true });

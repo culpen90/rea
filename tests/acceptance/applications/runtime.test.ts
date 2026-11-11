@@ -8,20 +8,14 @@ import { z } from "zod";
 import { FULL_CATALOG_IDENTITY } from "../../../src/catalogIdentity.js";
 import { TOOL_CONTRACTS } from "../../../src/contracts/toolContracts.js";
 import {
-  evidenceResultOf,
   expandToolAvailability,
   toolAvailabilitySummaryInventory,
 } from "../../../src/contracts/toolOutputSchemaPrimitives.js";
-import { parseEvidence } from "../../../src/domain/evidence.js";
 import { parseMcpToolError } from "../../fixtures/mcpToolError.js";
 
 const mainPath = fileURLToPath(
   new URL("../../../dist/main.js", import.meta.url),
 );
-const fixturePath = fileURLToPath(
-  new URL("../../fixtures/fakeLauncher.mjs", import.meta.url),
-);
-
 const expectAvailableToolInventory = async (
   client: Client,
   listed: Awaited<ReturnType<Client["listTools"]>>,
@@ -70,11 +64,8 @@ const completeStderrRecords = (stderr: string): unknown[] =>
     .filter((line) => line.length > 0)
     .map((line): unknown => JSON.parse(line));
 
-const callCurrentDocument = async (
-  target?: {
-    readonly path: string;
-    readonly kind?: "database";
-  },
+const callListDocuments = async (
+  target?: string,
   inspectSession?: (client: Client) => Promise<void>,
 ) => {
   const transport = new StdioClientTransport({
@@ -82,19 +73,8 @@ const callCurrentDocument = async (
     args: [mainPath],
     cwd: process.cwd(),
     env: {
-      PATH: process.env.PATH ?? "",
-      // The fixture exercises Hopper even when other providers are installed.
-      REA_ANALYSIS_PROVIDER: "hopper",
-      HOPPER_LAUNCHER_PATH: process.execPath,
-      ...(target === undefined
-        ? {}
-        : {
-            HOPPER_TARGET_PATH: target.path,
-            ...(target.kind === undefined
-              ? {}
-              : { HOPPER_TARGET_KIND: target.kind }),
-          }),
-      HOPPER_LOADER_ARGS_JSON: JSON.stringify([fixturePath]),
+      PATH: "",
+      ...(target === undefined ? {} : { REA_TARGET_PATH: target }),
     },
     stderr: "pipe",
   });
@@ -108,7 +88,7 @@ const callCurrentDocument = async (
   try {
     await client.connect(transport);
     result = await client.callTool({
-      name: "current_document",
+      name: "list_documents",
       arguments: {},
     });
     await inspectSession?.(client);
@@ -124,7 +104,7 @@ describe("production stdio runtime", () => {
   // these cases state each supported host's result in the test name and body.
 
   it("reports a missing target through MCP and structured logs", async () => {
-    const { result, stderr, records } = await callCurrentDocument();
+    const { result, records } = await callListDocuments();
     expect(result.isError).toBe(true);
     expect(result.content).toEqual(
       expect.arrayContaining([
@@ -139,44 +119,11 @@ describe("production stdio runtime", () => {
         application: "rea",
         mode: "mcp",
         layer: "server",
-        tool: "current_document",
+        tool: "list_documents",
         status: "error",
       }),
     );
-    expect(stderr).not.toContain("HOPPER_LOADER_ARGS_JSON");
-    expect(stderr).not.toContain(fixturePath);
   }, 15_000);
-
-  it.runIf(process.platform === "darwin")(
-    "returns the selected document on macOS through MCP and structured logs",
-    async () => {
-      const { result, stderr, records } = await callCurrentDocument({
-        path: process.execPath,
-      });
-      expect(result.isError).not.toBe(true);
-      const observation = evidenceResultOf(z.literal("fixture")).parse(
-        result.structuredContent,
-      );
-      const evidence = parseEvidence(observation);
-      expect(evidence.operation).toBe("current_document");
-      expect(evidence.provider.id).toBe("hopper");
-      expect(evidence.normalized_result).toBe(observation.normalized_result);
-      // Hopper's reply is the result; it is not repeated as raw_result.
-      expect(evidence.raw_result).toBeNull();
-      expect(records).toContainEqual(
-        expect.objectContaining({
-          application: "rea",
-          mode: "mcp",
-          layer: "server",
-          tool: "current_document",
-          status: "ok",
-        }),
-      );
-      expect(stderr).not.toContain("HOPPER_LOADER_ARGS_JSON");
-      expect(stderr).not.toContain(fixturePath);
-    },
-    15_000,
-  );
 
   // Use the suite's bounded acceptance deadline, including its coverage allowance.
   // This cold-start workflow computes the growing catalog's schema digests; it
@@ -249,72 +196,52 @@ describe("production stdio runtime", () => {
   });
 });
 
-describe("production stdio saved-database admission", () => {
-  it.runIf(process.platform === "darwin")(
-    "refuses database analysis on macOS while keeping the session usable without a fatal record",
-    async () => {
-      const path = fileURLToPath(import.meta.url);
-      const { result, records } = await callCurrentDocument(
-        { path, kind: "database" },
-        async (client) => {
-          const status = await expectAvailableToolInventory(
-            client,
-            await client.listTools(),
-          );
-          expect(status.structuredContent).toMatchObject({
-            result: {
-              open: true,
-              path,
-              kind: "database",
-              format: "analysis-database",
-              analysis_provider_binding: null,
-            },
-          });
-        },
-      );
-      expect(parseMcpToolError(result)).toMatchObject({
-        error: {
-          code: "capability_unavailable",
-          category: "unsupported_provider",
-          retryable: false,
-          details: {
-            operation: "current_document",
-            selection_reason: "target_unsupported",
-            rejections: expect.arrayContaining([
-              expect.objectContaining({
-                provider_id: "hopper",
-                code: "target_kind_unsupported",
-                reason: expect.stringContaining(
-                  "cannot start REA's analysis bridge",
-                ),
-                diagnostics: {
-                  target_kind: "database",
-                  target_format: "analysis-database",
-                  architecture: null,
-                },
-              }),
-            ]),
-          },
+it("uses REA_TARGET_PATH for eager startup and reports the sole unavailable provider", async () => {
+  const target = process.execPath;
+  const { result } = await callListDocuments(target, async (client) => {
+    const status = await client.callTool({
+      name: "binary_session",
+      arguments: { detail: "complete" },
+    });
+    expect(status.structuredContent).toMatchObject({
+      result: {
+        open: true,
+        analysis_provider_binding: null,
+        analysis_provider_candidates: [{ provider: { id: "ghidra" } }],
+      },
+    });
+  });
+  expect(parseMcpToolError(result).error).toMatchObject({
+    code: "provider_unavailable",
+    details: {
+      rejections: [{ provider_id: "ghidra", code: "not_configured" }],
+    },
+  });
+}, 15_000);
+
+it.each(["hopper", "ida", "kuna"])(
+  "rejects retired provider %s before changing the active target",
+  async (provider_id) => {
+    await callListDocuments(undefined, async (client) => {
+      const rejected = await client.callTool({
+        name: "open_binary",
+        arguments: { path: process.execPath, provider_id },
+      });
+      expect(parseMcpToolError(rejected).error).toMatchObject({
+        message: expect.stringContaining("Ghidra is the only supported"),
+        details: {
+          requested_provider_id: provider_id,
+          candidate_ids: ["ghidra"],
         },
       });
-      expect(records).toContainEqual(
-        expect.objectContaining({
-          tool: "current_document",
-          status: "error",
-          level: 40,
-        }),
-      );
-      expect(
-        records.some(
-          (record) =>
-            typeof record === "object" &&
-            record !== null &&
-            "level" in record &&
-            typeof record.level === "number" &&
-            record.level >= 50,
-        ),
-      ).toBe(false);
-    },
-    15_000,
-  );
-});
+      const status = await client.callTool({
+        name: "binary_session",
+        arguments: {},
+      });
+      expect(status.structuredContent).toMatchObject({
+        result: { open: false },
+      });
+    });
+  },
+  15_000,
+);

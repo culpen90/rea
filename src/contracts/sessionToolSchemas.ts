@@ -43,11 +43,6 @@ export const getEvidenceBundleInputSchema = z.strictObject({
     ),
 });
 
-/** Optional document selection for volatile navigation context. */
-export const navigationContextInputSchema = z.strictObject({
-  document: z.string().min(1).optional(),
-});
-
 /** Explicit reproducible address context query. */
 export const addressContextInputSchema = z.strictObject({
   address: z.string().min(1),

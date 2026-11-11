@@ -65,7 +65,7 @@ export async function verifyBrowserRuntime(
     const env = {
       ...process.env,
       REA_LOG_LEVEL: "silent",
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-provider/hopper",
+      GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
     };
     const input = { cdp_endpoint: endpoint, target_id: target.target_id };
     const cliListener = await promisify(execFile)(

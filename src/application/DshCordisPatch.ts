@@ -2,7 +2,6 @@ import { isMap, isSeq, type Node, type YAMLMap } from "yaml";
 import {
   parseEnvironment,
   parseEnvironmentValues,
-  type Environment,
 } from "../config/environment.js";
 import { ConfigurationError } from "../domain/configurationErrors.js";
 import { err, ok, type Result } from "../domain/result.js";
@@ -194,7 +193,6 @@ export class DshCordisDocument {
   ): Result<
     {
       readonly values: Readonly<Record<string, string>>;
-      readonly configuration: Environment;
       readonly unresolvedSettings: ReadonlySet<string>;
     },
     ConfigurationError
@@ -270,7 +268,6 @@ export class DshCordisDocument {
     return validated.ok
       ? ok({
           values: literals,
-          configuration: validated.value,
           unresolvedSettings: unresolved,
         })
       : validated;

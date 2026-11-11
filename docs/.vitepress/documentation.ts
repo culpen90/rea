@@ -329,7 +329,7 @@ export const documentationSections = [
         route: "/raw-binary",
       },
       {
-        text: "IDA provider",
+        text: "Retired IDA provider",
         source: "providers/ida-provider.md",
         route: "/ida-provider",
       },
@@ -611,7 +611,7 @@ export const documentationSections = [
         route: "/kernel-modules",
       },
       {
-        text: "Kuna provider",
+        text: "Retired Kuna provider",
         source: "kuna-provider.md",
         route: "/kuna-provider",
       },

@@ -1777,7 +1777,7 @@ export class BinarySession
    * fast path: `exited`/`unreachable` are dead, `unknown` is never
    * evidence of health (it is what a recorded but uncharacterized failure
    * reports), and `not_started` is a startup that never completed — in the
-   * Hopper timeout case the client holds retained resources that block the
+   * provider timeout case the client holds retained resources that block the
    * next `start()` until `close()` retries cleanup, so treating it as live
    * would skip the retire path and hand the wedged client to subsequent
    * analysis. The gate fails closed: without a snapshot signal, fall back

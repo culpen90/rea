@@ -100,7 +100,7 @@ limits, security/privacy/containment implications, and meaningful proof gaps. --
   preserve it. Every release increments minor, including breaking changes;
   keep breaking markers and migration notes so callers can assess compatibility.
   See docs/development/releasing.md. -->
-- Real Hopper/Ghidra, browser, or OS coverage:
+- Real Ghidra, browser, or OS coverage:
 - Package or release metadata impact:
 - Security, privacy, process, or containment review:
 

@@ -1,5 +1,5 @@
 import { chmod, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { expect } from "vitest";
 import { z } from "zod";
 
@@ -108,7 +108,6 @@ cliTest.skipIf(!["darwin", "linux"].includes(process.platform))(
       USERPROFILE: home,
       // The host's own Ghidra or Java must not satisfy this fixture.
       PATH: "/usr/bin:/bin",
-      HOPPER_LAUNCHER_PATH: join(root, "missing-hopper"),
       REA_LOG_LEVEL: "silent",
     };
     const terminal = {
@@ -265,13 +264,19 @@ cliTest.skipIf(!["darwin", "linux"].includes(process.platform))(
       HOME: home,
       USERPROFILE: home,
       PATH: "/usr/bin:/bin",
-      HOPPER_LAUNCHER_PATH: join(root, "missing-hopper"),
       REA_LOG_LEVEL: "silent",
     };
-    await run(
-      cli,
-      ["setup", "--client", "claude_code", "--skill=false", "--yes"],
-      environment,
+    await writeFile(
+      join(home, ".claude.json"),
+      JSON.stringify({
+        mcpServers: {
+          rea: {
+            command: process.execPath,
+            args: [resolve("scripts/rea.mjs"), "mcp"],
+            env: {},
+          },
+        },
+      }),
     );
     // A provider setting that fails its own check has no green result to
     // misread; that failure is the report.

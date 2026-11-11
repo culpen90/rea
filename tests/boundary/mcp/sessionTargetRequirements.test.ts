@@ -36,10 +36,6 @@ it("advertises closed-session address and explicit-path APK tools according to t
   };
 
   const before = await status();
-  expect(availability(before, "get_navigation_context")).toMatchObject({
-    available: false,
-    reason: "target_required",
-  });
   expect.soft(availability(before, "inspect_address_context")).toMatchObject({
     available: false,
     reason: "target_required",
@@ -104,27 +100,6 @@ it("reports default address resolution unavailable for an artifact while retaini
       reason: "target_unsupported",
       remediation: expect.stringContaining("explicit document"),
     });
-    const navigation = expandToolAvailability(result.tool_availability).find(
-      (tool) => tool.name === "get_navigation_context",
-    );
-    expect(navigation).toMatchObject({
-      available: false,
-      reason: "target_unsupported",
-      default_mode_available: false,
-      modes: [
-        { name: "current_selection", available: false },
-        { name: "explicit_document", available: false },
-      ],
-    });
-  }
-  for (const input of [{}, { document: "sample.plist" }]) {
-    const navigation = await call("get_navigation_context", input);
-    expect(parseMcpToolError(navigation)).toMatchObject({
-      error: {
-        code: "capability_unavailable",
-        details: { selection_reason: "target_unsupported" },
-      },
-    });
   }
   const implicit = await call("inspect_address_context", { address: "0x1000" });
   expect(parseMcpToolError(implicit)).toMatchObject({
@@ -142,9 +117,6 @@ it("reports default address resolution unavailable for an artifact while retaini
     result: {
       name: { state: "unavailable" },
       procedure: { state: "unavailable" },
-      comment: { state: "unavailable" },
-      inline_comment: { state: "unavailable" },
-      bookmarks: { state: "unavailable" },
     },
   });
 });

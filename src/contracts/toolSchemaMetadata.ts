@@ -49,7 +49,7 @@ const PROPERTY_DESCRIPTIONS: Readonly<Record<string, string>> = {
   overwrite: "Whether an existing destination may be replaced.",
   path: "Local filesystem path used by this operation.",
   provider_id:
-    "Exact deep-analysis provider ID, or automatic selection when omitted.",
+    "Deep native analysis uses ghidra. Use auto to permit static inspection without a Ghidra binding.",
   right: "Right-hand input used for comparison or differential execution.",
   source_evidence:
     "Evidence records supporting the prepared source transformation.",

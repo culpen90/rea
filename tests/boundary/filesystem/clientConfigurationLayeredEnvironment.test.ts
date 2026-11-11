@@ -10,7 +10,6 @@ import {
 import {
   configureClientConfiguration,
   inspectClientConfiguration,
-  clientConfigurationAligned,
 } from "../../../src/application/SetupClientConfiguration.js";
 import { readClientRegistrationStatuses } from "../../../src/application/ClientRegistrationStatus.js";
 
@@ -150,8 +149,8 @@ const layered = async (lower: unknown, upper: unknown) => {
 };
 
 it.skipIf(process.platform !== "win32").each([
-  { REA_ANALYSIS_PROVIDER: "ghidra", rea_analysis_provider: "hopper" },
-  { rea_analysis_provider: "hopper", REA_ANALYSIS_PROVIDER: "ghidra" },
+  { REA_ANALYSIS_PROVIDER: "ghidra", rea_analysis_provider: "auto" },
+  { rea_analysis_provider: "auto", REA_ANALYSIS_PROVIDER: "ghidra" },
 ])(
   "keeps explicit overrides above inherited Windows aliases: %j",
   async (lower) => {
@@ -170,7 +169,6 @@ it.skipIf(process.platform !== "win32").each([
       undefined,
     );
     if (!environment.ok) throw environment.error;
-    expect(environment.value.timeoutInputs?.analysisProvider).toBe("ghidra");
     expect(environment.value.values).toHaveProperty(
       "REA_ANALYSIS_PROVIDER",
       "ghidra",
@@ -197,9 +195,7 @@ it("validates language/compiler settings in the effective OpenCode environment",
   expect(await inspectClientConfiguration(fixture.client, {}, command)).toEqual(
     { status: "already_current" },
   );
-  expect(await clientConfigurationAligned(fixture.client, {}, command)).toBe(
-    true,
-  );
+
   expect(await fixture.status()).toMatchObject({ state: "aligned" });
   expect(
     await configureClientConfiguration(fixture.client, {}, command),
@@ -218,9 +214,7 @@ it("rejects a companion absent from the complete layered environment", async () 
     status: "invalid",
     remediation: expect.stringContaining("REA_GHIDRA_COMPILER_SPEC_ID"),
   });
-  expect(await clientConfigurationAligned(fixture.client, {}, command)).toBe(
-    false,
-  );
+
   expect(await fixture.status()).toMatchObject({
     state: "invalid",
     remediation: expect.stringContaining("REA_GHIDRA_COMPILER_SPEC_ID"),
@@ -235,12 +229,12 @@ it("keeps higher-priority values and does not copy inherited settings into the w
   const fixture = await layered(
     {
       REA_GHIDRA_LANGUAGE_ID: language,
-      HOPPER_LOADER_ARGS_JSON: '["lower"]',
+      REA_REFERENCE_SECRET_PATTERNS_JSON: '["lower"]',
       ["__proto__"]: "lower caller value",
     },
     {
       REA_GHIDRA_COMPILER_SPEC_ID: compiler,
-      HOPPER_LOADER_ARGS_JSON: '[""]',
+      REA_REFERENCE_SECRET_PATTERNS_JSON: '["selected"]',
       ["__proto__"]: "selected caller value",
     },
   );
@@ -260,7 +254,7 @@ it("keeps higher-priority values and does not copy inherited settings into the w
     "environment",
     {
       REA_GHIDRA_COMPILER_SPEC_ID: compiler,
-      HOPPER_LOADER_ARGS_JSON: '[""]',
+      REA_REFERENCE_SECRET_PATTERNS_JSON: '["selected"]',
       REA_LOG_LEVEL: "debug",
       ["__proto__"]: "selected caller value",
     },
@@ -269,9 +263,7 @@ it("keeps higher-priority values and does not copy inherited settings into the w
     await readFile(`${fixture.client.configPath}.rea.backup`, "utf8"),
   ).toBe(fixture.sources[1]);
   expect(await fixture.status()).toMatchObject({ state: "aligned" });
-  expect(await clientConfigurationAligned(fixture.client, {}, command)).toBe(
-    true,
-  );
+
   expect(
     await configureClientConfiguration(fixture.client, {}, command),
   ).toEqual({ status: "unchanged" });
@@ -303,13 +295,15 @@ it("merges caller server names as own keys without inventing absent registration
 });
 
 it.each([
-  ["invalid JSON", { HOPPER_LOADER_ARGS_JSON: "{" }],
-  ["invalid value type", { HOPPER_LOADER_ARGS_JSON: 42 }],
+  ["invalid JSON", { REA_REFERENCE_SECRET_PATTERNS_JSON: "{" }],
+  ["invalid value type", { REA_REFERENCE_SECRET_PATTERNS_JSON: 42 }],
   ["invalid environment map", []],
 ])(
   "does not hide a lower-priority %s behind a valid override",
   async (_name, lower) => {
-    const fixture = await layered(lower, { HOPPER_LOADER_ARGS_JSON: "[]" });
+    const fixture = await layered(lower, {
+      REA_REFERENCE_SECRET_PATTERNS_JSON: "[]",
+    });
     expect(
       await inspectClientConfiguration(fixture.client, {}, command),
     ).toMatchObject({
@@ -375,6 +369,6 @@ it("replaces the selected write layer rather than the last loaded layer", async 
   expect(await readFile(`${client.configPath}.rea.backup`, "utf8")).toBe(
     fixture.sources[0],
   );
-  expect(await clientConfigurationAligned(client, {}, command)).toBe(true);
+
   expect(await fixture.status()).toMatchObject({ state: "aligned" });
 });

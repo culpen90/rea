@@ -50,7 +50,7 @@ const selectedProviders = {
     Promise.resolve([
       inspection("ghidra", { GHIDRA_INSTALL_DIR: "/opt/ghidra" }),
       inspection("jadx", { REA_JADX_MCP_JAR: "/opt/jadx.jar" }),
-      inspection("kuna", { REA_KUNA_COMMAND: "/opt/kuna" }, false),
+      inspection("inactive", { INACTIVE_SETTING: "/opt/unavailable" }, false),
     ]),
 };
 const CHECK = "registration_environment:cursor";
@@ -100,30 +100,6 @@ it("does not gate health or name unaffected providers", async () => {
       details: { effective_environment: "unknown", providers: ["ghidra"] },
     }),
   );
-});
-
-it.each([
-  ["/custom/Hopper", { HOPPER_LAUNCHER_PATH: "/custom/Hopper" }],
-  // A default location is found again without this terminal's environment.
-  [undefined, {}],
-])(
-  "includes Hopper only for an explicit available path (%s)",
-  async (configuredHopperPath, expected) => {
-    const { host: selectedHost, requested } = recordingHost(
-      configuredHopperPath === undefined ? {} : { configuredHopperPath },
-    );
-    await runDoctor(undefined, selectedHost);
-    expect(requested).toEqual([expected]);
-  },
-);
-
-it("does not include an explicit Hopper path that fails its checks", async () => {
-  const { host: selectedHost, requested } = recordingHost({
-    configuredHopperPath: "/custom/missing",
-    executable: () => Promise.resolve(false),
-  });
-  await runDoctor(undefined, selectedHost);
-  expect(requested).toEqual([{}]);
 });
 
 it("compares a caller selection as setup spells it", async () => {

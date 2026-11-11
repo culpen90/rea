@@ -6,7 +6,7 @@ definitions, methods and named members with their owners, plus managed string
 literals, by stable index, namespace, range and count,
 with the header sections and serialized index widths. It reads the file without
 running it and requires no Unity installation, IL2CPP binary, active target,
-Hopper, Ghidra or IDA.
+native analysis provider.
 
 Metadata versions 24, 27, 29, 31 and 39 are supported. For example, Unity 2019.4.41f2
 wrote version 24, 2020.3.49f1 version 27, 2022.3.30f1

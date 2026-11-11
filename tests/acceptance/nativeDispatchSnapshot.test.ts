@@ -32,12 +32,8 @@ cliTest.skipIf(process.platform !== "darwin")(
     const { call } = await connectLocalToolsMcp({
       PATH: process.env.PATH ?? "",
       REA_ANALYSIS_PROVIDER: "auto",
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
       GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
       JAVA_HOME: "/rea-unconfigured-deep-provider/java",
-      REA_IDA_MCP_CONFIG: "/rea-unconfigured-deep-provider/ida-mcp.json",
-      REA_KUNA_COMMAND: "/rea-unconfigured-deep-provider/kuna",
-      REA_KUNA_CACHE_DIR: "/rea-unconfigured-deep-provider/kuna-cache",
     });
     const good = async (name: string, arguments_: Record<string, unknown>) => {
       const result = await call(name, arguments_);
@@ -130,12 +126,8 @@ cliTest.skipIf(process.platform !== "darwin")(
     const environment = {
       PATH: process.env.PATH ?? "",
       REA_ANALYSIS_PROVIDER: "auto",
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
       GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
       JAVA_HOME: "/rea-unconfigured-deep-provider/java",
-      REA_IDA_MCP_CONFIG: "/rea-unconfigured-deep-provider/ida-mcp.json",
-      REA_KUNA_COMMAND: "/rea-unconfigured-deep-provider/kuna",
-      REA_KUNA_CACHE_DIR: "/rea-unconfigured-deep-provider/kuna-cache",
       REA_LOG_LEVEL: "silent",
     };
     const result = await cli.run({
@@ -189,12 +181,8 @@ cliTest.skipIf(process.platform !== "darwin")(
     const isolatedProviderEnvironment = {
       PATH: process.env.PATH ?? "",
       REA_ANALYSIS_PROVIDER: "auto",
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
       GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
       JAVA_HOME: "/rea-unconfigured-deep-provider/java",
-      REA_IDA_MCP_CONFIG: "/rea-unconfigured-deep-provider/ida-mcp.json",
-      REA_KUNA_COMMAND: "/rea-unconfigured-deep-provider/kuna",
-      REA_KUNA_CACHE_DIR: "/rea-unconfigured-deep-provider/kuna-cache",
     };
 
     const cliArguments = [
@@ -308,7 +296,8 @@ cliTest.skipIf(process.platform !== "darwin")(
     expect(Buffer.compare(await readFile(target), Buffer.from(bytes))).toBe(0);
     await client.ping();
   },
-  30000,
+  // Includes multiple independent CLI launches and the full stdio journey.
+  90000,
 );
 
 cliTest.skipIf(process.platform !== "darwin")(
@@ -321,12 +310,8 @@ cliTest.skipIf(process.platform !== "darwin")(
     const environment = {
       PATH: process.env.PATH ?? "",
       REA_ANALYSIS_PROVIDER: "auto",
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
       GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
       JAVA_HOME: "/rea-unconfigured-deep-provider/java",
-      REA_IDA_MCP_CONFIG: "/rea-unconfigured-deep-provider/ida-mcp.json",
-      REA_KUNA_COMMAND: "/rea-unconfigured-deep-provider/kuna",
-      REA_KUNA_CACHE_DIR: "/rea-unconfigured-deep-provider/kuna-cache",
       REA_LOG_LEVEL: "silent",
     };
 

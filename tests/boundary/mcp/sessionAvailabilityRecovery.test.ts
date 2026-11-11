@@ -524,7 +524,7 @@ const connectScripted = async (options: {
 
 const DIRECT_OPERATIONS = [
   "address_name",
-  "current_address",
+  "procedure_address",
   "list_procedures",
   "procedure_assembly",
   "procedure_info",
@@ -588,9 +588,9 @@ it("returns provider-inferred siblings to declared availability after one succes
   };
   const declared = "Fixture project was opened read-only.";
   const { call, availability } = await connectScripted({
-    operations: [...DIRECT_OPERATIONS, "set_comment"],
+    operations: [...DIRECT_OPERATIONS, "annotate_native_function"],
     auxiliaryOperations: ["list_documents"],
-    declaredRefusals: { set_comment: declared },
+    declaredRefusals: { annotate_native_function: declared },
     respond,
   });
   const refused = refusal("procedure_info", "fixture project is read-only");
@@ -598,15 +598,19 @@ it("returns provider-inferred siblings to declared availability after one succes
   broken = true;
   expect(await call("address_name", ADDRESS)).toBe("error");
   expect(await call("procedure_assembly", PROCEDURE)).toBe("error");
-  const names = [...DIRECT_OPERATIONS, "set_comment", "list_documents"];
+  const names = [
+    ...DIRECT_OPERATIONS,
+    "annotate_native_function",
+    "list_documents",
+  ];
   expect(await availability(names)).toEqual({
     address_name: observedFailure("address_name"),
-    current_address: inferredFailure("procedure_assembly"),
+    procedure_address: inferredFailure("procedure_assembly"),
     list_procedures: inferredFailure("procedure_assembly"),
     procedure_assembly: observedFailure("procedure_assembly"),
     // Separately observed and declared refusals keep their own reasons.
     procedure_info: refused,
-    set_comment: declared,
+    annotate_native_function: declared,
     list_documents: "available",
   });
 
@@ -616,11 +620,11 @@ it("returns provider-inferred siblings to declared availability after one succes
   // operation is healthy: failures observed on other operations remain.
   expect(await availability(names)).toEqual({
     address_name: "available",
-    current_address: "available",
+    procedure_address: "available",
     list_procedures: "available",
     procedure_assembly: observedFailure("procedure_assembly"),
     procedure_info: refused,
-    set_comment: declared,
+    annotate_native_function: declared,
     list_documents: "available",
   });
   expect(await call("procedure_assembly", PROCEDURE)).toBe("ok");
@@ -886,31 +890,31 @@ it("keeps each provider's failures and ignores cancelled requests", async () => 
     current: (operation: string): Promise<Reply> =>
       auxiliaryBroken
         ? adapterFailure(AUXILIARY, operation)
-        : Promise.resolve(ok(createAnalysisExecution("doc", AUXILIARY))),
+        : Promise.resolve(ok(createAnalysisExecution([], AUXILIARY))),
   };
   const { call, availability } = await connectScripted({
-    operations: ["address_name", "current_address", "list_procedures"],
-    auxiliaryOperations: ["current_document", "list_documents"],
+    operations: ["address_name", "procedure_address", "list_procedures"],
+    auxiliaryOperations: ["search_strings", "list_documents"],
     respond,
     respondAuxiliary,
   });
   const names = [
     "address_name",
-    "current_address",
+    "procedure_address",
     "list_procedures",
-    "current_document",
+    "search_strings",
     "list_documents",
   ];
   expect(await call("list_documents", {})).toBe("error");
   expect(await call("address_name", ADDRESS)).toBe("ok");
   const auxiliaryFailure = {
-    current_document: inferredFailure("list_documents", AUXILIARY.id),
+    search_strings: inferredFailure("list_documents", AUXILIARY.id),
     list_documents: observedFailure("list_documents", AUXILIARY.id),
   };
   // Another provider's success does not clear the auxiliary provider's state.
   expect(await availability(names)).toEqual({
     address_name: "available",
-    current_address: "available",
+    procedure_address: "available",
     list_procedures: "available",
     ...auxiliaryFailure,
   });
@@ -921,7 +925,7 @@ it("keeps each provider's failures and ignores cancelled requests", async () => 
   expect(await call("list_procedures", {})).toBe("error");
   const fixtureFailure = {
     address_name: observedFailure("address_name"),
-    current_address: inferredFailure("address_name"),
+    procedure_address: inferredFailure("address_name"),
     list_procedures: inferredFailure("address_name"),
   };
   expect(await availability(names)).toEqual({
@@ -930,10 +934,10 @@ it("keeps each provider's failures and ignores cancelled requests", async () => 
   });
 
   auxiliaryBroken = false;
-  expect(await call("current_document", {})).toBe("ok");
+  expect(await call("search_strings", { pattern: "fixture" })).toBe("ok");
   expect(await availability(names)).toEqual({
     ...fixtureFailure,
-    current_document: "available",
+    search_strings: "available",
     list_documents: auxiliaryFailure.list_documents,
   });
 });
@@ -942,12 +946,12 @@ it("keeps newer failures when older successes complete after them", async () => 
   let reply: Responder = () => Promise.resolve(observed("text"));
   const respond = { current: (operation: string) => reply(operation) };
   const { client, call, availability } = await connectScripted({
-    operations: [...DIRECT_OPERATIONS, "current_procedure"],
+    operations: [...DIRECT_OPERATIONS, "procedure_pseudo_code"],
     respond,
   });
   const calls = heldCalls(client);
   respond.current = (operation) => calls.respond(operation) ?? reply(operation);
-  const document = { document: "doc" };
+  const document = { document: "doc", procedure: "main" };
   const refuse: Responder = (operation) =>
     Promise.resolve(
       err(
@@ -962,11 +966,11 @@ it("keeps newer failures when older successes complete after them", async () => 
     // Successes dispatched before an own refusal, before a provider failure,
     // or between the two complete after both.
     const olderAddress = await calls.dispatch("address_name", ADDRESS);
-    const olderCurrent = await calls.dispatch("current_address", document);
+    const olderCurrent = await calls.dispatch("procedure_address", document);
     reply = refuse;
     expect(await call("address_name", ADDRESS)).toBe("error");
-    expect(await call("current_procedure", document)).toBe("error");
-    const between = await calls.dispatch("current_procedure", document);
+    expect(await call("procedure_pseudo_code", document)).toBe("error");
+    const between = await calls.dispatch("procedure_pseudo_code", document);
     reply = (operation) => adapterFailure(FIXTURE, operation);
     expect(await call("procedure_assembly", PROCEDURE)).toBe("error");
     olderAddress.release(observed("old-name"));
@@ -977,15 +981,15 @@ it("keeps newer failures when older successes complete after them", async () => 
     expect(
       await availability([
         "address_name",
-        "current_address",
-        "current_procedure",
+        "procedure_address",
+        "procedure_pseudo_code",
         "list_procedures",
       ]),
     ).toEqual({
       address_name: refusal("address_name", "fixture refusal"),
-      current_address: inferredFailure("procedure_assembly"),
+      procedure_address: inferredFailure("procedure_assembly"),
       // Its own later success superseded the refusal, not the provider failure.
-      current_procedure: inferredFailure("procedure_assembly"),
+      procedure_pseudo_code: inferredFailure("procedure_assembly"),
       list_procedures: inferredFailure("procedure_assembly"),
     });
 
@@ -993,7 +997,7 @@ it("keeps newer failures when older successes complete after them", async () => 
     // the failure was not yet observed when the success was dispatched.
     reply = () => Promise.resolve(observed("text"));
     const failure = await calls.dispatch("procedure_assembly", PROCEDURE);
-    const queued = await calls.dispatch("current_address", document);
+    const queued = await calls.dispatch("procedure_address", document);
     failure.release(
       err(new ProviderAdapterError(FIXTURE.id, "procedure_assembly")),
     );
@@ -1003,15 +1007,15 @@ it("keeps newer failures when older successes complete after them", async () => 
     expect(
       await availability([
         "address_name",
-        "current_address",
-        "current_procedure",
+        "procedure_address",
+        "procedure_pseudo_code",
         "list_procedures",
         "procedure_assembly",
       ]),
     ).toEqual({
       address_name: refusal("address_name", "fixture refusal"),
-      current_address: "available",
-      current_procedure: "available",
+      procedure_address: "available",
+      procedure_pseudo_code: "available",
       list_procedures: "available",
       procedure_assembly: observedFailure("procedure_assembly"),
     });
@@ -1032,18 +1036,21 @@ it("keeps newer successes when an older failure completes last", async () => {
   const calls = heldCalls(client);
   respond.current = (operation) =>
     calls.respond(operation) ?? Promise.resolve(observed("text"));
-  const names = ["address_name", "current_address", "list_procedures"];
+  const names = ["address_name", "procedure_address", "list_procedures"];
   try {
     // A sibling dispatched later already proved the provider answers.
     const older = await calls.dispatch("address_name", ADDRESS);
-    const newer = await calls.dispatch("current_address", { document: "doc" });
+    const newer = await calls.dispatch("procedure_address", {
+      document: "doc",
+      procedure: "main",
+    });
     newer.release(observed("0x1000"));
     expect(await newer.isError()).toBe(false);
     older.release(err(new ProviderAdapterError(FIXTURE.id, "address_name")));
     expect(await older.isError()).toBe(true);
     expect(await availability(names)).toEqual({
       address_name: observedFailure("address_name"),
-      current_address: "available",
+      procedure_address: "available",
       list_procedures: "available",
     });
 
@@ -1056,7 +1063,7 @@ it("keeps newer successes when an older failure completes last", async () => {
     expect(await stale.isError()).toBe(true);
     expect(await availability([...names, "procedure_assembly"])).toEqual({
       address_name: observedFailure("address_name"),
-      current_address: "available",
+      procedure_address: "available",
       list_procedures: "available",
       procedure_assembly: "available",
     });

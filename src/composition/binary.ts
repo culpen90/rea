@@ -4,10 +4,7 @@ import { isAppleDispatchMetadataTarget } from "../domain/native/objcSwiftMetadat
 import { snapshotEnvironment } from "../process/snapshotEnvironment.js";
 import type { AppConfig } from "../config/types.js";
 import type { BinarySession } from "../application/binary/BinarySession.js";
-import { HopperProvider } from "../hopper/HopperProvider.js";
 import { GhidraProvider } from "../ghidra/GhidraProvider.js";
-import { IdaProvider } from "../ida/IdaProvider.js";
-import { KunaProvider } from "../kuna/KunaProvider.js";
 import type { Logger } from "pino";
 import { auxiliaryAnalysisProviderDeclarations } from "./auxiliaryAnalysisProviders.js";
 import { AnalysisProviderRegistry } from "../application/binary/AnalysisProviderRegistry.js";
@@ -60,13 +57,7 @@ const composeDeepBinarySession = (
   settings?: AnalysisSettingsReader,
 ): BinarySession => {
   const environment = snapshotEnvironment(selectedEnvironment);
-  const hopper = new HopperProvider(config, logger, environment);
   const ghidra = new GhidraProvider(config, logger, environment);
-  const ida = new IdaProvider(config, environment);
-  const kuna = new KunaProvider(environment, {
-    regexMatchingDeadline: config.regexMatchingDeadline,
-    regexWorkerHeapRequest: config.regexWorkerHeapRequest,
-  });
   const auxiliaryDeclarations = auxiliaryAnalysisProviderDeclarations(
     environment,
     process.platform,
@@ -81,7 +72,7 @@ const composeDeepBinarySession = (
     );
   return composeBinarySession(
     new AnalysisProviderRegistry(
-      [hopper, ghidra, ida, kuna],
+      [ghidra],
       config.analysisProvider,
       nativeInspectionAvailable ? isAppleDispatchMetadataTarget : undefined,
     ),

@@ -67,7 +67,7 @@ it.each([
   {
     tool: "binary_overview",
     optional: "list_segments",
-    required: "current_document",
+    required: "list_documents",
     input: {},
   },
 ] as const)(
@@ -89,7 +89,7 @@ it.each([
             ),
           );
         let value: JsonValue = [];
-        if (operation === "current_document") value = "fixture";
+        if (operation === "list_documents") value = ["fixture"];
         else if (operation === "procedure_address") value = "0x1000";
         else if (operation === "address_name") value = "entry";
         else if (operation === "procedure_pseudo_code") value = "code";
@@ -172,7 +172,7 @@ it("reports parallel overview string-read effects after its sibling inventory is
         return err(failure);
       return ok(
         createAnalysisExecution(
-          operation === "current_document" ? "fixture" : [],
+          operation === "list_documents" ? ["fixture"] : [],
           provider,
         ),
       );
@@ -209,7 +209,7 @@ it("includes fallback effects when an advertised available aggregate read declin
         );
       return ok(
         createAnalysisExecution(
-          operation === "current_document" ? "fixture" : [],
+          operation === "list_documents" ? ["fixture"] : [],
           provider,
         ),
       );

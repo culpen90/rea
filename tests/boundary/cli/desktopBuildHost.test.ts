@@ -43,7 +43,6 @@ const buildHost = async (launcher = "/opt/rea/scripts/rea.mjs") => {
       USERPROFILE: home,
       XDG_CACHE_HOME: join(root, "cache"),
       PATH: `${bin}:/usr/bin:/bin`,
-      HOPPER_LAUNCHER_PATH: join(root, "missing-hopper"),
       REA_LOG_LEVEL: "silent",
     },
   };

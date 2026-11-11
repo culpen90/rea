@@ -45,7 +45,7 @@ security concern. Analysis engines themselves are executable software trusted
 with the host account's permissions; parsing an input in an external engine
 does not isolate that engine from the host.
 
-REA authenticates its managed Hopper and Ghidra bridges with per-session random
+REA authenticates its managed Ghidra bridge with per-session random
 capability tokens transferred through private session files, rather than
 process arguments or environment variables. POSIX uses current-user Unix
 sockets. Windows Ghidra uses authenticated loopback TCP and a private NTFS
@@ -61,19 +61,13 @@ Provider ownership and mutation rules remain specific to each workflow:
   [caller-selected existing project](docs/getting-started/installation.md#reuse-an-existing-ghidra-project)
   is fingerprinted and copied into an owned runtime for read-only processing;
   Ghidra does not open or save the original database through that workflow.
-- [IDA analysis](docs/providers/ida-provider.md) is read-only. An attached GUI
-  database is never saved or closed by REA; owned headless sessions have a
-  separate lifecycle.
 - Cleanup must stay within resources REA owns. Failed or unverified cleanup
   can retain a workspace or session for retry; closing a session
   does not imply that every investigation artifact has been erased.
 
-`rea setup` shows planned configuration and installation changes and requires
-approval before applying them. Ghidra, Java and IDA are user-managed. Approved
-Linux Hopper installation authenticates the package's detached PGP signature
-against the pinned publisher identity and checks the signed launcher against
-the selected release's digest. The release feed's display version is separate
-from that authenticated identity. See [installation and publisher verification](docs/getting-started/installation.md#hopper).
+`rea setup` shows planned configuration changes and requires approval before
+applying them. Ghidra and Java are user-managed. See
+[installation and setup](docs/getting-started/installation.md).
 
 ### Limits and caller responsibilities
 
@@ -89,8 +83,7 @@ from that authenticated identity. See [installation and publisher verification](
 - **Data and network exposure:** Evidence, caches, checkpoints, exports and
   captures can retain private target data, paths, URLs and memory contents.
   Local execution does not make these outputs safe to publish. Requested
-  network operations, agent hosts and provider features such as
-  [IDA Free's cloud decompiler](docs/providers/ida-provider.md) can communicate
+  network operations and agent hosts can communicate
   outside the host. Review their data handling and secure any exposed endpoint.
 - **Interpretation:** analysis, reconstruction and generated environments can
   be incomplete or incorrect. Identity checks, signatures and successful
@@ -118,7 +111,7 @@ If you are unsure whether a boundary is affected, use the private channel below.
 ## Reporting a vulnerability
 
 Do not disclose vulnerabilities, proof-of-concept exploits, credentials,
-private binaries, Hopper documents, or private Ghidra projects in a public
+private binaries or private Ghidra projects in a public
 issue.
 
 Use **Report a vulnerability** in the repository's **Security** tab as the preferred way to submit the report privately. If GitHub private reporting is unavailable to you, email [morluto@outlook.com](mailto:morluto@outlook.com). Do not open a public issue to request a private contact channel.
@@ -126,7 +119,7 @@ Use **Report a vulnerability** in the repository's **Security** tab as the prefe
 Include the affected REA version, operating system/distribution, selected
 provider and version, impact, reproduction conditions, and any suggested
 mitigation in the private report. Remove credentials, proprietary binaries,
-Hopper documents, Ghidra project contents, socket capability tokens, and
+Ghidra project contents, socket capability tokens, and
 unrelated local paths from logs or examples.
 
 The maintainer will acknowledge the report, assess its scope, and coordinate

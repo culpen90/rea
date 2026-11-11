@@ -4,15 +4,8 @@ import { AnalysisError } from "../domain/analysisErrorBase.js";
 import { AnalysisCancelledError } from "../domain/analysisErrorCore.js";
 import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import { ConfigurationError } from "../domain/configurationErrors.js";
-import { SUPPORTED_NODE_VERSION_PROSE } from "../domain/runtimeVersion.js";
 import { FakeSetupHost, options } from "./Setup.fixture.js";
 import { runSetup } from "./Setup.js";
-import { discoverSetupState } from "./SetupPlan.js";
-import { macHopperInstallDisclosure } from "./MacHopper.js";
-import {
-  parseLinuxDistribution,
-  type LinuxDistribution,
-} from "./LinuxHopper.js";
 import type { SetupProgressEvent } from "./SetupTypes.js";
 import { setupCleanupError, SetupCleanupOwner } from "./SetupCleanupOwner.js";
 import { ProviderCleanupError } from "../domain/providerCleanupError.js";
@@ -33,20 +26,19 @@ describe("setup workflow", () => {
     ];
 
     const result = await runSetup(
-      { ...options(true, true), installSkill: true, clientIds: ["codex"] },
+      { ...options(true), installSkill: true, clientIds: ["codex"] },
       host,
     );
 
     expect(result.status).toBe("needs_human");
     expect(result.appliedActions).toEqual([]);
-    expect(host.hopperInstalls).toBe(0);
     expect(host.configurations).toBe(0);
     expect(host.skillInstalls).toBe(0);
   });
 
   it("records every detected client outcome after an earlier failure", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.clients = [
       {
         name: "first",
@@ -93,7 +85,7 @@ describe("setup workflow", () => {
 
   it("reports a failed config rollback with its destination and recovery backup", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.clients = [
       {
         name: "codex",
@@ -135,7 +127,7 @@ describe("setup workflow", () => {
 describe("setup recovery and readiness guidance", () => {
   it("explains skill installation recovery", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "failed";
     const progress: SetupProgressEvent[] = [];
     const result = await runSetup(
@@ -165,10 +157,10 @@ describe("setup recovery and readiness guidance", () => {
 
   it("delegates remaining unhealthy checks to doctor remediation", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.doctorHealthy = false;
     const result = await runSetup(
-      { ...options(true), readinessScope: { providers: ["hopper"] } },
+      { ...options(true), readinessScope: { providers: ["ghidra"] } },
       host,
     );
     expect(result.remediation).toBe(
@@ -178,7 +170,7 @@ describe("setup recovery and readiness guidance", () => {
 
   it("uses requested readiness scope without hiding environment drift", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.doctorHealthy = false;
     host.scopedDoctorHealthy = true;
     host.clients = [
@@ -197,7 +189,6 @@ describe("setup recovery and readiness guidance", () => {
     const result = await runSetup(
       {
         ...options(true),
-        proposeHopper: false,
         installSkill: false,
         readinessScope,
       },
@@ -427,7 +418,7 @@ describe("setup returned result cleanup", () => {
       const host = new HostWithCleanup();
       const control = new FakeSetupHost();
       for (const selected of [host, control]) {
-        selected.hopper = "/Applications/Hopper";
+        selected.ghidra = "/opt/ghidra";
         selected.doctorHealthy = state === "ready";
         selected.scopedDoctorHealthy = state === "ready";
         if (state === "needs_human") selected.nodeVersion = "25.0.0";
@@ -435,7 +426,6 @@ describe("setup returned result cleanup", () => {
       const input = {
         ...options(true),
         installSkill: false,
-        proposeHopper: false,
         clientIds: [],
       };
       const baseline = await runSetup(input, control);
@@ -467,41 +457,9 @@ describe("setup returned result cleanup", () => {
 });
 
 describe("setup scoped readiness", () => {
-  it("limits Hopper host checks to workflows that request Hopper", async () => {
-    const platformHost = new FakeSetupHost("win32");
-    platformHost.hopper = "/Applications/Hopper";
-    platformHost.skill = "unchanged";
-    platformHost.clients = [
-      {
-        name: "codex",
-        registrationProfile: supportedClientRegistrationProfile("codex"),
-        configPath: "/codex.toml",
-      },
-    ];
-    const windowsAgent = await runSetup(
-      { ...options(true), clientIds: ["codex"] },
-      platformHost,
-    );
-    expect(windowsAgent.status).toBe("ready");
-    expect(platformHost.configurations).toBe(1);
-
-    const nodeHost = new FakeSetupHost();
-    nodeHost.nodeVersion = "20.0.0";
-    expect((await runSetup(options(true), nodeHost)).remediation).toBe(
-      `Install ${SUPPORTED_NODE_VERSION_PROSE} and rerun setup.`,
-    );
-
-    const macHost = new FakeSetupHost();
-    macHost.version = "11.7";
-    expect((await runSetup(options(true), macHost)).status).toBe("ready");
-    expect((await runSetup(options(true, true), macHost)).remediation).toBe(
-      "Upgrade to macOS 12 or newer.",
-    );
-  });
-
   it("keeps an unchanged selected client in final readiness checks", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = [
       {
@@ -535,56 +493,9 @@ describe("setup scoped readiness", () => {
     });
   });
 
-  it("does not advertise an unhealthy Hopper in the selected readiness summary", async () => {
-    const host = new FakeSetupHost("win32");
-    host.hopper = "C:\\Hopper\\Hopper.exe";
-    host.unsupportedHopperVersion = true;
-    host.clients = [
-      {
-        name: "codex",
-        registrationProfile: supportedClientRegistrationProfile("codex"),
-        configPath: "C:\\codex.toml",
-      },
-    ];
-    host.scopedDoctorHealthy = true;
-
-    const result = await runSetup(
-      {
-        ...options(true),
-        clientIds: ["codex"],
-        installSkill: false,
-      },
-      host,
-    );
-
-    expect(result.status).toBe("ready");
-    expect(result.doctor.availableProviders).toEqual([]);
-  });
-
-  it("rejects unsupported hosts before mutation", async () => {
+  it("configures BYO Ghidra on Linux", async () => {
     const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "debian",
-      versionId: "13",
-      packageFamily: "deb",
-      hopperSetupSupported: false,
-    };
-    const result = await runSetup(options(true, true), host);
-    expect(result.status).toBe("needs_human");
-    expect(host.hopperInstalls).toBe(0);
-    expect(result.remediation).toBe(
-      "Automated Hopper setup requires an x86_64 host running Ubuntu 24.04+, Fedora 41+, Nobara 44+, Arch Linux, CachyOS, or Omarchy; configure an existing supported provider instead.",
-    );
-  });
 
-  it("configures BYO Ghidra on Linux outside Hopper's installer matrix", async () => {
-    const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "debian",
-      versionId: "13",
-      packageFamily: "deb",
-      hopperSetupSupported: false,
-    };
     host.ghidra = "/opt/ghidra_12.1.4_PUBLIC";
     host.javaHome = "/usr/lib/jvm/jdk-21";
     host.doctorHealthy = true;
@@ -603,222 +514,11 @@ describe("setup scoped readiness", () => {
     );
 
     expect(result.status).toBe("ready");
-    expect(host.hopperInstalls).toBe(0);
     expect(host.configuredProviderEnvironments).toContainEqual({
       GHIDRA_INSTALL_DIR: "/opt/ghidra_12.1.4_PUBLIC",
       JAVA_HOME: "/usr/lib/jvm/jdk-21",
     });
   });
-});
-
-const unsupportedDebian = {
-  id: "debian",
-  versionId: "13",
-  packageFamily: "deb",
-  hopperSetupSupported: false,
-} as const;
-const supportedUbuntu = {
-  id: "ubuntu",
-  versionId: "24.04",
-  packageFamily: "deb",
-  hopperSetupSupported: true,
-} as const;
-const unsupportedLinux =
-  "Automated Hopper setup requires an x86_64 host running Ubuntu 24.04+, Fedora 41+, Nobara 44+, Arch Linux, CachyOS, or Omarchy; configure an existing supported provider instead.";
-const unhealthyManualClientHost = (
-  platform: NodeJS.Platform,
-  facts: {
-    readonly version?: string | undefined;
-    readonly distribution?: LinuxDistribution;
-  },
-) => {
-  const host = new FakeSetupHost(platform);
-  host.version = facts.version;
-  host.distribution = facts.distribution;
-  host.doctorHealthy = false;
-  host.clients = [
-    {
-      name: "grok_bot",
-      registrationProfile: supportedClientRegistrationProfile("grok_bot"),
-      displayName: "Grok Bot",
-      configPath: "/fixture/home/.grokbot",
-      format: "unsupported",
-    },
-  ];
-  return host;
-};
-const manualClientSetup = {
-  ...options(true),
-  clientIds: ["grok_bot"],
-  installSkill: false,
-};
-const proposesHopper = async (host: FakeSetupHost) =>
-  (
-    await runSetup(
-      {
-        ...options(false),
-        proposeHopper: true,
-        dryRun: true,
-        clientIds: [],
-        installSkill: false,
-      },
-      host,
-    )
-  ).plannedActions.some(({ kind }) => kind === "install_hopper");
-
-describe("setup Hopper install eligibility", () => {
-  it.each([
-    {
-      label: "Windows",
-      platform: "win32",
-      refusal:
-        "REA supports Hopper on macOS and selected x86_64 Linux distributions.",
-    },
-    {
-      label: "macOS 11",
-      platform: "darwin",
-      version: "11.7",
-      refusal: "Upgrade to macOS 12 or newer.",
-    },
-    {
-      label: "macOS with an unknown version",
-      platform: "darwin",
-      version: undefined,
-      refusal: "Upgrade to macOS 12 or newer.",
-    },
-    {
-      label: "an unsupported Linux distribution",
-      platform: "linux",
-      distribution: unsupportedDebian,
-      refusal: unsupportedLinux,
-    },
-    {
-      label: "Ubuntu on arm64",
-      platform: "linux",
-      distribution: parseLinuxDistribution(
-        'ID=ubuntu\nVERSION_ID="24.04"',
-        "arm64",
-      ),
-      refusal: unsupportedLinux,
-    },
-    {
-      label: "an unidentified Linux distribution",
-      platform: "linux",
-      refusal: unsupportedLinux,
-    },
-  ] as const)(
-    "neither offers nor accepts an unsupported Hopper installation on $label",
-    async ({ platform, refusal, ...facts }) => {
-      const host = unhealthyManualClientHost(platform, facts);
-
-      const advised = await runSetup(manualClientSetup, host);
-      expect(advised.status).toBe("needs_human");
-      expect(advised.remediation).not.toContain("--install-hopper");
-      expect(advised.remediation).toContain(
-        "Run rea doctor and apply each reported remediation.",
-      );
-      expect(advised.remediation).toContain("hosted computer");
-      expect(await proposesHopper(host)).toBe(false);
-
-      const requested = await runSetup(
-        { ...manualClientSetup, installHopper: true },
-        host,
-      );
-      expect(requested).toMatchObject({
-        status: "needs_human",
-        remediation: refusal,
-        appliedActions: [],
-      });
-      expect(host.hopperInstalls).toBe(0);
-    },
-  );
-
-  it.each([
-    { label: "macOS 14", platform: "darwin", version: "14.5" },
-    {
-      label: "a supported Linux distribution",
-      platform: "linux",
-      distribution: supportedUbuntu,
-    },
-  ] as const)(
-    "offers a Hopper installation that succeeds on $label",
-    async ({ platform, ...facts }) => {
-      const host = unhealthyManualClientHost(platform, facts);
-
-      const advised = await runSetup(manualClientSetup, host);
-      expect(advised.status).toBe("needs_human");
-      expect(advised.remediation).toContain(
-        "Rerun with --yes --install-hopper",
-      );
-      expect(advised.remediation).toContain("hosted computer");
-      expect(await proposesHopper(host)).toBe(true);
-
-      const followed = await runSetup(
-        { ...manualClientSetup, installHopper: true },
-        host,
-      );
-      expect(followed.appliedActions).toContain("installed_hopper");
-      expect(host.hopperInstalls).toBe(1);
-    },
-  );
-
-  it.each([
-    { version: "", installs: false },
-    { version: "14beta", installs: false },
-    { version: "14.garbage", installs: false },
-    { version: "14.", installs: false },
-    { version: "14.0\n", installs: false },
-    { version: "99999999999999999", installs: false },
-    // REA's own floor admits these; the selected release's minimum is
-    // compared by the installer, which this recording host replaces.
-    { version: "12", installs: true },
-    { version: "12.0", installs: true },
-  ])(
-    "decides an explicit Hopper installation for macOS %j",
-    async ({ version, installs }) => {
-      const host = new FakeSetupHost("darwin");
-      host.version = version;
-
-      const result = await runSetup(options(true, true), host);
-
-      expect(result.appliedActions.includes("installed_hopper")).toBe(installs);
-      expect(host.hopperInstalls).toBe(installs ? 1 : 0);
-      if (!installs)
-        expect(result).toMatchObject({
-          status: "needs_human",
-          remediation: "Upgrade to macOS 12 or newer.",
-        });
-    },
-  );
-
-  it.each(["12.0", "12.3", "12.4", "14.5"])(
-    "leaves Hopper support on macOS %s unknown until the release minimum is read",
-    async (version) => {
-      const host = new FakeSetupHost("darwin");
-      host.version = version;
-
-      const discovery = await discoverSetupState({
-        host,
-        providerConfigured: false,
-        forceHopperInstall: false,
-        proposeHopper: true,
-        initialDoctor: await host.doctor(),
-      });
-      expect(discovery).toMatchObject({
-        hopperInstall: { supported: "unknown" },
-        installHopper: true,
-      });
-      const plan = await runSetup(
-        { ...options(false, true), dryRun: true },
-        host,
-      );
-      // The installer owns the disclosed check; its refusal is tested there.
-      expect(
-        plan.plannedActions.find(({ kind }) => kind === "install_hopper")
-          ?.detail,
-      ).toBe(macHopperInstallDisclosure.detail);
-    },
-  );
 });
 
 it("leaves ownerless caller-host failures unconfirmed after an unobserved direct retry", async () => {
@@ -909,7 +609,7 @@ describe("setup cancellation", () => {
     "preserves completed client results after cancellation: $status",
     async (completed) => {
       const host = new FakeSetupHost();
-      host.hopper = "/Applications/Hopper";
+      host.ghidra = "/opt/ghidra";
       host.clients = [
         {
           name: "codex",
@@ -952,7 +652,7 @@ describe("setup cancellation", () => {
     "preserves a completed skill result when cancellation arrives: success %s",
     async (success) => {
       const host = new FakeSetupHost();
-      host.hopper = "/Applications/Hopper";
+      host.ghidra = "/opt/ghidra";
       const controller = new AbortController();
       const reason = new Error("cancel after skill write");
       const skillFailure = new SetupSkillInstallError({
@@ -999,50 +699,6 @@ describe("setup cancellation", () => {
   );
 });
 
-describe("setup cancellation during installation and cleanup", () => {
-  it("carries the caller's cancellation into the Hopper install", async () => {
-    const host = new FakeSetupHost("darwin");
-    host.clients = [
-      {
-        name: "codex",
-        registrationProfile: supportedClientRegistrationProfile("codex"),
-        configPath: "/codex.toml",
-      },
-    ];
-    const controller = new AbortController();
-    const reason = new Error("stop setup");
-    let received: AbortSignal | undefined;
-    host.installHopper = (_replaceExisting, signal?: AbortSignal) => {
-      received = signal;
-      controller.abort(reason);
-      return Promise.resolve({
-        status: "failed",
-        code: "setup_cancelled",
-        remediation: "Setup was cancelled.",
-      });
-    };
-
-    const failure: unknown = await runSetup(
-      {
-        ...options(true, true),
-        clientIds: ["codex"],
-        signal: controller.signal,
-      },
-      host,
-    ).catch((cause: unknown) => cause);
-
-    expect(received).toBe(controller.signal);
-    expect(failure).toBeInstanceOf(AnalysisCancelledError);
-    expect(failure).toMatchObject({ cause: reason });
-    expect((failure as AnalysisCancelledError).diagnostics).toMatchObject({
-      setup_progress: {
-        hopperOutcome: { status: "failed", code: "setup_cancelled" },
-      },
-    });
-    expect(host.configurations).toBe(0);
-  });
-});
-
 describe("setup cancellation during final cleanup", () => {
   it("reports cancellation during final cleanup with the completed setup result", async () => {
     const clients = {
@@ -1052,12 +708,11 @@ describe("setup cancellation during final cleanup", () => {
     const input = {
       ...options(true),
       installSkill: false,
-      proposeHopper: false,
       clientIds: Object.keys(clients),
     };
     const prepared = () => {
       const host = new FakeSetupHost();
-      host.hopper = "/Applications/Hopper";
+      host.ghidra = "/opt/ghidra";
       host.clients = [
         {
           name: "codex",
@@ -1114,7 +769,7 @@ describe("setup cancellation during final cleanup", () => {
     const controller = new AbortController();
     const reason = new Error("cancel during final cleanup");
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.clients = [
       {
         name: "codex",

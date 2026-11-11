@@ -2,13 +2,6 @@ import { PROMPT_CONTRACTS } from "../dist/contracts/promptContracts.js";
 
 export const names = PROMPT_CONTRACTS.map(({ name }) => name);
 
-/** Extract the text payload used by packaged MCP smoke assertions. */
-export const mcpText = (result) => {
-  const value = result.content?.find((item) => item.type === "text")?.text;
-  if (typeof value !== "string") throw new Error("MCP result omitted text");
-  return value;
-};
-
 /** Verify packaged prompt discovery and rendering through the public client. */
 export const verifyPromptCatalog = async (client, options, expectedNames) => {
   const prompts = await client.listPrompts(undefined, options);

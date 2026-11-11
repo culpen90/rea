@@ -77,7 +77,7 @@ notices, and usage conditions. Consult
 [Third-party notices](THIRD_PARTY_NOTICES.md) for their roles, licensing
 records, and preserved upstream texts.
 
-You must legally obtain IDA Pro and Hex-Rays decompilers, Hopper, JEB, and any
+You must legally obtain JEB and any
 other proprietary tools, together with the rights required for your use. REA
 provides no commercial-tool license, key, or activation entitlement. Permitted
 trials and demos remain subject to vendor terms. An open-source bridge or

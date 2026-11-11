@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { createAnalysisProfile } from "../../src/domain/analysisProfile.js";
 import type { BinaryTarget } from "../../src/domain/binaryTargetTypes.js";
 import type { AnalysisError } from "../../src/domain/analysisErrorBase.js";
-import { HopperStartError } from "../../src/domain/hopperErrors.js";
+import { ProviderAdapterError } from "../../src/domain/providerAdapterError.js";
 import type { Result } from "../../src/domain/result.js";
 import type {
   AnalysisClient,
@@ -178,7 +178,9 @@ export class ControllableAnalysisClient implements AnalysisClient {
   execute(name: string) {
     if (name === "health")
       return this.failHealth
-        ? Promise.resolve(err(new HopperStartError()))
+        ? Promise.resolve(
+            err(new ProviderAdapterError("test-provider", "open_binary")),
+          )
         : (this.pendingHealth ?? Promise.resolve(observed(null)));
     return this.pendingCall ?? Promise.resolve(observed(null));
   }

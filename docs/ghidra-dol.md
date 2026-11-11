@@ -7,8 +7,7 @@ number, so REA never detects it: the caller must select it explicitly.
 Only the cached MEM1 window `0x80000000..0x81800000` is admitted. Wii MEM2
 and uncached aliases are outside this lane.
 
-Not covered: small-data anchors (`r2`/`r13`), REL, RPX, and IDA or Hopper
-support. See [Not supported yet](#not-supported-yet).
+See below for small-data anchors (`r2`/`r13`), REL and RPX limits. See [Not supported yet](#not-supported-yet).
 
 ## Select the format
 
@@ -125,5 +124,4 @@ The ELF lane (`npm run verify:ghidra:ppc`) is separate. See
 
 - Small-data anchors: `r2` and `r13` are not seeded from the DOL header.
 - REL (relocatable modules) and RPX (Wii U) are not admitted.
-- IDA and Hopper refuse `gamecube-dol`. Ghidra is the only provider.
 - Disc images (ISO/GCM) are not supported. Pass an extracted DOL file.

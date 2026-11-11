@@ -11,7 +11,7 @@ import type {
   AnalysisProvider,
 } from "../../../src/application/AnalysisProvider.js";
 import { AnalysisCancelledError } from "../../../src/domain/analysisErrorCore.js";
-import { HopperStartError } from "../../../src/domain/hopperErrors.js";
+import { ProviderAdapterError } from "../../../src/domain/providerAdapterError.js";
 import { projectAnalysisError } from "../../../src/domain/analysisErrorProjection.js";
 import { ProviderCleanupError } from "../../../src/domain/providerCleanupError.js";
 import { err, ok as resultOk } from "../../../src/domain/result.js";
@@ -296,7 +296,7 @@ it("offers a close retry after a saved snapshot but not after a failed save", as
 });
 
 it("keeps a failed candidate for cleanup and preserves its startup failure", async () => {
-  const primary = new HopperStartError();
+  const primary = new ProviderAdapterError("test-provider", "open_binary");
   const fixture = await retryFixture(() => Promise.resolve(err(primary)));
   const result = await fixture.session.open(fixture.targets[0]);
   expect(result).toMatchObject({
@@ -440,7 +440,11 @@ it("keeps failed restoration resources available for a close retry", async () =>
     const index = ++created;
     return {
       execute: () =>
-        Promise.resolve(index === 1 ? ok(null) : err(new HopperStartError())),
+        Promise.resolve(
+          index === 1
+            ? ok(null)
+            : err(new ProviderAdapterError("test-provider", "open_binary")),
+        ),
       close: async () => {
         if (index !== 3) return resultOk(null);
         if (!allowed)

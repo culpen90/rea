@@ -11,22 +11,12 @@ import {
   type OwnedProcessGroup,
 } from "../../../src/process/ProcessOwnership.js";
 
-cliTest.skipIf(!["darwin", "linux"].includes(process.platform)).for(
-  (["jadx", "kuna"] as const).flatMap((provider) =>
-    (
-      [
-        ["SIGINT", 130],
-        ["SIGTERM", 143],
-      ] as const
-    ).map(([signal, expected]) => ({
-      provider,
-      signal,
-      expected,
-    })),
-  ),
-)(
-  "doctor preserves $signal for $provider after logging and joined prerequisite cleanup",
-  async ({ provider, signal, expected }, { processes }) => {
+cliTest.skipIf(!["darwin", "linux"].includes(process.platform)).for([
+  { signal: "SIGINT" as const, expected: 130 },
+  { signal: "SIGTERM" as const, expected: 143 },
+])(
+  "doctor preserves $signal after logging and joined prerequisite cleanup",
+  async ({ signal, expected }, { processes }) => {
     const root = await createTestTempDirectory("rea-doctor-cancel-");
     const jdk = join(root, "jdk");
     const jar = join(root, "engine.jar");
@@ -37,9 +27,8 @@ cliTest.skipIf(!["darwin", "linux"].includes(process.platform)).for(
     await writeJadxJarInventory(jar);
     // No real provider runs. Announce only the selected prerequisite probe;
     // informational Ghidra checks can call the same configured Java first.
-    const executable =
-      provider === "kuna" ? join(root, "kuna") : join(jdk, "bin", "java");
-    const probeArgument = provider === "kuna" ? "--version" : "--list-modules";
+    const executable = join(jdk, "bin", "java");
+    const probeArgument = "--list-modules";
     await writeFile(
       executable,
       `#!${process.execPath}
@@ -53,15 +42,13 @@ setTimeout(() => process.exit(99), 20000);
     );
     const child = processes.spawn(
       process.execPath,
-      [resolve("scripts/rea.mjs"), "doctor", "--provider", provider, "--json"],
+      [resolve("scripts/rea.mjs"), "doctor", "--provider", "jadx", "--json"],
       {
         env: {
           PATH: process.env.PATH,
           HOME: join(root, "home"),
-          JAVA_HOME: provider === "jadx" ? jdk : join(root, "missing-jdk"),
-          ...(provider === "jadx"
-            ? { REA_JADX_MCP_JAR: jar }
-            : { REA_KUNA_COMMAND: executable }),
+          JAVA_HOME: jdk,
+          REA_JADX_MCP_JAR: jar,
           GHIDRA_INSTALL_DIR: join(root, "missing-ghidra"),
           REA_LOG_LEVEL: "silent",
         },
@@ -95,49 +82,27 @@ setTimeout(() => process.exit(99), 20000);
         )
         .toBe(true);
       const readyRecord: unknown = JSON.parse(await readFile(ready, "utf8"));
-      // JADX publishes a UUID. Kuna publishes an opaque
-      // `rea-kuna-version-<uuid>` token. Both are required: JSON.stringify
-      // drops an undefined REA_PROCESS_RUN_ID, and that omission must fail.
-      const observed =
-        provider === "jadx"
-          ? z
-              .strictObject({
-                pid: z.number().int().positive(),
-                runId: z.string().uuid(),
-              })
-              .parse(readyRecord)
-          : z
-              .strictObject({
-                pid: z.number().int().positive(),
-                runId: z.string().min(1),
-              })
-              .parse(readyRecord);
-      if (provider === "jadx") {
-        ownership = {
-          leaderPid: observed.pid,
-          processGroupId: observed.pid,
-          runId: observed.runId,
-        };
-      }
+      const observed = z
+        .strictObject({
+          pid: z.number().int().positive(),
+          runId: z.string().uuid(),
+        })
+        .parse(readyRecord);
+      ownership = {
+        leaderPid: observed.pid,
+        processGroupId: observed.pid,
+        runId: observed.runId,
+      };
       child.kill(signal);
       await expect
         .poll(() => child.exitCode, { timeout: 10_000 })
         .not.toBeNull();
       const result = await closed;
       expect(JSON.parse(stdout)).toMatchObject({ code: "cancelled" });
-      if (ownership !== undefined) {
-        const groups = await observeOwnedProcessGroups(ownership.runId, [
-          ownership.processGroupId,
-        ]);
-        expect(groups.get(ownership.processGroupId)).toEqual({
-          state: "empty",
-        });
-      } else {
-        // Do not invent a group owner from the probe PID.
-        expect(() => process.kill(observed.pid, 0)).toThrowError(
-          expect.objectContaining({ code: "ESRCH" }),
-        );
-      }
+      const groups = await observeOwnedProcessGroups(ownership.runId, [
+        ownership.processGroupId,
+      ]);
+      expect(groups.get(ownership.processGroupId)).toEqual({ state: "empty" });
       expect(result, stderr).toEqual({ code: expected, signal: null });
     } finally {
       try {

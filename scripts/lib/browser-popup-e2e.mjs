@@ -161,7 +161,7 @@ const verifyTransports = async (executable, origin) => {
   const env = {
     PATH: process.env.PATH ?? "/usr/bin:/bin",
     REA_LOG_LEVEL: "silent",
-    HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
+    GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
   };
   const { stdout } = await promisify(execFile)(
     process.execPath,

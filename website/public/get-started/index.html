@@ -873,8 +873,8 @@ cd rea-work</code></pre>
               gives it a workflow for investigating software.
             </p>
             <p>
-              For the first exercise, you can skip the optional Hopper
-              installation. Restart your client when setup finishes.
+              Restart your client when setup finishes. The first exercise uses
+              static JavaScript analysis and runs without Ghidra.
             </p>
             <details class="evidence-details">
               <summary>How do I restart my client?</summary>
@@ -1018,13 +1018,10 @@ cd rea-work</code></pre>
               analysis tool REA uses for that kind of software.
             </p>
             <details class="evidence-details" id="native-providers">
-              <summary>
-                Native executables and libraries · Hopper, Ghidra or IDA
-              </summary>
+              <summary>Native executables and libraries · Ghidra</summary>
               <p>
-                Install one analysis tool on the computer running REA. The host
-                is your operating system; the target is the program you want to
-                inspect.
+                Install Ghidra on the computer running REA. The host is your
+                operating system. The target is the program you want to inspect.
               </p>
               <div class="evidence-table-wrap">
                 <table class="evidence-table">
@@ -1038,73 +1035,14 @@ cd rea-work</code></pre>
                   </thead>
                   <tbody>
                     <tr>
-                      <td translate="no">Hopper</td>
-                      <td>Unavailable</td>
-                      <td>12+</td>
-                      <td>x86_64 installer on supported distributions</td>
-                    </tr>
-                    <tr>
                       <td translate="no">Ghidra</td>
                       <td>x64 · experimental</td>
                       <td translate="no">x64 / arm64</td>
                       <td translate="no">x64 / arm64</td>
                     </tr>
-                    <tr>
-                      <td translate="no">IDA</td>
-                      <td>Verified profiles</td>
-                      <td>Verified headless profile</td>
-                      <td>See provider guide</td>
-                    </tr>
                   </tbody>
                 </table>
               </div>
-              <details class="evidence-details" id="hopper">
-                <summary>Hopper · let setup install or connect it</summary>
-                <p>
-                  Connect Hopper on macOS or Linux. Run the setup command above;
-                  it detects an existing installation or offers an installation
-                  plan for your approval.
-                </p>
-                <p>
-                  Choose Hopper in setup and review its separate installation
-                  plan. On macOS, choose demo mode or activate your license when
-                  Hopper first opens. On Linux, setup prepares the supported
-                  demo and its private display.
-                </p>
-                <p>
-                  Automated Linux setup requires an x86_64 host running Ubuntu
-                  24.04+, Fedora 41+, Nobara 44+, Arch Linux, CachyOS or
-                  Omarchy. An existing Hopper launcher can also be configured on
-                  other supported Linux distributions. On Linux arm64, use
-                  Ghidra. Hopper is commercial software; its demo has
-                  vendor-defined limits.
-                </p>
-                <div class="code-block">
-                  <div class="code-header">
-                    <span translate="no">Terminal</span
-                    ><button
-                      class="copy-button"
-                      type="button"
-                      data-copy="hopper-check"
-                      aria-label="Copy command"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                  <pre><code id="hopper-check">npx -y rea-agents@latest doctor --provider hopper --json</code></pre>
-                </div>
-                <p>
-                  If macOS asks for Automation permission, allow the app that
-                  starts REA in System Settings → Privacy &amp; Security →
-                  Automation, then retry.
-                </p>
-                <p>
-                  <a
-                    href="https://github.com/morluto/rea/blob/main/docs/getting-started/installation.md#hopper"
-                    >Hopper setup and troubleshooting</a
-                  >
-                </p>
-              </details>
               <details class="evidence-details" id="ghidra">
                 <summary>
                   Ghidra · install the free analysis tool and Java
@@ -1161,8 +1099,7 @@ javac -version</code></pre>
                   <p>
                     Windows x64 has experimental, read-only support for native
                     x86 and x64 PE applications and DLLs on fixed local NTFS
-                    drives. Use an existing Ghidra 12.1.x installation and a
-                    64-bit JDK 21 or newer:
+                    drives. This example uses Ghidra 12.1.4 and a 64-bit JDK 21:
                   </p>
                   <div class="code-block">
                     <div class="code-header">
@@ -1269,127 +1206,13 @@ npx rea-agents@latest setup</code></pre>
                   >
                 </p>
               </details>
-              <details class="evidence-details" id="ida">
-                <summary>IDA · connect an existing installation</summary>
-                <p>
-                  Use the IDA provider guide to prepare an upstream MCP
-                  registration. Choose an attached GUI with the original binary
-                  open, or a headless supervisor that opens a private database.
-                </p>
-                <p>
-                  Verified profiles include the Windows legacy GUI and headless
-                  supervisor, plus a macOS arm64 headless supervisor with IDA
-                  Professional 9.1. The optional native GUI bridge has its own
-                  version and platform requirements.
-                </p>
-                <p>
-                  The macOS headless profile and native GUI bridge require a
-                  <a
-                    href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-setup"
-                    >REA source build</a
-                  >
-                  or a release containing those changes. npm
-                  <code>6.4.0</code> does not include them.
-                </p>
-                <p>
-                  From the built checkout, run
-                  <code>node scripts/rea.mjs doctor --provider ida --json</code>
-                  and <code>node scripts/rea.mjs setup</code> instead of the
-                  <code>npx</code> commands below.
-                </p>
-                <details class="evidence-details">
-                  <summary>Prepare the IDA registration file</summary>
-                  <p>
-                    Install and configure the upstream server using the IDA
-                    guide below. Then save its working registration as
-                    <code>ida-mcp.json</code> in a text editor. On Windows,
-                    choose “All files” when saving in Notepad so it doesn't add
-                    <code>.txt</code>.
-                  </p>
-                  <p>
-                    For a headless supervisor providing
-                    <code>idb_open</code>, <code>idb_list</code> and
-                    <code>idb_close</code>, the file can look like this:
-                  </p>
-                  <div class="code-block">
-                    <div class="code-header">
-                      <span translate="no">ida-mcp.json</span>
-                      <button
-                        class="copy-button"
-                        type="button"
-                        data-copy="ida-headless-registration"
-                        aria-label="Copy command"
-                      >
-                        Copy
-                      </button>
-                    </div>
-                    <pre><code id="ida-headless-registration">{
-  "command": "idalib-mcp",
-  "args": ["--stdio", "--max-workers", "1"],
-  "mode": "headless"
-}</code></pre>
-                  </div>
-                  <p>
-                    For an attached legacy 1.4.0 GUI server, copy its working
-                    <code>command</code>, <code>args</code> and optional
-                    <code>env</code> into the file. Open the original binary in
-                    IDA and start its upstream plugin before asking REA to
-                    inspect it.
-                  </p>
-                </details>
-                <div class="code-block">
-                  <div class="code-header">
-                    <span translate="no">Windows PowerShell</span
-                    ><button
-                      class="copy-button"
-                      type="button"
-                      data-copy="ida-connect"
-                      aria-label="Copy command"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                  <pre><code id="ida-connect">$env:REA_IDA_MCP_CONFIG = "C:/analysis/ida-mcp.json"
-$env:REA_ANALYSIS_PROVIDER = "ida"
-npx -y rea-agents@latest doctor --provider ida --json
-npx rea-agents@latest setup</code></pre>
-                </div>
-                <div class="code-block">
-                  <div class="code-header">
-                    <span translate="no">macOS / Linux</span
-                    ><button
-                      class="copy-button"
-                      type="button"
-                      data-copy="ida-connect-unix"
-                      aria-label="Copy command"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                  <pre><code id="ida-connect-unix">export REA_IDA_MCP_CONFIG="/absolute/path/to/ida-mcp.json"
-export REA_ANALYSIS_PROVIDER="ida"
-npx -y rea-agents@latest doctor --provider ida --json
-npx rea-agents@latest setup</code></pre>
-                </div>
-                <p>
-                  Use the JSON registration file you prepared with the provider
-                  guide, then rerun setup and restart your agent.
-                </p>
-                <p>
-                  <a
-                    href="https://github.com/morluto/rea/blob/main/docs/providers/ida-provider.md"
-                    >IDA profiles, registration examples and verified
-                    platforms</a
-                  >
-                </p>
-              </details>
               <p>
                 Once connected, give your agent the original executable's full
-                path and name your provider:
+                path and a question about the program.
               </p>
               <blockquote class="prompt">
                 <p>
-                  Use REA with my configured provider to inspect
+                  Use REA to inspect
                   <code>/absolute/path/to/program</code>. List its functions and
                   strings, then explain the part that handles user input with
                   references to the code.

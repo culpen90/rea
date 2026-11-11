@@ -16,7 +16,6 @@ describe("direct analysis snapshot files", () => {
     const directory = await createTestTempDirectory("rea-direct-provider-");
     const targetPath = join(directory, "fixture.hop");
     await writeFile(targetPath, "fixture");
-    vi.stubEnv("HOPPER_LAUNCHER_PATH", process.execPath);
     vi.stubEnv("REA_ANALYSIS_PROVIDER", "environment-provider");
 
     await expect(

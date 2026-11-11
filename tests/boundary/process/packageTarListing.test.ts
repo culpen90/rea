@@ -14,10 +14,9 @@ const listingUrl = pathToFileURL(
 const bridgeUrl = pathToFileURL(
   resolve("scripts/verify-packed-bridge.mjs"),
 ).href;
-const bridge = "package/bridge/hopper_bridge.py";
+const bridge = "package/bridge/cutter/rea_bridge.py";
 const members = [
   bridge,
-  "package/bridge/cutter/rea_bridge.py",
   ...Object.values(GHIDRA_BRIDGE_SOURCES).map(
     (name) => `package/bridge/ghidra/${name}`,
   ),

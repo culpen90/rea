@@ -1,24 +1,17 @@
+import { AnalysisInputError } from "../../../src/domain/analysisErrorCore.js";
 import { parseMcpToolError } from "../../fixtures/mcpToolError.js";
-import { Ajv2020 } from "ajv/dist/2020.js";
+import { createMcpSchemaValidation } from "../../fixtures/mcpSchemaValidation.js";
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, describe, expect, it } from "vitest";
 
 import type { AnalysisOperationPort } from "../../../src/application/AnalysisProvider.js";
 import { OFFICIAL_TOOL_CONTRACTS } from "../../../src/contracts/officialToolContracts.js";
 import { toolContract } from "../../../src/contracts/toolContracts.js";
 import { jsonObjectSchema } from "../../../src/domain/jsonValue.js";
-import { HopperRemoteError } from "../../../src/domain/hopperErrors.js";
 import { err } from "../../../src/domain/result.js";
 import { observed as ok } from "../../fixtures/analysisExecution.js";
 import type { JsonValue } from "../../../src/domain/jsonValue.js";
 import { createServer } from "../../../src/server/createServer.js";
-import { HopperProvider } from "../../../src/hopper/HopperProvider.js";
-import { parseConfig } from "../../../src/config/parseConfig.js";
-import { silentLogger } from "../../../src/logger.js";
-import { composeBinarySession } from "../../../src/application/binary/BinarySessionComposition.js";
-import { AnalysisProviderRegistry } from "../../../src/application/binary/AnalysisProviderRegistry.js";
-import { createBinarySessionTargets } from "../../fixtures/binarySession.js";
-import { createApplicationMcpHarness } from "../../fixtures/applicationMcpHarness.js";
 
 interface Invocation {
   readonly name: string;
@@ -26,37 +19,8 @@ interface Invocation {
 }
 
 const resources: Array<{ close(): Promise<void> }> = [];
-
-it("returns typed Hopper byte-search unavailability without launching the provider", async () => {
-  const [target] = await createBinarySessionTargets();
-  const config = parseConfig({ HOPPER_LAUNCHER_PATH: process.execPath });
-  if (!config.ok) throw config.error;
-  const provider = new HopperProvider(config.value, silentLogger, {}, "linux");
-  const session = composeBinarySession(
-    new AnalysisProviderRegistry([provider]),
-  );
-  const { client } = await createApplicationMcpHarness({
-    session,
-    serverOptions: { logger: silentLogger },
-    clientIdentity: { name: "hopper-byte-search-unavailable", version: "1" },
-  });
-  const opened = await client.callTool({
-    name: "open_binary",
-    arguments: { path: target },
-  });
-  expect(opened.isError).not.toBe(true);
-  const result = await client.callTool({
-    name: "search_bytes",
-    arguments: { pattern: "48 8b" },
-  });
-  expect(result.isError).toBe(true);
-  expect(parseMcpToolError(result)).toMatchObject({
-    error: {
-      code: "capability_unavailable",
-      details: { provider_id: "hopper", operation: "search_bytes" },
-    },
-  });
-});
+const validation = createMcpSchemaValidation();
+afterAll(() => validation.clear());
 
 it("advertises strict masked-byte arguments and bounded pages", () => {
   const contract = OFFICIAL_TOOL_CONTRACTS.find(
@@ -128,8 +92,14 @@ afterEach(async () => {
 });
 
 const connect = async (analysis: AnalysisOperationPort) => {
-  const server = createServer({ kind: "fixed", analysis });
-  const client = new Client({ name: "contract-test", version: "1.0.0" });
+  const server = createServer(
+    { kind: "fixed", analysis },
+    { environment: { ...process.env, REA_MCP_TOOL_FAMILIES: "direct" } },
+  );
+  const client = new Client(
+    { name: "contract-test", version: "1.0.0" },
+    { jsonSchemaValidator: validation },
+  );
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
   resources.push(client, server);
@@ -194,32 +164,35 @@ describe("official tool input contracts", () => {
     if (advertised === undefined || recordTool === undefined)
       throw new Error("Official tools were not advertised");
 
-    const ajv = new Ajv2020({ strict: false, validateFormats: false });
-    const validateAddressName = ajv.compile(advertised.inputSchema);
-    const validateRecordInput = ajv.compile(recordTool.inputSchema);
     const typoInput = { adress: "0x1234" };
     expect(advertised.inputSchema).toHaveProperty(
       "additionalProperties",
       false,
     );
-    expect(validateAddressName(typoInput)).toBe(false);
+    expect(
+      validation.assertions.validate(advertised.inputSchema, typoInput),
+    ).toBe(false);
     expect(
       OFFICIAL_TOOL_CONTRACTS.find(
         ({ name }) => name === "address_name",
       )?.inputSchema.safeParse(typoInput).success,
     ).toBe(false);
-    expect(validateRecordInput({ names: { "0x1000": "entry" } })).toBe(true);
+    expect(
+      validation.assertions.validate(recordTool.inputSchema, {
+        names: { "0x1000": "entry" },
+      }),
+    ).toBe(true);
 
-    const result = await client.callTool({
-      name: "address_name",
-      arguments: typoInput,
-    });
+    const result = await client.callTool(
+      { name: "address_name", arguments: typoInput },
+      { toolDefinition: advertised },
+    );
     expect(result.isError).toBe(true);
     expect(invocations).toEqual([]);
   });
 });
 
-describe("official Hopper proxy tools", () => {
+describe("official proxy tools", () => {
   it("delivers every batch naming readback key in structured and text Evidence", async () => {
     const readback = JSON.parse(
       '{"0x1000":true,"__proto__":false,"constructor":true}',
@@ -251,7 +224,12 @@ describe("official Hopper proxy tools", () => {
 
   it("returns stable safe MCP error content", async () => {
     const client = await connect({
-      execute: () => Promise.resolve(err(new HopperRemoteError(-1, "denied"))),
+      execute: () =>
+        Promise.resolve(
+          err(
+            new AnalysisInputError("list_documents", { userMessage: "denied" }),
+          ),
+        ),
     });
     const result = await client.callTool({
       name: "list_documents",

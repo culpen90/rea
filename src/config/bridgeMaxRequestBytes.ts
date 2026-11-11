@@ -22,12 +22,9 @@ export {
 
 /**
  * Smallest ceiling that still admits the largest bounded bridge request.
- * Hopper symbol names stop at 1024 UTF-16 units. A name of U+0001 repeated
- * that many times JSON-escapes to six bytes per character. The Hopper
- * `set_address_name` request for that name, a max-safe id, and a 64-hex token
- * is 6322 bytes. The authenticated Cutter frame of a command carrying the same
- * name is 7464 bytes. The required Cutter recovery status, 64 receipts with
- * an unknown path, is smaller. A status path that fits is kept. A path that
+ * The Cutter sizing fixture uses 1024 JSON-escaped code units in a
+ * representative authenticated command frame of 7464 bytes. A Cutter recovery
+ * status of 64 receipts with an unknown path is smaller. A path that fits is kept. A path that
  * does not fit is null, so the client does not reuse the descriptor path with
  * the new generation. Hello and a minimal command frame are smaller.
  * Comments, search text, and Cutter command text are unbounded; this ceiling
@@ -60,15 +57,15 @@ export const DEFAULT_BRIDGE_MAX_REQUEST: BridgeMaxRequestBytes = {
 };
 
 /**
- * Peer a ceiling refusal is reported for. Ghidra differs from the other two:
+ * Peer a ceiling refusal is reported for. Ghidra differs from Cutter:
  * its Java bridge reads no request ceiling, so only the REA client enforces
  * this setting for Ghidra and recovery must not ask for a bridge restart.
  */
-export type BridgePeer = "Hopper" | "Cutter" | "Ghidra";
+export type BridgePeer = "Cutter" | "Ghidra";
 
-const bridgeMaxRequestBytesConstraint = `${BRIDGE_MAX_REQUEST_BYTES_SETTING} must be a positive decimal integer from ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)} to ${String(MAXIMUM_BRIDGE_MAX_REQUEST_BYTES)} bytes; the default is ${String(DEFAULT_BRIDGE_MAX_REQUEST_BYTES)} bytes (16 MiB). A value below ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)} bytes cannot carry the largest admitted symbol-name command, and a larger value is refused so the encoded payload plus its framing LF stays one string under Node's single-string ceiling.`;
+const bridgeMaxRequestBytesConstraint = `${BRIDGE_MAX_REQUEST_BYTES_SETTING} must be a positive decimal integer from ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)} to ${String(MAXIMUM_BRIDGE_MAX_REQUEST_BYTES)} bytes; the default is ${String(DEFAULT_BRIDGE_MAX_REQUEST_BYTES)} bytes (16 MiB). A value below ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)} bytes cannot carry the required authenticated Cutter frame, and a larger value is refused so the encoded payload plus its framing LF stays one string under Node's single-string ceiling.`;
 
-/** Optional decimal byte count for the Hopper and Cutter request payload ceiling. */
+/** Optional decimal byte count for the Ghidra and Cutter request payload ceiling. */
 export const bridgeMaxRequestBytesSchema = positiveDecimalIntegerSchema(
   MINIMUM_BRIDGE_MAX_REQUEST_BYTES,
   MAXIMUM_BRIDGE_MAX_REQUEST_BYTES,
@@ -123,13 +120,13 @@ export const bridgeRequestLimit = (limit: BridgeMaxRequestBytes) =>
 
 export const bridgeMaxRequestBytesRecovery = (
   limit: BridgeMaxRequestBytes,
-  peer: BridgePeer = "Hopper",
+  peer: BridgePeer,
 ): string =>
   [
     `The effective bridge.max_request_bytes value is ${String(limit.maximumBytes)} bytes (source ${limit.source}; default ${String(DEFAULT_BRIDGE_MAX_REQUEST_BYTES)}, floor ${String(MINIMUM_BRIDGE_MAX_REQUEST_BYTES)}, maximum ${String(MAXIMUM_BRIDGE_MAX_REQUEST_BYTES)}). It can be changed at runtime with update_analysis_settings. The launch seed is ${BRIDGE_MAX_REQUEST_BYTES_SETTING}.`,
     peer === "Ghidra"
       ? `The Ghidra bridge enforces no request ceiling of its own, so only the REA client applies bridge.max_request_bytes to Ghidra requests.`
-      : "The Hopper or Cutter bridge keeps the ceiling it started with until that bridge starts again.",
+      : "The Cutter bridge keeps the ceiling it started with until that bridge starts again.",
   ].join(" ");
 
 const limitFacts = (

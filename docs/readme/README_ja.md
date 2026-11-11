@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA が Hopper 内で分析ブリッジを起動し、ネイティブバイナリを調べる様子" width="1200" />
-
-<br /><br />
-
 <table aria-label="REA コミュニティ">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@
 
 REA はエージェントを分析ツールにつなぎ、ネイティブバイナリ、JavaScript や Electron のアプリ、.NET アセンブリ、ウェブサイトを調べられるようにします。同じツールをターミナルからも使えます。分析はローカルで実行され、結果には各結論を裏付ける根拠と制限事項が含まれます。
 
-セットアップはエージェントに REA を登録し、対応するワークフロー指示をインストールします。ネイティブ解析には既存の Hopper、Ghidra、IDA、Kuna を使用でき、承認すれば Hopper をインストールできます。静的 JavaScript 解析にネイティブ解析エンジンは不要です。
+セットアップはエージェントに REA を登録し、対応するワークフロー指示をインストールします。ネイティブ解析にはインストール済みの Ghidra を使います。静的 JavaScript 解析にネイティブ解析エンジンは不要です。
 
 > **[REA のウェブサイト](https://rea.tools/ja/)**で、セットアップ手順、図解ガイド、実際の事例を確認できます。
 
@@ -157,7 +153,7 @@ REA には Node.js 22.x（>=22.23.4）、24.x（>=24.22.1）、または 26+ (>=
 
 | 対象                             | REA が返すもの                                                                              | 要件とガイド                                                                                                                                                                  |
 | -------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ネイティブバイナリ               | 疑似コード、アセンブリ、文字列、シンボル、呼び出し、参照                                    | Hopper、Ghidra、IDA、または Kuna；[ネイティブ分析](../guides/native/native-investigation.md)                                                                                  |
+| ネイティブバイナリ               | 疑似コード、アセンブリ、文字列、シンボル、呼び出し、参照                                    | Ghidra；[ネイティブ分析](../guides/native/native-investigation.md)                                                                                                            |
 | オフライン ELF レイアウト        | セクション、セグメント、元のシンボル／再配置情報、静的解析によるセキュリティ対策の候補      | Linux x64 で利用者が用意する pwntools；[バイナリ診断](../guides/native/binary-diagnostics.md)                                                                                 |
 | PE certificates                  | Authenticode WIN_CERTIFICATE entries and PKCS#7 signer/X.509 identity fields                | Built-in static PE inspection; [PE certificates](../pe-certificates.md)                                                                                                       |
 | PE imports                       | Import and delay-load DLL names, ordinals, IAT RVAs and pefile import hash                  | Built-in static PE inspection; [PE imports](../pe-imports.md)                                                                                                                 |
@@ -203,9 +199,11 @@ REA には Node.js 22.x（>=22.23.4）、24.x（>=24.22.1）、または 26+ (>=
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-大きなバイナリでは `REA_GHIDRA_STARTUP_TIMEOUT_MS` または `REA_HOPPER_STARTUP_TIMEOUT_MS` でプロバイダーの起動期限を延長できます。
+[Ghidra への移行](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
 
-対応するネイティブ形式とホストは、プロバイダーによって異なります。[Hopper と Ghidra のセットアップ](../getting-started/installation.md#hopper)、[IDA ガイド](../providers/ida-provider.md)、[Kuna](../kuna-provider.md)、[Windows 向け Ghidra の実験的対応](../providers/windows-ghidra-p0.md)を参照してください。Ghidra は [16 ビット DOS 分析](../providers/ghidra-dos.md)にも対応しています。プロバイダーの選択は [CLI ガイド](../getting-started/cli.md#choose-a-provider)を参照してください。最新の npm リリース以降に追加された機能については、[リリースでの利用可否](../getting-started/installation.md#released-package-and-main)を確認してください。
+大きなバイナリでは `REA_GHIDRA_STARTUP_TIMEOUT_MS` でプロバイダーの起動期限を延長できます。
+
+対応するネイティブ形式とホストは、プロバイダーによって異なります。[Ghidra](../getting-started/installation.md#ghidra), [Windows 向け Ghidra の実験的対応](../providers/windows-ghidra-p0.md)を参照してください。Ghidra は [16 ビット DOS 分析](../providers/ghidra-dos.md)にも対応しています。プロバイダーの選択は [CLI ガイド](../getting-started/cli.md#choose-a-provider)を参照してください。最新の npm リリース以降に追加された機能については、[リリースでの利用可否](../getting-started/installation.md#released-package-and-main)を確認してください。
 
 ## 事例
 
@@ -297,16 +295,10 @@ REA は、エージェントがスクリーンショット、マウス、キー�
 </details>
 
 <details>
-<summary><strong>Hopper、Ghidra、IDA、Kuna は必要ですか？</strong></summary>
+<summary><strong>Ghidra は必要ですか？</strong></summary>
 
-深いネイティブ分析には、そのいずれかを使います。静的な JavaScript と .NET の検査には、ネイティブ分析エンジンは必要ありません。セットアップは承認後に Hopper をインストールできます。Ghidra、IDA、Kuna は既存のインストールを使います。[プロバイダーのセットアップ](../getting-started/installation.md#hopper)を参照してください。
-
-</details>
-
-<details>
-<summary><strong>先に Hopper を起動する必要はありますか？</strong></summary>
-
-REA は必要な操作の際に Hopper を起動します。macOS では、初回起動時にデモモードを選ぶか、ライセンスを有効化するよう求められることがあります。[Hopper の起動とトラブルシューティング](../getting-started/installation.md#launcher-paths-and-troubleshooting)を参照してください。
+ネイティブ解析にはインストール済みの Ghidra を使います。 静的な JavaScript と .NET の検査には、ネイティブ分析エンジンは必要ありません。
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -399,4 +391,4 @@ REA への貢献を歓迎します！[issue を作成](https://github.com/morlut
 
 REA が作成したコードは MIT ライセンスの下で提供されます。サードパーティの素材には、それぞれのライセンスと著作権表示が引き続き適用されます。依存関係の一覧、保存されたライセンス本文、および外部ツールの利用条件については、[サードパーティ通知](../../THIRD_PARTY_NOTICES.md)を参照してください。
 
-**IDA Pro / Hex-Rays デコンパイラ、Hopper、JEB を含む商用ツールは、適用されるライセンスに従って合法的に入手し、使用する権限を得ている必要があります。** REA はツールのライセンス、キー、またはアクティベーションの権利を一切付与しません。試用版やデモ版も、ユーザー、機能、自動化、および出力の共有に関する制限を含め、ベンダーの利用条件に従います。クラックされたコピー、盗まれたキー、無許可のキー共有、およびライセンス制限の回避は認められていません。このガイダンスは、MIT ライセンスやサードパーティのライセンスを変更するものではありません。
+**JEB を含む商用ツールは、適用されるライセンスに従って合法的に入手し、使用する権限を得ている必要があります。** REA はツールのライセンス、キー、またはアクティベーションの権利を一切付与しません。試用版やデモ版も、ユーザー、機能、自動化、および出力の共有に関する制限を含め、ベンダーの利用条件に従います。クラックされたコピー、盗まれたキー、無許可のキー共有、およびライセンス制限の回避は認められていません。このガイダンスは、MIT ライセンスやサードパーティのライセンスを変更するものではありません。

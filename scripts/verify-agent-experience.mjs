@@ -84,7 +84,7 @@ const skillDestination = join(
 const evaluationEnvironment = {
   ...Object.fromEntries(
     Object.entries(process.env).filter(
-      ([name]) => !/^(?:REA_|CODEX_|GHIDRA_|HOPPER_|IDA_)/u.test(name),
+      ([name]) => !/^(?:REA_|CODEX_|GHIDRA_)/u.test(name),
     ),
   ),
   HOME: account,
@@ -263,12 +263,12 @@ await withVerifierCleanup(
           "A user-owned page is already open at http://127.0.0.1:3000 through the approved local debugging endpoint http://127.0.0.1:9222. Inspect what is available without navigating or executing page code, and report any authority or availability limits.",
       },
       {
-        id: "navigation-context",
-        expectedFirstTool: "get_navigation_context",
+        id: "program-context",
+        expectedFirstTool: "list_documents",
         requiresEvidence: false,
         requiredAnswerTermGroups: [["unavailable", "could not", "session"]],
         prompt:
-          "Report the selected document, current address, and containing procedure from the current native-analysis session in one coherent request. If no native session is available, report that limitation plainly.",
+          "Report the Ghidra Program open in the current REA session. If no native session is available, report that limitation plainly.",
       },
       {
         id: "address-context",
@@ -276,7 +276,7 @@ await withVerifierCleanup(
         requiresEvidence: false,
         requiredAnswerTermGroups: [["unavailable", "could not", "session"]],
         prompt:
-          "Inspect explicit address 0x401000 in the current native-analysis session. Report its analyzed name, containing procedure, regular comment, inline comment, and matching bookmarks. If no native session is available, report that limitation plainly.",
+          "Inspect explicit address 0x401000 in the current native-analysis session. Report its analyzed name and containing procedure. If no native session is available, report that limitation plainly.",
       },
     ];
     const scenarios =

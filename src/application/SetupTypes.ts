@@ -1,8 +1,5 @@
 import type { ClientConfigurationWriteProblem } from "./ClientConfigurationPublication.js";
 import type { DoctorReport, DoctorScope, runDoctor } from "./Doctor.js";
-import type { LinuxDistribution } from "./LinuxHopper.js";
-import type { HopperRequestFailure } from "./HopperDownload.js";
-import type { HopperReleaseError } from "./HopperReleaseFeed.js";
 import type {
   SkillDestination,
   SkillInstallResult,
@@ -15,21 +12,11 @@ import type {
 } from "../domain/analysisErrorBase.js";
 import type { SetupClient } from "./SupportedClients.js";
 import type { DesktopBuildSetupHost } from "./SetupDesktopBuild.js";
-import type {
-  SetupFailureCode,
-  SetupHopperInstallResult,
-} from "./SetupInstallFailure.js";
-
 /** Exact non-secret provider variables propagated into managed registrations. */
 export type SetupProviderEnvironment = Readonly<Record<string, string>>;
 
 /** Read-only host facts shared by the initial setup plan. */
 export interface SetupInitialState {
-  readonly hopperPath?: string;
-  /** Whether the caller explicitly selected a Hopper launcher in its environment. */
-  readonly hopperLauncherConfigured?: boolean;
-  /** Whether the caller or host has an analysis provider configuration. */
-  readonly providerConfigured: boolean;
   readonly providerEnvironment: SetupProviderEnvironment;
   readonly doctor: DoctorReport;
 }
@@ -107,20 +94,12 @@ export type ClientConfigurationInspection =
 export interface SetupHost {
   readonly platform: NodeJS.Platform;
   readonly homeDirectory: string;
-  readonly linuxHopperReleaseCache?: Result<string, HopperReleaseError>;
   skillDestinations(clientIds: readonly string[]): readonly SkillDestination[];
   readonly registrationCommand: readonly string[];
   /** Why client registration cannot proceed from this host. */
   readonly registrationCommandBlocker?: string;
   readonly nodeVersion: string;
-  macosVersion(): Promise<string | undefined>;
-  linuxDistribution(): Promise<LinuxDistribution | undefined>;
   initialSetupState(scope?: DoctorScope): Promise<SetupInitialState>;
-  /** Cancellation stops downloads and later steps; a started package transaction finishes. */
-  installHopper(
-    replaceExisting: boolean,
-    signal?: AbortSignal,
-  ): Promise<SetupHopperInstallResult>;
   /** Retry retained owners. Returned or thrown errors with explicit cleanup
    * owners follow live release state; ownerless failures remain unconfirmed.
    * runSetup does not observe later direct calls to a caller-supplied host. */
@@ -132,11 +111,6 @@ export interface SetupHost {
     providerEnvironment: SetupProviderEnvironment,
     command: readonly string[],
   ): Promise<ClientConfigurationResult>;
-  clientNeedsConfigure(
-    client: SetupClient,
-    providerEnvironment: SetupProviderEnvironment,
-    command: readonly string[],
-  ): Promise<boolean>;
   inspectClientConfiguration(
     client: SetupClient,
     providerEnvironment: SetupProviderEnvironment,
@@ -166,9 +140,7 @@ export interface SetupResult {
   /** Supported-client discovery state captured before setup mutations. */
   readonly clientStates: readonly SetupClientState[];
   readonly remediation?: string;
-  readonly code?: SetupFailureCode;
-  /** The Hopper vendor request (stage, URL and observed outcome) whose failure stopped installation. */
-  readonly download?: HopperRequestFailure;
+  readonly code?: "skill_install_failed" | "cleanup_failed";
   /** Identified resources still retained after finalization; absent after confirmed release. */
   readonly cleanup?: AnalysisCleanupObservation | undefined;
 }
@@ -198,7 +170,6 @@ export interface SetupDoctorSummary {
   readonly healthy: boolean;
   readonly environment_healthy: boolean;
   readonly scope: DoctorReport["scope"];
-  readonly hopperPath?: string;
   readonly availableProviders: readonly string[];
   readonly providerInspections?: DoctorReport["providerInspections"];
   readonly identity?: Pick<
@@ -224,7 +195,6 @@ export interface SetupClientState {
 export interface SetupAction {
   readonly id: string;
   readonly kind:
-    | "install_hopper"
     | "configure_client"
     | "install_skill"
     | "install_agentenv"
@@ -245,9 +215,7 @@ export interface SetupOptions {
   /** Caller cancellation, carried through approved effects and cleanup. */
   readonly signal?: AbortSignal;
   readonly approved: boolean;
-  readonly installHopper: boolean;
   readonly structured: boolean;
-  readonly proposeHopper?: boolean;
   readonly clientIds?: readonly string[];
   /** Skill roots to update independently of MCP registrations (maintenance). */
   readonly skillClientIds?: readonly string[];

@@ -269,7 +269,7 @@ const ghidraFunctionDossier = functionDossierSchema
   .superRefine((value, context) => {
     if (
       !value.limitations.some((item) => /indirect|computed/u.test(item)) ||
-      !value.limitations.some((item) => /provider|Ghidra|Hopper/u.test(item))
+      !value.limitations.some((item) => /provider|Ghidra/u.test(item))
     )
       context.addIssue({
         code: "custom",

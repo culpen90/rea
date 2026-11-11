@@ -10,7 +10,6 @@ import {
 } from "../../../src/application/ClientConfigurationDocument.js";
 import { readClientRegistrationStatuses } from "../../../src/application/ClientRegistrationStatus.js";
 import {
-  clientConfigurationAligned,
   configureClientConfiguration,
   inspectClientConfiguration,
 } from "../../../src/application/SetupClientConfiguration.js";
@@ -53,9 +52,7 @@ describe.each(["vscode", "copilot_cli", "opencode", "commandcode"])(
           status: "update",
           backupPath: `${client.configPath}.rea.backup`,
         });
-        expect(await clientConfigurationAligned(client, {}, command)).toBe(
-          false,
-        );
+
         expect(await configureClientConfiguration(client, {}, command)).toEqual(
           {
             status: "configured",
@@ -81,9 +78,7 @@ describe.each(["vscode", "copilot_cli", "opencode", "commandcode"])(
           },
           theme: "dark",
         });
-        expect(await clientConfigurationAligned(client, {}, command)).toBe(
-          true,
-        );
+
         expect(await inspectClientConfiguration(client, {}, command)).toEqual({
           status: "already_current",
         });

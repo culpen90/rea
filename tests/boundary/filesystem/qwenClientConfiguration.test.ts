@@ -187,7 +187,9 @@ describe("Qwen Code profile setup", () => {
       expect(await readFile(join(skill, "SKILL.md"), "utf8")).toContain(
         "reverse-engineer-anything",
       );
-      expect(await setup.clientNeedsConfigure(client, {}, command)).toBe(false);
+      expect(
+        await setup.inspectClientConfiguration(client, {}, command),
+      ).toEqual({ status: "already_current" });
       expect(await setup.skillNeedsInstall([client.name])).toBe(false);
       expect(await setup.installSkill([client.name])).toEqual({
         ok: true,

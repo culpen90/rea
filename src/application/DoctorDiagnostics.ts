@@ -2,9 +2,8 @@ import {
   SUPPORTED_NODE_VERSION_PROSE,
   supportsJavaScriptRuntime,
 } from "../domain/runtimeVersion.js";
-import { hopperLauncherDiscovery } from "./HopperLauncherDiscovery.js";
 import { macosMajorVersion } from "../domain/macosVersion.js";
-import { LINUX_HOPPER_SETUP_HOSTS, supportsReaHost } from "./LinuxHopper.js";
+import { supportsReaHost } from "./LinuxDistribution.js";
 import { isDesktopBuildCheck } from "./DoctorProviderIds.js";
 import type {
   DoctorCheck,
@@ -15,7 +14,6 @@ import type {
 /** Ordered environment diagnostics consumed by the Doctor report assembler. */
 export interface DoctorDiagnostics {
   readonly checks: readonly DoctorCheck[];
-  readonly hopperPath?: string;
   readonly providerInspections?: readonly DoctorProviderInspection[];
 }
 
@@ -28,28 +26,18 @@ export const collectDoctorDiagnostics = async (
   const checks: DoctorCheck[] = [nodeCheck(host)];
   checks.push(await hostCheck(host));
 
-  const hopperPath = await findHopper(host);
-  checks.push(hopperCheck(host, hopperPath));
-  const hopperTimeoutCheck = optionalHopperStartupTimeoutCheck(host);
-  if (hopperTimeoutCheck !== undefined) checks.push(hopperTimeoutCheck);
   checks.push(...runtimeConfigurationChecks(host));
-  const hopperVersionCheck = await optionalHopperVersionCheck(host, hopperPath);
-  if (hopperVersionCheck !== undefined) checks.push(hopperVersionCheck);
-
-  const providerInspections = await host.providerInspections?.(clients ?? []);
+  const providerInspections = await host.providerInspections?.(clients);
   if (providerInspections !== undefined)
     checks.push(...providerInspections.flatMap(providerDoctorChecks));
 
   const ilspyCheck = await optionalIlspyCheck(host);
   if (ilspyCheck !== undefined) checks.push(ilspyCheck);
-  const hopperDemoCheck = await optionalHopperDemoCheck(host, hopperPath);
-  if (hopperDemoCheck !== undefined) checks.push(hopperDemoCheck);
   const targetCheck = await optionalTargetCheck(target, host);
   if (targetCheck !== undefined) checks.push(targetCheck);
 
   return {
     checks,
-    ...(hopperPath === undefined ? {} : { hopperPath }),
     ...(providerInspections === undefined ? {} : { providerInspections }),
   };
 };
@@ -57,43 +45,19 @@ export const collectDoctorDiagnostics = async (
 /** Evaluate core health while treating unconfigured providers as optional. */
 export const doctorHealthy = (
   checks: readonly DoctorCheck[],
-  providers: {
-    readonly hopperAvailable: boolean;
-    readonly hopperConfigured: boolean;
-    readonly providerInspections:
-      | readonly DoctorProviderInspection[]
-      | undefined;
-  },
+  providerInspections: readonly DoctorProviderInspection[] | undefined,
 ): boolean => {
   const audited = checks.filter(({ name }) => !isDesktopBuildCheck(name));
-  if (providers.providerInspections === undefined)
-    return audited.every(({ ok }) => ok);
-  const providerChecks = audited.filter(
-    ({ name }) =>
-      name.startsWith("hopper") ||
-      providers.providerInspections?.some((inspection) =>
-        providerCheckName(inspection.id, name),
-      ) === true,
-  );
-  const coreHealthy = audited
-    .filter((candidate) => !providerChecks.includes(candidate))
-    .every(({ ok }) => ok);
-  const configuredProvidersHealthy = providerChecks
-    .filter(({ name }) => {
-      // Validate the supplied setting independently of provider discovery.
-      if (name === "hopper-startup-timeout") return true;
-      if (name.startsWith("hopper")) return providers.hopperConfigured;
-      return providers.providerInspections?.some(
-        (inspection) =>
-          inspection.configured && providerCheckName(inspection.id, name),
-      );
-    })
-    .every(({ ok }) => ok);
+  if (providerInspections === undefined) return audited.every(({ ok }) => ok);
   return (
-    coreHealthy &&
-    configuredProvidersHealthy &&
-    (providers.hopperAvailable ||
-      providers.providerInspections.some(({ available }) => available))
+    audited.every(
+      ({ ok, name }) =>
+        ok ||
+        providerInspections.some(
+          ({ id, configured }) =>
+            configured !== true && providerCheckName(id, name),
+        ),
+    ) && providerInspections.some(({ available }) => available)
   );
 };
 
@@ -159,80 +123,11 @@ const hostCheck = async (host: DoctorHost): Promise<DoctorCheck> => {
       ? `${host.platform} ${host.architecture}`
       : `${linuxDistribution.id} ${linuxDistribution.versionId ?? "unknown"}`);
   return check("host", supported, detail, {
-    remediation: `REA supports macOS 12+, Linux distributions with a recognized apt, dnf, or pacman package family, and the experimental Windows x64 Ghidra P0 boundary; automated Hopper setup on Linux additionally requires ${LINUX_HOPPER_SETUP_HOSTS}.`,
+    remediation: `REA supports macOS 12+, Linux distributions with a recognized apt, dnf, or pacman package family, and the experimental Windows x64 Ghidra P0 boundary.`,
     classification: "unsupported_host",
   });
 };
 
-const findHopper = async (host: DoctorHost): Promise<string | undefined> => {
-  if (host.configuredHopperPath !== undefined)
-    return firstExecutable(host, [host.configuredHopperPath]);
-  const discovery = hopperLauncherDiscovery(host.platform, host.homeDirectory);
-  const fixed = await firstExecutable(host, discovery.candidates);
-  if (fixed !== undefined || !discovery.probesMacApplicationBundles)
-    return fixed;
-  const renamed = await firstExecutable(host, await host.manualHopperPaths());
-  if (renamed !== undefined) return renamed;
-  const brewCandidate = await host.brewHopperPath();
-  return firstExecutable(
-    host,
-    brewCandidate === undefined ? [] : [brewCandidate],
-  );
-};
-
-const firstExecutable = async (
-  host: DoctorHost,
-  candidates: readonly string[],
-): Promise<string | undefined> => {
-  for (const candidate of new Set(candidates))
-    if (await host.executable(candidate)) return candidate;
-  return undefined;
-};
-
-const hopperCheck = (
-  host: DoctorHost,
-  hopperPath: string | undefined,
-): DoctorCheck =>
-  check(
-    "hopper",
-    hopperPath !== undefined,
-    hopperPath ?? host.configuredHopperPath,
-    {
-      remediation:
-        host.configuredHopperPath === undefined
-          ? "Run rea setup to install Hopper, or set HOPPER_LAUNCHER_PATH."
-          : "Unset or update HOPPER_LAUNCHER_PATH to an executable Hopper launcher.",
-      classification:
-        host.configuredHopperPath === undefined
-          ? "missing_analysis_engine"
-          : "config_drift",
-    },
-  );
-
-const optionalHopperStartupTimeoutCheck = (
-  host: DoctorHost,
-): DoctorCheck | undefined => {
-  const parsed = host.nativeConfiguration?.configuredHopperStartupTimeout;
-  if (parsed === undefined) return undefined;
-  return check(
-    "hopper-startup-timeout",
-    parsed.ok,
-    parsed.ok
-      ? `REA_HOPPER_STARTUP_TIMEOUT_MS=${String(parsed.value)}`
-      : `REA_HOPPER_STARTUP_TIMEOUT_MS: ${parsed.error.settings.map(({ constraint }) => constraint).join("; ")}`,
-    {
-      classification: "config_drift",
-      remediation:
-        "Unset REA_HOPPER_STARTUP_TIMEOUT_MS to use the default, or set it to a positive decimal integer from 1 to 2147483647 milliseconds.",
-    },
-  );
-};
-
-/**
- * Project every native-analysis admission failure except the Hopper timeout,
- * which already has its own check. Provider scopes include engine settings.
- * Settings that block process start are marked for every doctor scope.
- */
 const runtimeConfigurationChecks = (
   host: DoctorHost,
 ): readonly DoctorCheck[] => {
@@ -240,7 +135,6 @@ const runtimeConfigurationChecks = (
   if (issues === undefined || issues.length === 0) return [];
   const grouped: { setting: string; constraints: string[] }[] = [];
   for (const issue of issues) {
-    if (issue.setting === "REA_HOPPER_STARTUP_TIMEOUT_MS") continue;
     const existing = grouped.find((item) => item.setting === issue.setting);
     if (existing === undefined)
       grouped.push({ setting: issue.setting, constraints: [issue.constraint] });
@@ -265,49 +159,6 @@ const runtimeConfigurationChecks = (
     details: { setting },
   }));
 };
-
-const optionalHopperVersionCheck = async (
-  host: DoctorHost,
-  hopperPath: string | undefined,
-): Promise<DoctorCheck | undefined> => {
-  if (host.platform !== "linux" || hopperPath === undefined) return undefined;
-  const inspected = await host.inspectLinuxHopper(hopperPath);
-  const buildCheck = check("hopper-version", inspected.ok, hopperPath, {
-    remediation: unsupportedHopperRemediation(
-      host.configuredHopperPath === hopperPath,
-    ),
-    classification:
-      !inspected.ok &&
-      [
-        "release_metadata",
-        "download",
-        "verification_unavailable",
-        "cancelled",
-        "cleanup_failed",
-      ].includes(inspected.error.reason)
-        ? "unknown"
-        : "config_drift",
-  });
-  return {
-    ...buildCheck,
-    details: inspected.ok
-      ? {
-          reported_release_version: inspected.value.version,
-          launcher_sha256: inspected.value.sha256,
-          primary_fingerprint: inspected.value.primaryFingerprint,
-          source: inspected.value.source,
-        }
-      : { reason: inspected.error.reason, message: inspected.error.message },
-  };
-};
-
-const optionalHopperDemoCheck = async (
-  host: DoctorHost,
-  hopperPath: string | undefined,
-): Promise<DoctorCheck | undefined> =>
-  host.platform !== "linux" || hopperPath === undefined
-    ? undefined
-    : host.linuxDemoRuntimeCheck();
 
 const optionalIlspyCheck = async (
   host: DoctorHost,
@@ -373,11 +224,6 @@ const providerDoctorChecks = (
       : { remediation: candidate.remediation }),
     ...(candidate.details === undefined ? {} : { details: candidate.details }),
   }));
-
-const unsupportedHopperRemediation = (configured: boolean): string =>
-  configured
-    ? "Check HOPPER_LAUNCHER_PATH and its publisher verification evidence. Run rea setup to install and retain an authenticated official Hopper package for offline use."
-    : "Run rea setup to install and retain an authenticated official Hopper package for offline use.";
 
 const providerCheckName = (providerId: string, name: string): boolean =>
   name === providerId || name.startsWith(`${providerId}-`);

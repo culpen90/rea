@@ -1,5 +1,4 @@
 import { batchDecompileResultSchema } from "../../../src/domain/native/batchDecompile.js";
-import { parseMcpToolError } from "../../fixtures/mcpToolError.js";
 import { describe, expect, it } from "vitest";
 import { connectGhidraMcp, ghidraFixtureResult } from "./ghidraMcpHarness.js";
 import { parseEvidence } from "../../../src/domain/evidence.js";
@@ -10,7 +9,7 @@ import { expandToolAvailability } from "../../../src/contracts/toolOutputSchemaP
 describe("Ghidra MCP capability routing", () => {
   it("routes composed and capability tools", async () => {
     const harness = await connectGhidraMcp("ghidra-routing");
-    const { calls, mcp } = harness;
+    const { mcp } = harness;
     try {
       const batch = await mcp.callTool({
         name: "batch_decompile",
@@ -28,19 +27,8 @@ describe("Ghidra MCP capability routing", () => {
       const availableNames = (await mcp.listTools()).tools.map(
         ({ name }) => name,
       );
-      expect(availableNames).toContain("set_comment");
-      const denied = await mcp.callTool({
-        name: "set_comment",
-        arguments: { address: "0x1000", comment: "must not mutate" },
-      });
-      expect(denied.isError).toBe(true);
-      expect(parseMcpToolError(denied)).toMatchObject({
-        error: {
-          code: "capability_unavailable",
-          category: "unsupported_provider",
-        },
-      });
-      expect(calls).not.toContain("set_comment");
+      expect(availableNames).not.toContain("set_comment");
+      expect(availableNames).toContain("annotate_native_function");
 
       const status = await mcp.callTool({
         name: "binary_session",
@@ -72,7 +60,6 @@ describe("Ghidra MCP capability routing", () => {
             name: "find_xrefs_to_name",
             available: true,
           }),
-          expect.objectContaining({ name: "set_comment", available: false }),
         ]),
       );
     } finally {

@@ -4,7 +4,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
-import { AjvJsonSchemaValidator } from "@modelcontextprotocol/client/validators/ajv";
+import { createMcpSchemaValidation } from "../../fixtures/mcpSchemaValidation.js";
 import type { CallToolResult } from "@modelcontextprotocol/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -24,7 +24,6 @@ import {
 } from "../../../src/application/AnalysisProvider.js";
 import { AnalysisProviderRegistry } from "../../../src/application/binary/AnalysisProviderRegistry.js";
 import { composeBinarySession } from "../../../src/application/binary/BinarySessionComposition.js";
-import { undeclaredOperationGuidance } from "../../../src/application/binary/BinarySessionExecution.js";
 import { createAnalysisProfile } from "../../../src/domain/analysisProfile.js";
 import { analysisErrorRemediationAction } from "../../../src/domain/analysisErrorPresentation.js";
 import { AnalysisSnapshotMismatchError } from "../../../src/domain/evidenceErrors.js";
@@ -48,9 +47,11 @@ import {
   toolAvailabilitySummaryInventory,
 } from "../../../src/contracts/toolOutputSchemaPrimitives.js";
 
+const schemaValidation = createMcpSchemaValidation();
 const resources: Array<{ close(): Promise<unknown> }> = [];
 afterEach(async () => {
   await Promise.all(resources.splice(0).map((resource) => resource.close()));
+  schemaValidation.clear();
 });
 
 it("delivers provider-owned diagnostic keys without narrowing their JSON facts", async () => {
@@ -275,16 +276,14 @@ describe("provider selection over MCP", () => {
         message: expect.stringContaining("read_bytes"),
         details: { provider_id: "beta", operation: "read_bytes" },
         remediation: {
-          action: undeclaredOperationGuidance("read_bytes"),
+          action: expect.stringContaining("binary_session"),
         },
       },
     });
-    const remediation = undeclaredOperationGuidance("read_bytes");
-    expect(parseMcpToolError(unsupported).error.message).not.toContain(
-      remediation,
-    );
-    expect(remediation).toMatch(
-      /binary_session.*complete.*open_binary.*provider_id/u,
+    const projected = parseMcpToolError(unsupported).error;
+    expect(projected.message).not.toContain("binary_session");
+    expect(projected.remediation.action).toMatch(
+      /binary_session.*complete.*rea doctor.*rea providers/u,
     );
     expect(starts).toEqual(["beta"]);
 
@@ -604,7 +603,7 @@ describe("binary_session detail over MCP", () => {
     )?.outputSchema;
     if (advertised === undefined)
       throw new Error("binary_session omitted its output schema");
-    const validate = new AjvJsonSchemaValidator().getValidator(
+    const validate = schemaValidation.getValidator(
       z.record(z.string(), z.unknown()).parse(advertised),
     );
     const canonical = toolContract("binary_session").outputSchema;
@@ -877,171 +876,6 @@ it("reports confirmed snapshot binding differences and keeps the active session"
   });
 });
 
-it.each([true, false])(
-  "offers an entry-comment handoff only when the selected provider admits it (%s)",
-  async (entryCommentAvailable) => {
-    const directory = await createTestTempDirectory("rea-comment-recovery-");
-    const target = join(directory, "fixture.hop");
-    await writeFile(target, "fixture");
-    const starts: string[] = [];
-    const selected = candidate("beta", starts);
-    const identity = selected.identity();
-    const annotation = capability(identity);
-    const session = composeBinarySession(
-      new AnalysisProviderRegistry([
-        {
-          ...selected,
-          capabilities: () => [
-            capability(identity),
-            entryCommentAvailable
-              ? { ...annotation, operation: "annotate_native_function" }
-              : {
-                  ...annotation,
-                  operation: "annotate_native_function",
-                  available: false,
-                  reason: "Selected analysis is read-only.",
-                  availabilityCode: "open_options_invalid",
-                },
-          ],
-        },
-      ]),
-    );
-    const server = createServer(
-      { kind: "session", session },
-      { logger: silentLogger },
-    );
-    const mcp = new Client({ name: "comment-recovery", version: "1" });
-    const [clientTransport, serverTransport] =
-      InMemoryTransport.createLinkedPair();
-    resources.push(mcp, server, { close: () => session.close() });
-    await server.connect(serverTransport);
-    await mcp.connect(clientTransport);
-    expect(
-      (
-        await mcp.callTool({
-          name: "open_binary",
-          arguments: { path: target, provider_id: "beta" },
-        })
-      ).isError,
-    ).not.toBe(true);
-    for (const [operation, field, flag] of [
-      ["set_comment", "comment", "--comment"],
-      ["set_inline_comment", "inline_comment", "--inline-comment"],
-    ] as const) {
-      const reply = await mcp.callTool({
-        name: operation,
-        arguments: { address: "0x1000", comment: "note" },
-      });
-      const error = parseMcpToolError(reply).error;
-      expect(error.code).toBe("capability_unavailable");
-      expect(error.details).toMatchObject({ provider_id: "beta", operation });
-      expect(error.remediation.action).toBe(
-        undeclaredOperationGuidance(operation, entryCommentAvailable),
-      );
-      if (entryCommentAvailable) {
-        expect(error.remediation.action).toContain("annotate_native_function");
-        expect(error.remediation.action).toContain(field);
-        expect(error.remediation.action).toContain(flag);
-      } else
-        expect(error.remediation.action).not.toContain(
-          "annotate_native_function",
-        );
-    }
-    expect(starts).toEqual([]);
-    const after = structured(
-      await mcp.callTool({ name: "binary_session", arguments: {} }),
-    );
-    expect(after.result).toMatchObject({
-      analysis_provider_binding: { provider: { id: "beta" } },
-    });
-  },
-);
-
-it("keeps containing-function recovery for undeclared comment facets", async () => {
-  const directory = await createTestTempDirectory(
-    "rea-undeclared-comment-facet-",
-  );
-  const target = join(directory, "fixture.hop");
-  await writeFile(target, "fixture");
-  const starts: string[] = [];
-  const selected = candidate("beta", starts);
-  const identity = selected.identity();
-  const session = composeBinarySession(
-    new AnalysisProviderRegistry([
-      {
-        ...selected,
-        capabilities: () => [
-          capability(identity),
-          {
-            ...capability(identity),
-            operation: "resolve_containing_procedure",
-          },
-        ],
-        createClient: (_target, profile) => ({
-          execute: async (operation) =>
-            ok(
-              createAnalysisExecution(
-                operation === "resolve_containing_procedure"
-                  ? {
-                      query_address: "0x1001",
-                      found: true,
-                      procedure: {
-                        address: "0x1000",
-                        name: "entry",
-                        classification: null,
-                        body: { available: false, reason: "not recorded" },
-                      },
-                    }
-                  : "entry",
-                profile?.provider ?? identity,
-              ),
-            ),
-          close: async () => ok(null),
-        }),
-      },
-    ]),
-  );
-  const server = createServer(
-    { kind: "session", session },
-    { logger: silentLogger },
-  );
-  const mcp = new Client({ name: "undeclared-comment-facet", version: "1" });
-  const [clientTransport, serverTransport] =
-    InMemoryTransport.createLinkedPair();
-  resources.push(mcp, server, { close: () => session.close() });
-  await server.connect(serverTransport);
-  await mcp.connect(clientTransport);
-  expect(
-    (
-      await mcp.callTool({
-        name: "open_binary",
-        arguments: { path: target, provider_id: "beta" },
-      })
-    ).isError,
-  ).not.toBe(true);
-  const reply = await mcp.callTool({
-    name: "inspect_address_context",
-    arguments: { address: "0x1001", document: "fixture" },
-  });
-  expect(reply.isError).not.toBe(true);
-  expect(structured(reply)).toMatchObject({
-    result: {
-      comment: {
-        state: "unavailable",
-        remediation: expect.stringContaining("inspect_analysis_view"),
-      },
-      inline_comment: {
-        state: "unavailable",
-        remediation: expect.stringContaining("inspect_analysis_view"),
-      },
-      bookmarks: {
-        state: "unavailable",
-        remediation: expect.stringContaining("open_binary"),
-      },
-    },
-  });
-});
-
 const candidate = (
   id: string,
   starts: string[],
@@ -1168,7 +1002,7 @@ it.each(["full", "compact"] as const)(
     const mcp = new Client(
       { name: "provider-verification", version: "1" },
       {
-        jsonSchemaValidator: new AjvJsonSchemaValidator(),
+        jsonSchemaValidator: schemaValidation,
       },
     );
     const [clientTransport, serverTransport] =

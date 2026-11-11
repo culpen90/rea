@@ -8,20 +8,11 @@ import {
 } from "./enhancedToolsHarness.js";
 import {
   createAnalysisExecution,
-  type AnalysisExecution,
   type AnalysisOperation,
   type AnalysisOperationPort,
 } from "../../../src/application/AnalysisProvider.js";
-import type { AnalysisError } from "../../../src/domain/analysisErrorBase.js";
-import {
-  AnalysisCapabilityUnavailableError,
-  AnalysisProtocolError,
-} from "../../../src/domain/analysisErrorCore.js";
-import {
-  err,
-  ok as resultOk,
-  type Result,
-} from "../../../src/domain/result.js";
+import { AnalysisCapabilityUnavailableError } from "../../../src/domain/analysisErrorCore.js";
+import { err, ok as resultOk } from "../../../src/domain/result.js";
 import type { JsonValue } from "../../../src/domain/jsonValue.js";
 import { createAnalysisProfile } from "../../../src/domain/analysisProfile.js";
 import { observed as ok } from "../../fixtures/analysisExecution.js";
@@ -307,10 +298,8 @@ const completeOverviewPort: AnalysisOperationPort = {
             },
           ]),
         );
-      case "current_document":
-        return Promise.resolve(ok("fixture"));
       case "list_documents":
-        return Promise.resolve(ok(["New Document", "fixture"]));
+        return Promise.resolve(ok(["fixture"]));
       case "list_strings":
         return Promise.resolve(
           ok(
@@ -375,16 +364,6 @@ describe("enhanced MCP binary overview", () => {
   it("returns binary counts while omitting unavailable segment coverage", async () => {
     const client = await connect({
       execute: (name) => {
-        if (name === "current_document")
-          return Promise.resolve(
-            err(
-              new AnalysisCapabilityUnavailableError(
-                "fixture",
-                name,
-                "the provider has one bound document",
-              ),
-            ),
-          );
         if (name === "list_documents")
           return Promise.resolve(ok(["/tmp/fixture.bin"]));
         if (name === "list_segments")
@@ -496,7 +475,7 @@ describe("enhanced MCP inventory validation", () => {
               },
             ]),
           );
-        if (name === "current_document") return Promise.resolve(ok("fixture"));
+        if (name === "list_documents") return Promise.resolve(ok(["fixture"]));
         if (name === "list_procedures" || name === "list_strings")
           return Promise.resolve(ok([]));
         throw new Error(`Unexpected analysis operation: ${name}`);
@@ -529,7 +508,7 @@ describe("enhanced MCP inventory validation", () => {
               },
             ]),
           );
-        if (name === "current_document") return Promise.resolve(ok("fixture"));
+        if (name === "list_documents") return Promise.resolve(ok(["fixture"]));
         if (name === "list_procedures" || name === "list_strings")
           return Promise.resolve(ok([]));
         throw new Error(`Unexpected analysis operation: ${name}`);
@@ -544,169 +523,6 @@ describe("enhanced MCP inventory validation", () => {
       segment_count: 1,
     });
   });
-});
-
-const overviewPort = (
-  current: Result<AnalysisExecution, AnalysisError>,
-  documents: readonly string[],
-): AnalysisOperationPort => ({
-  execute: (name) => {
-    switch (name) {
-      case "current_document":
-        return Promise.resolve(current);
-      case "list_documents":
-        return Promise.resolve(ok([...documents]));
-      case "list_segments":
-        return Promise.resolve(
-          ok([
-            {
-              name: "text",
-              start: "0x1000",
-              end: "0x2000",
-              readable: null,
-              writable: null,
-              executable: null,
-            },
-          ]),
-        );
-      case "list_procedures":
-      case "list_strings":
-        return Promise.resolve(ok([]));
-      default:
-        throw new Error(`Unexpected analysis operation: ${name}`);
-    }
-  },
-});
-
-describe("overview document identity through MCP", () => {
-  const unsupported = () =>
-    err(
-      new AnalysisCapabilityUnavailableError(
-        "fixture",
-        "current_document",
-        "headless provider",
-      ),
-    );
-
-  it("uses the sole headless document when current-document selection is unsupported", async () => {
-    const client = await connect(
-      overviewPort(unsupported(), ["single-target"]),
-    );
-    expect(
-      jsonResult(
-        await client.callTool({ name: "binary_overview", arguments: {} }),
-      ),
-    ).toMatchObject({ document: "single-target" });
-  });
-
-  it.each([
-    { documents: [] },
-    { documents: [""] },
-    { documents: ["one", "two"] },
-  ])(
-    "rejects ambiguous or missing headless identities: $documents",
-    async ({ documents }) => {
-      const client = await connect(overviewPort(unsupported(), documents));
-      expect(
-        (await client.callTool({ name: "binary_overview", arguments: {} }))
-          .isError,
-      ).toBe(true);
-    },
-  );
-
-  it.each([{ value: null }, { value: "" }, { value: [] }])(
-    "rejects a malformed current-document result: $value",
-    async ({ value }) => {
-      const client = await connect(
-        overviewPort(ok(value), ["fallback-must-not-hide-error"]),
-      );
-      expect(
-        (await client.callTool({ name: "binary_overview", arguments: {} }))
-          .isError,
-      ).toBe(true);
-    },
-  );
-
-  it("preserves non-capability current-document failures", async () => {
-    const client = await connect(
-      overviewPort(
-        err(new AnalysisProtocolError("failed current-document transport")),
-        ["must-not-be-selected"],
-      ),
-    );
-    expect(
-      (await client.callTool({ name: "binary_overview", arguments: {} }))
-        .isError,
-    ).toBe(true);
-  });
-
-  it("reports document selection unavailable when neither current-document nor list-documents is supported", async () => {
-    const client = await connect({
-      execute: (name) => {
-        if (name === "current_document" || name === "list_documents")
-          return Promise.resolve(
-            err(
-              new AnalysisCapabilityUnavailableError(
-                "fixture",
-                name,
-                "provider lacks document selection",
-              ),
-            ),
-          );
-        if (name === "list_segments") return Promise.resolve(ok([]));
-        if (name === "list_procedures" || name === "list_strings")
-          return Promise.resolve(ok([]));
-        throw new Error(`Unexpected analysis operation: ${name}`);
-      },
-    });
-    const result = await client.callTool({
-      name: "binary_overview",
-      arguments: {},
-    });
-    expect(result.isError).toBe(true);
-    expect(parseMcpToolError(result).error).toMatchObject({
-      code: "capability_unavailable",
-      details: {
-        provider_id: "fixture",
-        operation: "list_documents",
-        reason: expect.stringContaining("provider lacks document selection"),
-      },
-    });
-  });
-});
-
-it("refuses document fallback while the current-selection owner reports incomplete cleanup", async () => {
-  const failure = new AnalysisCapabilityUnavailableError(
-    "fixture",
-    "current_document",
-    "Selection unavailable during cleanup",
-    {
-      cleanup: {
-        reason: "controlled live selection resource",
-        resources: ["selection owner"],
-      },
-    },
-  );
-  const calls: string[] = [];
-  const client = await connect({
-    execute: async (operation) => {
-      calls.push(operation);
-      return operation === "current_document"
-        ? err(failure)
-        : ok(["must-not-be-selected"]);
-    },
-  });
-  const response = await client.callTool({
-    name: "binary_overview",
-    arguments: {},
-  });
-  expect(response.isError).toBe(true);
-  expect(parseMcpToolError(response).error).toMatchObject({
-    code: "cleanup_incomplete",
-    details: { operation: "current_document" },
-  });
-  expect(calls).toEqual(["current_document"]);
-  expect(failure.cleanupIncomplete).toBe(true);
 });
 
 it("forwards max_input_bytes from the MCP tool to the binary metadata operation", async () => {

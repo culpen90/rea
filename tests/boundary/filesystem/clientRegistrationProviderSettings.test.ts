@@ -330,7 +330,7 @@ it("does not treat a map it could not read as absent", () => {
 });
 
 it("does not classify an unresolved Qwen expression as a differing literal", () => {
-  const servers = { rea: { env: { REA_KUNA_COMMAND: "${KUNA}" } } };
+  const servers = { rea: { env: { GHIDRA_INSTALL_DIR: "${GHIDRA}" } } };
   const parsed = {
     document: { mcpServers: servers },
     servers,
@@ -343,12 +343,12 @@ it("does not classify an unresolved Qwen expression as a differing literal", () 
     recordedProviderSettings(
       parsed,
       "qwen_code",
-      { REA_KUNA_COMMAND: "/opt/kuna" },
+      { GHIDRA_INSTALL_DIR: "/opt/ghidra" },
       "linux",
     ),
   ).toEqual({
     unrecorded: [],
     differing: [],
-    unresolved: ["REA_KUNA_COMMAND"],
+    unresolved: ["GHIDRA_INSTALL_DIR"],
   });
 });

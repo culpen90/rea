@@ -18,80 +18,62 @@ const verifyContext = (
   twoLarge: boolean,
   session: BinarySession,
 ): void => {
-  expect(content).toMatchObject({
-    result: {
-      name: { state: "available", value: "entry" },
-      procedure: {
-        state: "unavailable",
-        error: {
-          code: "resource_constraint",
-          details: {
-            partial_observation_omitted: {
-              reason: "mcp-response-limit",
-              retention: "unretained",
-              original_response_bytes_at_least: expect.any(Number),
-              evidence_id: expect.stringMatching(/^ev_[a-f0-9]{64}$/u),
-            },
-          },
+  const omitted = {
+    state: "unavailable",
+    error: {
+      code: "resource_constraint",
+      details: {
+        partial_observation_omitted: {
+          reason: "mcp-response-limit",
+          retention: "unretained",
+          original_response_bytes_at_least: expect.any(Number),
+          evidence_id: expect.stringMatching(/^ev_[a-f0-9]{64}$/u),
         },
       },
     },
-  });
-  const procedureDetails = (
-    content as {
-      result: {
-        procedure: {
-          error: {
-            details: {
-              partial_observation_omitted: { evidence_id: string };
-            };
-          };
-        };
-      };
-    }
-  ).result.procedure.error.details;
-  expect(procedureDetails).not.toHaveProperty("partial_observation");
-  expect(procedureDetails).not.toHaveProperty("evidence_reference");
-  expect(
-    session.hasEvidence(
-      procedureDetails.partial_observation_omitted.evidence_id,
-    ),
-  ).toBe(false);
-  const smallFacet = twoLarge ? "inline_comment" : "comment";
+  };
   expect(content).toMatchObject({
     result: {
-      [smallFacet]: {
-        state: "unavailable",
-        error: {
-          code: "resource_constraint",
-          details: {
-            partial_observation: {
-              kind: "unretained-evidence",
-              evidence: {
-                operation: smallFacet,
-                normalized_result: "short note",
-              },
-            },
-          },
-        },
-      },
-      ...(twoLarge
-        ? {
-            comment: {
-              state: "unavailable",
-              error: {
-                details: {
-                  partial_observation_omitted: {
-                    reason: "mcp-response-limit",
-                    retention: "unretained",
+      procedure: omitted,
+      name: twoLarge
+        ? omitted
+        : {
+            state: "unavailable",
+            error: {
+              code: "resource_constraint",
+              details: {
+                partial_observation: {
+                  kind: "unretained-evidence",
+                  evidence: {
+                    operation: "address_name",
+                    normalized_result: "entry",
                   },
                 },
               },
             },
-          }
-        : {}),
+          },
     },
   });
+  const { result } = content as {
+    result: Record<
+      "name" | "procedure",
+      {
+        error: {
+          details: { partial_observation_omitted: { evidence_id: string } };
+        };
+      }
+    >;
+  };
+  for (const facet of twoLarge
+    ? [result.procedure, result.name]
+    : [result.procedure]) {
+    const { details } = facet.error;
+    expect(details).not.toHaveProperty("partial_observation");
+    expect(details).not.toHaveProperty("evidence_reference");
+    expect(
+      session.hasEvidence(details.partial_observation_omitted.evidence_id),
+    ).toBe(false);
+  }
 };
 
 it.each([
@@ -113,16 +95,12 @@ it.each([
       () => ({
         execute: async (operation) => {
           if (operation === "address_name")
-            return ok(createAnalysisExecution("entry", identity));
-          if (operation === "comment")
             return ok(
               createAnalysisExecution(
-                twoLarge ? "g".repeat(6 * 1024 * 1024) : "short note",
+                twoLarge ? "g".repeat(6 * 1024 * 1024) : "entry",
                 identity,
               ),
             );
-          if (operation === "inline_comment" && twoLarge)
-            return ok(createAnalysisExecution("short note", identity));
           if (operation === "resolve_containing_procedure")
             return ok(
               createAnalysisExecution(
@@ -155,7 +133,7 @@ it.each([
       },
     );
     const records = new InvestigationRecords({
-      maximumRepresentationBytes: 8000,
+      maximumRepresentationBytes: 0,
     });
     const session = new BinarySession(router, records);
     const server = createServer(
@@ -202,7 +180,7 @@ it.each([
       });
       expect(bundle.structuredContent).toMatchObject({
         result: {
-          records: [{ operation: "address_name", normalized_result: "entry" }],
+          records: [],
         },
       });
     } finally {

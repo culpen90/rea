@@ -18,7 +18,6 @@ export const localToolsMcpEnvironment = (
 ): Record<string, string> => ({
   PATH: process.env.PATH ?? "/usr/bin:/bin",
   REA_LOG_LEVEL: "silent",
-  HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
   GHIDRA_INSTALL_DIR: process.execPath,
   ...environment,
 });

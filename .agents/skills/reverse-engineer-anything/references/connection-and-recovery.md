@@ -31,7 +31,7 @@ CODEX_HOME is under `/tmp`; use an authorized profile outside the OS temporary
 directory. REA setup cannot repair the client's executor. Preserve the sandbox
 instead of silently disabling it to make an analysis command work.
 
-Static JavaScript and ordinary ZIP inventory need neither Hopper nor Ghidra.
+Static JavaScript and ordinary ZIP inventory need no native analysis provider.
 HAR inspection is offline and does not require a live browser. Native
 decompilation, Android analysis and firmware extraction have their own
 bring-your-own prerequisites. Use supported inventory/static evidence when it
@@ -168,9 +168,9 @@ package-runner installation and its runtime available while registrations use it
 
 Show the plan's exact paths, backups, changes and bundled-skill replacement.
 Obtain approval for writes when that concrete scope is not already authorized,
-then apply the same scope with `rea setup --client codex --yes`. Add
-`--install-hopper` only when separately needed and explicitly approved. Do not
-install or upgrade unrelated prerequisites. Restart/reconnect, verify tools
+then apply the same scope with `rea setup --client codex --yes`. Native
+analysis uses an existing Ghidra installation. Check it with
+`rea doctor --provider ghidra --json`. Restart/reconnect, verify tools
 actually appear, and resume the original task. If they remain absent, inspect
 the launch failure rather than looping through setup.
 

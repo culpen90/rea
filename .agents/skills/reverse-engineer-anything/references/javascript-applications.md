@@ -175,7 +175,7 @@ retain the complete trace and read terminal paths first; page `nodes` or `edges`
 with exact `where.node_ids` through `inspect_analysis_view` as needed.
 
 Reuse retained parent Evidence when the server advertises it, or supply complete
-Evidence inline. Include Hopper or Ghidra Evidence only when its artifact digest
+Evidence inline. Include native provider Evidence only when its artifact digest
 matches exactly.
 
 ## Recover an oversized display

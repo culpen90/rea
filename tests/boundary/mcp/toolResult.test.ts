@@ -16,7 +16,7 @@ import type { ToolContract } from "../../../src/contracts/toolContractTypes.js";
 import { err } from "../../../src/domain/result.js";
 import { EvidenceIntegrityError } from "../../../src/domain/evidenceErrors.js";
 import { AnalysisCancelledError } from "../../../src/domain/analysisErrorCore.js";
-import { HopperProcessError } from "../../../src/domain/hopperErrors.js";
+import { ProviderAdapterError } from "../../../src/domain/providerAdapterError.js";
 import { processScenarioSchema } from "../../../src/domain/process/processScenario.js";
 import { createToolResultDelivery } from "../../../src/server/toolResult.js";
 import { createEvidence, parseEvidence } from "../../../src/domain/evidence.js";
@@ -343,75 +343,6 @@ describe("incomplete partial process observations MCP projection", () => {
 });
 
 describe("tool result projection", () => {
-  it("exposes an actionable adapter code to MCP callers", () => {
-    const result = delivery.toCallToolResult(
-      err(new HopperProcessError(76)),
-      contract,
-    );
-    expect(result.structuredContent).toMatchObject({
-      error: {
-        code: "provider_unavailable",
-        details: { failure_code: "unsupported_demo_dialog" },
-        category: "unavailable",
-      },
-    });
-  });
-  it("keeps an absent post-authentication dialog out of publisher verification", () => {
-    const result = delivery.toCallToolResult(
-      err(new HopperProcessError(81)),
-      contract,
-    );
-    expect(result.structuredContent).toMatchObject({
-      error: {
-        code: "provider_unavailable",
-        details: { failure_code: "demo_dialog_absent", exit_code: 81 },
-        category: "unavailable",
-      },
-    });
-    expect(
-      (result.structuredContent as { error: { details: unknown } }).error
-        .details,
-    ).not.toHaveProperty("launch_rejection");
-  });
-  it("projects private-display diagnostic fields and stderr byte count", () => {
-    const result = delivery.toCallToolResult(
-      err(
-        new HopperProcessError(80, {
-          diagnostic: {
-            component: "hopper_private_display",
-            operation: "launch",
-            status: "error",
-            failure_code: "x11_socket_directory_unusable",
-            reason: "socket_directory_read_only",
-            socket_directory: "/tmp/.X11-unix",
-            socket_directory_mode: "0777",
-            mount_read_only: true,
-            effective_socket_directory_mode: "1777",
-            effective_mount_read_only: false,
-            wsl: true,
-            strategy: "user-mount-namespace",
-            fallback_reason: null,
-            xvfb_stderr_bytes: 512,
-          },
-        }),
-      ),
-      contract,
-    );
-    expect(result.structuredContent).toMatchObject({
-      error: {
-        details: {
-          failure_code: "x11_socket_directory_unusable",
-          diagnostics: {
-            socket_directory: "/tmp/.X11-unix",
-            mount_read_only: true,
-            wsl: true,
-            strategy: "user-mount-namespace",
-            xvfb_stderr_bytes: 512,
-          },
-        },
-      },
-    });
-  });
   it("returns one complete Evidence record with its typed normalized result", () => {
     const evidence = createEvidence(
       undefined,
@@ -479,7 +410,7 @@ describe("tool result projection", () => {
 });
 
 describe("untrusted provenance on failed tool results", () => {
-  const failure = () => new HopperProcessError(76);
+  const failure = () => new ProviderAdapterError("ghidra", "list_procedures");
 
   it("marks an error from a target-content tool", () => {
     const targetContract = toolContract("procedure_pseudo_code");

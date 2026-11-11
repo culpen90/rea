@@ -21,6 +21,7 @@ import {
 import { createVerifierRun, completeVerifierRun } from "./lib/verifier-run.mjs";
 import { Client } from "@modelcontextprotocol/client";
 import { createAnalysisProfile } from "../dist/domain/analysisProfile.js";
+import { decompileDirectoryManifestSchema } from "../dist/contracts/decompileDirectory.js";
 import { createEvidenceBundle } from "../dist/domain/evidenceBundle.js";
 import { inspectVerifierGhidraInstallation } from "./lib/ghidra-installation-inspection.mjs";
 import { withVerifierCleanup } from "./lib/verifier-cleanup.mjs";
@@ -106,13 +107,14 @@ export async function verifyProjectCoverage(run) {
     return requireMcpOutput(reply, name);
   }
   let commandCleanupIncomplete = false;
-  const command = async (executable, args, timeoutMs) => {
+  const command = async (executable, args, timeoutMs, cwd) => {
     try {
       return await runOwnedCommand(
         {
           command: executable,
           arguments: args,
           env,
+          ...(cwd === undefined ? {} : { cwd }),
           runId: run.run_id,
           expectedCommand: null,
         },
@@ -124,6 +126,58 @@ export async function verifyProjectCoverage(run) {
         cause.cleanupOwner !== undefined;
       throw cause;
     }
+  };
+  const verifyDirectoryExport = async (procedures) => {
+    const authored = procedures.filter(({ value }) =>
+      value.includes("rea_project_"),
+    );
+    assert.ok(authored.length > 1);
+    const output = "pseudocode";
+    const outputDirectory = join(realpathSync(workspace), output);
+    const common = [
+      entrypoint,
+      "decompile-all",
+      target,
+      "--output",
+      output,
+      "--name",
+      "rea_project_",
+      "--json",
+    ];
+    const run = async (...flags) => {
+      const result = await command(
+        process.execPath,
+        [...common, ...flags],
+        180000,
+        workspace,
+      );
+      return JSON.parse(result.stdout.text);
+    };
+    const first = await run("--limit", "1");
+    assert.equal(first.operation, "decompile_all");
+    assert.equal(first.parameters.output_directory, outputDirectory);
+    assert.equal(first.parameters.name, "rea_project_");
+    assert.equal(first.parameters.limit, 1);
+    const manifest = decompileDirectoryManifestSchema.parse(
+      first.normalized_result,
+    );
+    assert.equal(manifest.provider.id, "ghidra");
+    assert.equal(manifest.counts.selected, authored.length);
+    assert.equal(manifest.counts.written, 1);
+    assert.equal(first.raw_result, null);
+    const functions = join(outputDirectory, "functions");
+    const files = await readdir(functions);
+    assert.equal(files.length, 1);
+    const retainedPath = join(functions, files[0]);
+    const retained = await readFile(retainedPath, "utf8");
+    assert.match(retained, /^\/\/ provider: Ghidra .* \(ghidra\)$/mu);
+    const resumed = await run("--resume", "--limit", "100001");
+    assert.equal(resumed.parameters.resume, true);
+    assert.equal(resumed.parameters.limit, 100001);
+    assert.equal(resumed.normalized_result.counts.skipped, 1);
+    assert.equal(resumed.normalized_result.counts.remaining, 0);
+    assert.equal(resumed.normalized_result.counts.written, authored.length - 1);
+    assert.equal(await readFile(retainedPath, "utf8"), retained);
   };
   const result = await withVerifierCleanup(async () => {
     await mkdir(projects);
@@ -185,16 +239,16 @@ export async function verifyProjectCoverage(run) {
       });
       const bundlePath = join(workspace, `${mode}.json`);
       const paths = [];
-      await withVerifierCleanup(async () => {
+      const inventory = await withVerifierCleanup(async () => {
         await call(connection, "open_binary", {
           path: target,
-          provider_id: "ghidra",
+          ...(selected ? { provider_id: "ghidra" } : {}),
         });
-        const inventory = (
-          await call(connection, "list_procedures", {
-            detail: "complete",
-          })
-        ).normalized_result;
+        const procedures = await call(connection, "list_procedures", {
+          detail: "complete",
+        });
+        assert.equal(procedures.provider.id, "ghidra");
+        const inventory = procedures.normalized_result;
         const entry = (name) => {
           const matches = inventory.filter(
             (item) => item.value === name || item.value === `_${name}`,
@@ -365,7 +419,9 @@ export async function verifyProjectCoverage(run) {
           );
           await call(connection, "close_binary");
         } else await call(connection, "close_binary");
+        return inventory;
       }, [() => connections.closeConnection(connection)]);
+      if (!selected) await verifyDirectoryExport(inventory);
       const offline = await connect(env);
       await withVerifierCleanup(async () => {
         await call(offline, "import_evidence_bundle", { path: bundlePath });

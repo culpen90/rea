@@ -37,8 +37,8 @@ bytes (`read_bytes`, `search_strings`) return nothing on this host. See
 [NativeAOT](ghidra-nativeaot.md).
 
 This boundary does not establish general Windows feature parity. Ghidra GUI
-state, annotations, other target architectures and formats, and Hopper-only
-operations remain unavailable through this provider. Managed PE/CLI inspection
+state, annotations, and other target architectures and formats remain
+unavailable through this provider. Managed PE/CLI inspection
 uses its separate execution-free provider.
 
 Raw 6502 imports retain the same native filesystem and process ownership
@@ -47,7 +47,7 @@ console-specific cartridge loader, CPU variant, or bank-switching model is
 implied. Run `npm run verify:ghidra:6502` with caller-installed `ca65`/`ld65`
 to check the source-built fixture through real CLI and MCP workflows.
 
-REA does not install or upgrade Ghidra, Java, Python, npm, Node.js, Hopper, or a
+REA does not install or upgrade Ghidra, Java, Python, npm, Node.js, or a
 compiler. The adapter uses the packaged Java `HeadlessScript`; Python and
 PyGhidra are not prerequisites. Users do not build the native addon.
 

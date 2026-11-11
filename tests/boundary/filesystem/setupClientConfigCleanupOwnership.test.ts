@@ -24,12 +24,8 @@ import { ArtifactResourceScope } from "../../../src/artifacts/ArtifactResourceSc
 import { ok } from "../../../src/domain/result.js";
 import type { DoctorHost } from "../../../src/application/Doctor.js";
 import { ConfigurationError } from "../../../src/domain/configurationErrors.js";
-import {
-  filterClientsNeedingConfigure,
-  systemSetupHost,
-} from "../../../src/application/SetupHost.js";
+import { systemSetupHost } from "../../../src/application/SetupHost.js";
 import { RegularFileCleanupFailure } from "../../../src/filesystem/OwnedRegularFile.js";
-import { configureDetectedClients } from "../../../src/application/SetupClients.js";
 import { configureClientConfiguration } from "../../../src/application/SetupClientConfiguration.js";
 import {
   systemUninstallHost,
@@ -771,22 +767,8 @@ describe("setup client configuration cleanup ownership", () => {
       const configure = vi.spyOn(host, "configureClient");
 
       try {
-        const failure = await filterClientsNeedingConfigure(
-          host,
-          [client],
-          { providerEnvironment: {} },
-          ["rea", "mcp"],
-        )
-          .then((detectedClients) =>
-            configureDetectedClients({
-              host,
-              detectedClients,
-              providerEnvironment: {},
-              command: ["rea", "mcp"],
-              clients: {},
-              appliedActions: [],
-            }),
-          )
+        const failure = await host
+          .inspectClientConfiguration(client, {}, ["rea", "mcp"])
           .then(
             () => undefined,
             (cause: unknown) => cause,
@@ -857,7 +839,10 @@ describe("setup client configuration cleanup ownership", () => {
     });
 
     let hostCloseFinished = false;
-    const alignment = host.clientNeedsConfigure(client, {}, ["rea", "mcp"]);
+    const alignment = host.inspectClientConfiguration(client, {}, [
+      "rea",
+      "mcp",
+    ]);
     let closeResult: ReturnType<NonNullable<typeof host.close>> | undefined;
     await withVerifierCleanup(async () => {
       await awaitAcknowledgement(readStarted, alignment, "configuration read");
@@ -870,7 +855,7 @@ describe("setup client configuration cleanup ownership", () => {
       });
 
       const lateAdmission = await host
-        .clientNeedsConfigure(client, {}, ["rea", "mcp"])
+        .inspectClientConfiguration(client, {}, ["rea", "mcp"])
         .then(
           () => undefined,
           (cause: unknown) => cause,
@@ -882,7 +867,7 @@ describe("setup client configuration cleanup ownership", () => {
       expect(hostCloseFinished).toBe(false);
 
       unblockRead();
-      await expect(alignment).resolves.toBe(true);
+      await expect(alignment).resolves.toMatchObject({ status: "update" });
       expect(await closeResult).toBeUndefined();
       expect(hostCloseFinished).toBe(true);
     }, [

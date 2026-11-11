@@ -5,7 +5,6 @@ import type { CallToolResult } from "@modelcontextprotocol/server";
 import { afterEach, expect, it } from "vitest";
 
 import type { AnalysisOperationPort } from "../../../src/application/AnalysisProvider.js";
-import { HopperRemoteError } from "../../../src/domain/hopperErrors.js";
 import { err } from "../../../src/domain/result.js";
 import { observed as ok } from "../../fixtures/analysisExecution.js";
 import { createServer } from "../../../src/server/createServer.js";
@@ -38,7 +37,10 @@ import { createDeferred } from "../../fixtures/binarySession.js";
 import { GoBinaryService } from "../../../src/application/go/GoBinaryService.js";
 import { Il2cppMetadataService } from "../../../src/application/il2cpp/Il2cppMetadataService.js";
 import { WebNetworkCaptureService } from "../../../src/application/WebNetworkCaptureService.js";
-import { AnalysisUnsupportedTargetError } from "../../../src/domain/analysisErrorCore.js";
+import {
+  AnalysisTimeoutError,
+  AnalysisUnsupportedTargetError,
+} from "../../../src/domain/analysisErrorCore.js";
 import { ProviderCleanupError } from "../../../src/domain/providerCleanupError.js";
 import type { JavaScriptRuntimeObservationPort } from "../../../src/application/javascript/JavaScriptRuntimeObservationPort.js";
 
@@ -567,7 +569,9 @@ const structured = (result: CallToolResult): Record<string, unknown> => {
 it("projects remote failures without provider or bridge details", async () => {
   const client = await connect({
     execute: () =>
-      Promise.resolve(err(new HopperRemoteError(-32000, "bridge timeout"))),
+      Promise.resolve(
+        err(new AnalysisTimeoutError("procedure_pseudo_code", 120_000)),
+      ),
   });
 
   const result = await client.callTool({

@@ -45,7 +45,7 @@ rea inspect-with-objdump ./program dwarf --follow-debug-links
 
 Captured stdout and stderr share `max_output_bytes` (CLI: `--max-output-bytes`), default 16777216 bytes (16 MiB). Select an integer from 1 to 44651859 bytes. The maximum leaves room for worst-case JSON escaping of both Evidence output mirrors under Node's single-string ceiling. The selected budget applies on the next call without a restart; `output_budget_bytes` reports it and `output_budget_source` distinguishes a default from an explicit request. On exhaustion REA retains a prefix, requests provider termination, and marks `output_truncated` with unknown completion. Narrow or page the native command, or raise the selected budget. Verify command effects and outstanding cleanup before deciding whether repeating it is safe. Client deadlines and receive buffers remain separate. Concurrent one-shot captures reserve their selected budgets within a 128 MiB aggregate admission and eight-operation capacity; wait for active work or select a smaller output budget when that capacity is occupied.
 
-`inspect_with_objdump`, `rea list-objdump-architectures`, and one-shot `execute_rizin_command` accept `command_timeout_ms` (CLI: `--command-timeout-ms`). Omitted means 120000. The integer range is 1 to 2147483647. Target preflight shares one budget across stat and digest. The one-shot command receives that budget again. It applies on the next call; no restart is required. It does not raise the separately selected `max_output_bytes`, a Ghidra or Hopper startup deadline, or a debugger session deadline.
+`inspect_with_objdump`, `rea list-objdump-architectures`, and one-shot `execute_rizin_command` accept `command_timeout_ms` (CLI: `--command-timeout-ms`). Omitted means 120000. The integer range is 1 to 2147483647. Target preflight shares one budget across stat and digest. The one-shot command receives that budget again. It applies on the next call; no restart is required. It does not raise the separately selected `max_output_bytes`, a Ghidra startup deadline, or a debugger session deadline.
 
 ## GDB
 
@@ -285,20 +285,15 @@ the original output and does not retain the paged wire frame plus another concat
 values are `configuration_invalid` and do not fall back to the default. The
 bridge accepts that full payload size and rejects a larger payload while
 bounding the read. An incomplete frame is still `Incomplete bridge request
-frame`. An oversized command does not retain a cleanup owner. Hopper uses the
-same request payload budget. A Hopper request is serialized when it reaches
-the bridge, so one waiting behind Hopper's serial bridge does not retain
-another copy of the encoded frame. REA injects a caller-selected value into the
-Hopper bootstrap and the bridge also reads the process environment; an injected
-value wins. Cutter reads the environment that starts Cutter and publishes
-`max_request_bytes` on its session descriptor. A Hopper or Cutter process
-started out of band without the setting uses 16777216 bytes. The client
+frame`. An oversized command does not retain a cleanup owner. Cutter reads the
+environment that starts it and publishes `max_request_bytes` on its session
+descriptor. A Cutter process started without the setting uses 16777216 bytes. The client
 compares that advertisement with its own ceiling before a discovery status probe and before sending a command. A different ceiling is a mismatch only after the hello proves that descriptor is a live authenticated bridge; a stale descriptor is ignored. That hello does not send a status request. Discovery fails if any such live ceiling differs, even when another live session matches. A hello that
 never sends its authenticated frame does not hold the bridge accept loop.
 At most 8 connection threads run. A further accept is closed, and a failure to start a thread closes that socket without stopping the listener. A status `completed_connection` is the longest prefix of accepted connections that have terminated. It does not treat an earlier connection as finished because a later status reached the command lock first. Scalar values in one Cutter reply are encoded in bounded batches.
 A command reply that does not fit keeps its completion state and document
 generation, and reports an oversized path as unknown. Cutter response frames use this same ceiling and
-also exclude the terminating LF. A command response the client discards because it exceeds that ceiling stays an unknown execution and sets `output_truncated`, so Evidence records the omitted output. Hopper response reads are unchanged.
+also exclude the terminating LF. A command response the client discards because it exceeds that ceiling stays an unknown execution and sets `output_truncated`, so Evidence records the omitted output.
 Each bridge request waits 25000 ms. The Cutter hello frame still must arrive
 within 1 second. The authenticated command frame is read with one second per
 mebibyte of `REA_BRIDGE_MAX_REQUEST_BYTES`, and that read never waits longer

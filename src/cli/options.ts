@@ -166,7 +166,7 @@ export const cliDecimalShape = <Shape extends Record<string, z.ZodType>>(
 export const providerSelectionOption = analysisProviderSelectorSchema
   .optional()
   .describe(
-    "Bind deep analysis to a provider ID or use deterministic auto selection",
+    "Require Ghidra with ghidra, or use auto to permit static inspection without a Ghidra binding",
   );
 
 /** Optional path to the local analysis snapshot loaded or updated by a command. */

@@ -3,16 +3,16 @@
 Run REA, connect your selected agents, and check the tools needed for your task.
 Setup previews configuration changes and asks for approval before applying them.
 
-| Task                                  | Section                                                                                                             |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Connect an agent                      | [Start setup](#start-setup), then [review changes](#review-setup-changes)                                           |
-| Install a Claude Code/Codex plugin    | [Agent plugins and marketplaces](#agent-plugins-and-marketplaces)                                                   |
-| Install the Cursor Marketplace plugin | [Cursor Marketplace](#cursor-marketplace)                                                                           |
-| Run unreleased code                   | [Run REA from a checkout](#run-rea-from-a-checkout)                                                                 |
-| Diagnose one task                     | [Scoped readiness checks](#check-readiness-for-your-task)                                                           |
-| Configure an analysis engine          | [Hopper](#hopper), [Ghidra](#ghidra), the [IDA guide](../providers/ida-provider.md), or [Kuna](../kuna-provider.md) |
-| Update or remove REA                  | [Maintenance](#diagnose-update-and-remove)                                                                          |
-| Resolve a client-specific problem     | [Client configuration](client-configuration.md)                                                                     |
+| Task                                  | Section                                                                                               |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Connect an agent                      | [Start setup](#start-setup), then [review changes](#review-setup-changes)                             |
+| Install a Claude Code/Codex plugin    | [Agent plugins and marketplaces](#agent-plugins-and-marketplaces)                                     |
+| Install the Cursor Marketplace plugin | [Cursor Marketplace](#cursor-marketplace)                                                             |
+| Run unreleased code                   | [Run REA from a checkout](#run-rea-from-a-checkout)                                                   |
+| Diagnose one task                     | [Scoped readiness checks](#check-readiness-for-your-task)                                             |
+| Configure native analysis             | [Ghidra](#ghidra) or [migrate an older registration](#migrate-an-older-native-provider-configuration) |
+| Update or remove REA                  | [Maintenance](#diagnose-update-and-remove)                                                            |
+| Resolve a client-specific problem     | [Client configuration](client-configuration.md)                                                       |
 
 ## Start setup
 
@@ -22,7 +22,7 @@ npx rea-agents setup
 
 Choose the agents to configure, review the proposed paths and changes, and
 approve the plan. npm's package-download approval and REA's setup approval are
-separate. Setup asks before changing agent configuration or installing Hopper.
+separate. Setup asks before changing agent configuration.
 Restart the agents named in the completion message. Quit Claude Desktop fully
 before approving, because a running app can overwrite the registration; on
 Windows, see [where Claude Desktop reads its configuration](client-configuration.md#claude-desktop).
@@ -46,23 +46,20 @@ Explicit `--client` flags skip this question.
 Setup adds MCP access for selected clients. It installs REA's bundled workflow
 with those integrations by default; use `--skill=false` to omit it. If no agent
 is selected, setup offers the workflow separately for CLI use, with No as the
-default. Hopper is a separate optional choice: setup shows its proposed
-installation or connection and requires its own explicit approval. It can also
-save verified paths for an existing Ghidra installation.
+default. Setup can save verified paths for an existing Ghidra installation.
+Install Ghidra and the JDK independently before using native analysis.
 
 After selection, review the plan's exact paths and changes and approve before
-REA writes files or installs Hopper. You can cancel at any prompt.
+REA writes files. You can cancel at any prompt.
 
 Before applying changes, REA checks your current configuration. The plan lists:
 
-- an existing Hopper installation, a verified existing Ghidra installation, or the official Hopper package it proposes to install;
+- the detected Ghidra installation when setup can verify it;
 - each detected agent configuration path;
-- each selected REA skill destination;
-- external software, network origins, integrity evidence, and package-manager
-  commands.
+- each selected REA skill destination.
 
 Malformed or unsafe existing configuration blocks the whole transaction before
-Hopper installation or any file write. Declining or pressing Ctrl-C makes no
+any file write. Declining or pressing Ctrl-C makes no
 changes. Client configuration files and bundled skill files have separate
 publication and recovery paths; the guarantees in this paragraph apply to
 client configuration. See [skill destinations](#skill-destinations) for skill
@@ -108,7 +105,7 @@ setting before setup writes files. Repair the named setting in the client
 configuration; setup does not silently discard the rest of the map.
 This includes malformed loader/exclusion JSON arrays and a Ghidra compiler
 specification without its required language identifier. Valid overrides keep
-their original strings, including empty Hopper arguments. DeepSeek Harness
+their original strings, including explicitly empty values. DeepSeek Harness
 `!!js` environment expressions remain unevaluated and preserved; registration
 alignment does not verify the runtime values those expressions will produce.
 For layered OpenCode files, each file's values are checked before merging, while
@@ -146,11 +143,10 @@ health diagnostics and canonical tool catalog details. Pair
 `--all-detected` when the broad scope is intended. Without a scope flag,
 `--yes` is limited to existing REA-owned registrations; it does not select all
 detected clients. An unapproved actual apply reports `needs_confirmation` and
-exits 1. Installing missing Hopper non-interactively additionally requires
-`--install-hopper`:
+exits 1. To approve setup for all detected clients:
 
 ```bash
-rea setup --yes --all-detected --install-hopper --json
+rea setup --yes --all-detected --json
 ```
 
 Client configuration writes detect changes to the file read by setup, including
@@ -176,7 +172,7 @@ registration without installing the bundled skill. A non-directory ancestor is
 reported as `ENOTDIR`; preserve the blocking file and correct the directory path
 before rerunning setup.
 The final selected directories are checked before approval and again before
-setup changes any client or Hopper installation. Unselected client destinations
+setup changes any client configuration. Unselected client destinations
 do not block other setup choices. Doctor reports linked or non-directory skill
 paths as `unmanaged`, names the affected paths, and provides those alternatives;
 an unreadable skill identity remains `unknown`. Uninstall retains and reports
@@ -380,26 +376,26 @@ a particular caller-supplied input will be valid. See
 
 Select the part you want to check:
 
-| Task                                | Readiness check                                                            |
-| ----------------------------------- | -------------------------------------------------------------------------- |
-| Static JavaScript/Electron analysis | Run `rea analyze-javascript-application PATH --json` directly.             |
-| One analysis engine                 | `rea doctor --provider ghidra --json` (or `hopper`, `ida`, `jadx`, `kuna`) |
-| One agent registration              | `rea doctor --client codex --json` (see [client IDs](#supported-agents))   |
-| Installed workflow instructions     | `rea doctor --skill --json`                                                |
-| Desktop app environment builds      | `rea doctor --provider desktop_build --client claude_code --json`          |
+| Task                                | Readiness check                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| Static JavaScript/Electron analysis | Run `rea analyze-javascript-application PATH --json` directly.           |
+| One analysis engine                 | `rea doctor --provider ghidra --json` (or `jadx` for Android)            |
+| One agent registration              | `rea doctor --client codex --json` (see [client IDs](#supported-agents)) |
+| Installed workflow instructions     | `rea doctor --skill --json`                                              |
+| Desktop app environment builds      | `rea doctor --provider desktop_build --client claude_code --json`        |
 
 A scoped report has `scope.mode: "explicit"`. Its `scope_checks` determine
 `healthy` and the exit status. Other checks appear in `informational_checks`;
 `environment_healthy` summarizes the full audit. `--target` adds a target check,
 but the report remains audit-wide unless a scope option is also supplied.
 
-With one selected client, Ghidra, IDA, JADX and Kuna provider checks use the
+With one selected client, Ghidra and JADX provider checks use the
 client's recorded environment over the terminal it inherits. If that registration
 cannot be read or a setting a provider needs cannot be resolved, its available
 value is `null` and its check is `unknown`; its configured value is also `null`
 when the configuration setting itself is unknown. Doctor does not infer
 readiness from the terminal. A missing registration still uses terminal settings
-for setup. Other checks, including Hopper, use the terminal running doctor. A
+for setup. Other checks use the terminal running doctor. A
 client-started server may receive a different environment, and doctor cannot
 observe it. When an available
 provider relies on a setting that a registration's file does not record, or
@@ -411,22 +407,17 @@ changes `healthy`, because the client may still pass the setting on. Preview
 `rea setup --client <client-id> --skill=false --dry-run` from that terminal and
 approve it to record the settings, then restart the client. To see what the
 running server can use, call `binary_session` in the client and read
-`result.tool_availability`. For Hopper, only an explicit `HOPPER_LAUNCHER_PATH`
-is compared.
+`result.tool_availability`.
 
 An invalid `REA_LOG_LEVEL` fails every scope, including one client or the
 installed skill, because the executable rejects it before any command. A
 selected client also fails for every other setting that MCP startup rejects,
-including `REA_GHIDRA_STARTUP_TIMEOUT_MS` and `REA_HOPPER_STARTUP_TIMEOUT_MS`.
+including `REA_GHIDRA_STARTUP_TIMEOUT_MS`.
 Those settings still fail a selected provider and the audit-wide result. A
 skill-only report leaves them informational.
 
-Follow the remediation for the failed check. If a native target has several
-available providers, choose one with `--provider` on the CLI or `provider_id`
-on `open_binary`. A `capability_unavailable` failure carries
-`details.selection_reason`: `ambiguous` asks you to choose from
-`details.candidate_ids`, while `provider_unavailable` asks you to repair the
-selected engine. See [provider selection](cli.md#choose-a-provider).
+Follow the remediation for the failed check. A Ghidra admission error reports
+which prerequisite or target restriction prevented the open. See [provider selection](cli.md#choose-a-provider).
 
 ### Linux owned-process prerequisite
 
@@ -460,16 +451,11 @@ rea uninstall
 rea uninstall --purge-data
 ```
 
-Uninstall preserves Hopper, Node.js, Evidence files, captures, unrelated skills
-and other MCP servers. Purging removes REA's legacy cache and state under
-`~/.rea`, the default Kuna cache (`~/Library/Caches/rea/kuna` on macOS or
-`${XDG_CACHE_HOME:-~/.cache}/rea/kuna` on Linux), and Linux Hopper release
-archives under `${XDG_CACHE_HOME:-~/.cache}/rea/hopper-releases`. Other cache
-namespaces remain intact. A caller-selected `REA_KUNA_CACHE_DIR` is retained
-and reported because REA cannot establish ownership of its entire contents.
-Lexically equivalent spellings of that default directory, including a trailing
-separator, a `.` segment, or a repeated separator, share its purge result.
-The comparison preserves POSIX `..` traversal and literal backslashes.
+Uninstall preserves Ghidra, Node.js, Evidence files, captures, unrelated skills
+and other MCP servers. Purging removes REA-owned state under `~/.rea` and its
+built-in macOS ownership helper cache. Legacy Hopper and Kuna caches remain
+in place. If `REA_KUNA_CACHE_DIR` selects a custom cache, purge reports the
+path as retained.
 A client configuration that is malformed, unreadable, or at an unsafe
 path stops the operation before anything is removed when that client's
 product applicability is established or unresolved. Shared registration
@@ -730,413 +716,53 @@ a manual connection, not an automatic setup client ID. See the
 
 See [OpenCode, Grok Build, and Grok Bot settings](client-configuration.md#other-client-settings).
 
-## Hopper
+<a id="hopper"></a>
 
-Hopper is separate commercial software with its own license. Its free demo has
-vendor-defined limits, and a paid license is optional. REA reuses any detected
-installation and preserves Hopper during uninstall.
+## Migrate an older native provider configuration
 
-The automated Hopper installer supports macOS 12+, subject to the minimum
-macOS version of the current Hopper release, and x86_64 hosts running
-Ubuntu 24.04+, Fedora 41+, Nobara 44+, Arch Linux, CachyOS, or Omarchy. The
-official Linux packages are x86_64-only, so setup does not offer Hopper on other
-Linux architectures; configure [Ghidra](#ghidra) there instead. REA itself runs on any
-Linux distribution with a recognized apt, dnf, or pacman package family, where
-an existing Hopper launcher is selected through `HOPPER_LAUNCHER_PATH`. Ghidra
-and IDA have their own provider-specific host requirements; Windows Ghidra uses
-the [experimental P0 boundary](../providers/windows-ghidra-p0.md).
-
-Bazzite uses RPM packages, but REA does not install Hopper automatically on it.
-Setup skips the Hopper offer because Bazzite is outside the supported host list,
-regardless of whether Xvfb is installed. Bazzite documents
-[containers for installing Linux packages](https://docs.bazzite.gg/Installing_and_Managing_Software/Containers/).
-If using a container, check its distribution and architecture against the list
-above. Install REA and Hopper in that container, give it access to the files you
-want to analyze, and configure your agent to launch REA there. Verify installation
-and analysis before relying on that workflow.
-
-`rea doctor` checks health; it does not offer to install Hopper. Run `rea setup`
-for installation. Setup cannot prompt when its output is redirected or during a
-container image build. To approve Hopper installation without prompts, run
-`rea setup --yes --install-hopper`.
-
-If a Hopper request fails on macOS or Linux, the setup result's `download`
-field names the request (`release_feed`, `package` or `public_key`), its `url`,
-and the observed outcome `kind`: `http_status` with `httpStatus`, `timeout`,
-`network`, `response_too_large`, or `url_refused`. The remediation names the
-same URL and outcome. HTTP 404 or 410 means the file is missing, so an
-immediate retry is unlikely to help; 5xx, 408 and 429 indicate a temporary
-service failure. The status does not establish the underlying cause or guarantee
-that retrying will succeed. Doctor and Linux launches report the same request
-and status when publisher verification cannot download the current package.
-
-Hopper metadata and package downloads require HTTPS throughout the redirect
-chain; a redirect to HTTP or to a URL carrying credentials is refused before
-that destination is requested, and those credentials are not reported.
-A package download fails when no bytes arrive for 30 seconds or when it has not
-finished within 15 minutes, so a slow connection that keeps delivering bytes can
-complete. Release metadata and the publisher key keep a 10-second limit. A
-`timeout` failure reports the `limit` it reached (`stalled` or `deadline`), its
-`timeoutMs` and the `receivedBytes` before it stopped.
-
-On macOS, approved setup downloads the official DMG, checks its published size
-and digest, validates the application bundle, and atomically installs it to
-`~/Applications/Hopper Disassembler.app`. REA then opens Hopper so the
-operator can choose its demo mode or activate an existing license. Homebrew and
-administrator access are not used.
-
-Each Hopper release declares its own minimum macOS version, so the setup plan
-cannot confirm support before approval. Setup compares this Mac's version with
-the release metadata's `deployment_target` before downloading the DMG, and with
-the signed application's `LSMinimumSystemVersion` before copying it. If this Mac
-is older, setup fails with `incompatible_host_version`, names both versions, and
-installs nothing. Update macOS, or install a Hopper release that supports this
-macOS version yourself and set `HOPPER_LAUNCHER_PATH`. An existing Hopper
-installation is not checked against the current release's minimum.
-
-The Hopper launcher action used by REA creates a document from an executable;
-its supported command-line interface does not attach to an already-open
-document. While another live REA session owns the same target and loader
-profile, a second session reports the owning run ID instead of opening a
-duplicate document. On macOS, closing the owning REA session releases this guard;
-Hopper keeps its document open. A later REA session can therefore open another
-document for the same target. REA does not currently identify, focus, or reuse
-that existing GUI document, and the supported launcher exposes no attach or
-reuse action for it.
-
-REA currently declines saved Hopper database (`.hop`) targets on macOS because
-the native `open database` launch route does not run REA's bridge script. To
-analyze that program with REA, select its original executable as the target and
-open it through Hopper; this starts the supported bridge route. This does not
-recover database-only annotations or analysis changes. Saved-database analysis
-on Linux continues to use its supported demo-launch route.
-
-Hopper lease directories must be readable and owned by the current user.
-REA validates and secures an opened directory before reserving a lease. If
-opening that directory fails with a permission error, the diagnostic identifies
-the path and recovery steps while leaving its permissions unchanged. Check
-ownership and parent-directory access, then restore owner-only read, write, and
-search permissions (`0700`) on a directory you own before retrying.
-
-On supported Linux distributions, approved setup verifies Hopper's official
-`.deb`, `.rpm`, or Arch package before invoking the native package manager.
-On apt systems, Hopper's runtime dependencies are installed with
-`--no-upgrade` in their own transaction, so setup no longer names an
-already-installed dependency as an upgrade target. apt can still upgrade a
-package that the Hopper package or the Python library repair requires at a
-newer version. Arch's `pacman -S --needed` still updates an outdated
-dependency.
-The official release feed selects the current public demo without a version
-pin. REA verifies the package's detached PGP signature against Hopper's stable
-primary fingerprint `7C2D73BAFAF5B9A710A69DA1A26DF815099B1BCD`, then checks
-that the signed package and installed launcher agree with `main_exe_hash`.
-Rotating signing subkeys remain bound to that primary identity.
-The feed row itself is not PGP-signed; doctor labels its display version as
-`reported_release_version`, separately from the authenticated launcher identity.
-
-Even a correctly signed package can contain a launcher whose hash disagrees with
-the feed. REA stops before installing that package. When reporting this error,
-include the release version, package format and both hashes from the diagnostic.
-Each format needs its own check: a matching Ubuntu DEB does not establish that
-the Fedora RPM matches.
-
-The approval plan includes the caller-selected cache location. Approved setup
-retains the signed archive, public key and release metadata under
-`${XDG_CACHE_HOME:-$HOME/.cache}/rea/hopper-releases/<launcher-sha256>`.
-An empty `XDG_CACHE_HOME` uses `$HOME/.cache`. Approved setup can repair a
-damaged caller-owned entry after authenticating a fresh package; the previous
-entry is preserved beside it as `<launcher-sha256>.backup-<id>`. Ordinary doctor
-and launches reject damaged evidence and never repair it implicitly.
-Approved publications of the same canonical cache entry share a process-backed
-lease. Concurrent setup waits without moving another writer's evidence; a
-failed replacement restores the previous directory when possible and reports
-any retained backup path. Unavailable reads or native inspection tools do not
-authorize replacing existing evidence.
-Doctor and launches authenticate this evidence for offline use; an editable
-digest receipt alone cannot authorize a launcher. Verification reuses at most
-eight immutable package proofs per process, keyed by the complete package,
-key, signature, package format and expected launcher digest. Cached file reads
-still check identity and content. Without retained evidence, inspecting an
-existing install requires the matching current official package and network
-access. Successful live inspection can be reused within that process after
-rehashing the launcher; it does not write a persistent cache or claim that a
-previously observed release is still the latest. Older uncached builds require
-an approved update while the feed exposes only its current release.
-
-REA runs the supported demo build on a private Xvfb display and selects Hopper's
-offered demo mode for each analysis session; it does not require the user's
-desktop display. Unattended package-manager access requires
-`--yes --install-hopper`. If the host exposes `/tmp/.X11-unix` as an immutable
-mount, REA first verifies the conflict and then uses an unprivileged user and
-mount namespace with a private mode-1777 tmpfs over that directory only. The
-host mount and the rest of `/tmp` remain unchanged; this fallback never invokes
-`sudo`. `rea doctor --provider hopper --json` reports the selected
-strategy and both host and effective mount facts.
-
-You do not need to start a separate `Xvfb :99` server. REA starts and manages its
-own display. After installation, run `rea doctor --provider hopper --json` and
-check `hopper-demo-runtime` for display and Python problems. Setup also runs these
-health checks: installing the package is only one step toward a working provider.
-
-If an image build ends with `exit status 1`, read the setup output immediately
-before that summary to find the failing step. On minimal Ubuntu images, run
-`apt-get update` before setup if an earlier layer deleted the package indexes.
-REA's package installation commands do not refresh those indexes.
-
-Hopper also embeds Python; the Python executable and standard library alone
-are insufficient on Ubuntu. Approved setup checks the system interpreter
-at `/usr/bin/python3` and, when necessary, installs its matching
-`libpython3.X` package, then verifies that its shared library can load.
-APT resolves the concrete package (for example, `libpython3.12t64` on Ubuntu
-24.04). Doctor includes these fresh observations in the `embedded_python`
-details of its `hopper-demo-runtime` check, alongside the private-display
-diagnostic. Failed inspections remain unknown rather than proving a library
-absent. Run `rea setup --yes --install-hopper` to repair a supported install.
-This prerequisite check does not launch the bridge or validate a custom Python
-interpreter configured inside Hopper; that interpreter needs its own matching
-shared runtime. Custom installation prefixes or shared-library ABIs require
-manual dependency repair.
-
-When the package-manager step fails, setup reports the failing command and its
-captured output, so a package conflict is distinguishable from an authorization
-failure. Hopper is optional, so setup still applies the approved client
-registrations and skill, then reports `needs_human` with the Hopper failure. On
-Arch Linux and CachyOS, the unversioned compatibility package `zlib-ng-compat`
-may conflict with Hopper's versioned `zlib` dependency. Resolve the package
-conflict yourself, install Hopper's official package manually, or use another
-provider such as Ghidra; rerun `rea setup` after installing Hopper.
-
-If setup cannot finish releasing its resources, a normally returned structured
-result reports `needs_human` and includes `cleanup.reason` with the identified
-paths in `cleanup.resources`. A thrown typed failure reports the same retained
-paths in `details.resources`, preserving the primary failure separately. Reasons
-that do not identify a resource remain explicit without guessing paths from text.
-For in-process callers retaining REA's setup host, a successful retry of its close
-updates the original failure's cleanup state and removes released resource labels.
-Custom `SetupHost` implementations must bind returned or thrown cleanup errors
-to their resource owners to provide the same live recovery. An ownerless error
-remains an unconfirmed snapshot: `runSetup` does not observe later direct calls
-to the caller's port or replace that port's methods.
-
-The supported Linux demo forwards additional launches into its existing
-application, even across private displays. REA therefore reserves one Linux
-Hopper application per user across cooperating REA processes. A competing
-CLI or MCP session receives the owning session ID before Hopper is launched,
-for both the same target and a different target. Switch targets through that
-MCP session, or close it before starting another session. Closing the owner
-releases the reservation and stops REA's owned demo application and private
-display; the headless Linux demo does not retain documents after MCP shutdown.
-Its helper watches a private lifetime pipe, so an owner crash or SIGKILL also
-stops those children, without relying on a reusable PID or a process-name scan.
-A later session recovers the dead owner's stale lease after child cleanup;
-private runtime files can remain when REA itself was killed. This does not attach to
-or claim ownership of manually opened Hopper applications. An application left
-running by an older REA version must still be closed before starting a new session.
-
-Stale lease recovery is serialized. If an interrupted recovery leaves its
-reservation directory, the diagnostic identifies that exact path. Stop REA
-sessions before removing that recovery directory and retrying.
-
-### Launcher paths and troubleshooting
-
-On macOS, REA checks executable Hopper launchers in this order: the canonical
-system application, the canonical application installed by `rea setup` under
-`~/Applications`, then other `Hopper*.app` bundles in `/Applications` and
-`~/Applications`. The Homebrew cask location is an optional `rea doctor`
-diagnostic; to use a Homebrew-installed launcher for CLI/MCP startup, set
-`HOPPER_LAUNCHER_PATH` to the path reported by doctor. REA does not run Homebrew
-while loading runtime configuration.
-Automatic discovery accepts executable regular files, including file symlinks,
-and skips directories.
-On Linux, it prefers executable `/opt/hopper/bin/Hopper`, then executable
-`~/.local/share/rea/hopper/bin/Hopper`, followed by `/opt/hopper-v4/bin/hopper`
-and `/usr/bin/hopper`; if none exists, `/opt/hopper/bin/Hopper` remains the
-diagnostic fallback. `rea doctor` checks only the current platform's candidates, in the
-same order; other platforms have no automatic candidates.
-`HOPPER_LAUNCHER_PATH` overrides those choices:
+Ghidra is the native binary analysis provider. Install Ghidra and its required
+JDK independently and check them:
 
 ```bash
-export HOPPER_LAUNCHER_PATH=/absolute/path/to/Hopper
-rea doctor --provider hopper --json
+rea doctor --provider ghidra --json
 ```
 
-Hopper startup allows 120,000 ms for launch, initial analysis, and authenticated
-bridge readiness. For large targets, set `REA_HOPPER_STARTUP_TIMEOUT_MS` to a
-decimal integer from 1 to 2,147,483,647 milliseconds in the environment that
-starts REA. CLI and MCP use the same setting; invalid values fail configuration
-validation. In MCP, `update_analysis_settings` can set
-`hopper.startup_timeout_ms` for the next startup attempt without restarting REA;
-accepted work keeps its budget and retained cleanup must still complete. An
-MCP client's own request timeout must also allow enough time.
-`open_binary` validates and selects a target without waiting for native provider
-readiness. During Hopper startup, `binary_session.provider_operation_health`
-reports `busy` at stage `launch`; `analysis_activity` describes bridge requests
-and can remain idle until the socket is ready. Cleanup work reports `busy` at
-stage `connection`.
+Remove older Hopper, IDA and Kuna provider selections, or set them to `ghidra`.
+This applies to `REA_ANALYSIS_PROVIDER` in the CLI or MCP launch environment,
+`--provider` in CLI commands and `provider_id` on `open_binary`. Older
+`auto` selections consider Ghidra as the sole candidate. Remove
+`--install-hopper` from setup commands. To open a target when MCP starts,
+move the old `HOPPER_TARGET_PATH` value to `REA_TARGET_PATH`.
 
-If macOS denies Apple Events, allow the application that starts REA under
-**System Settings → Privacy & Security → Automation**, then retry. REA releases
-the target reservation when the native helper reports its complete authorization
-rejection after literal argument admission. Before application handoff, REA refuses
-double quotes, backslashes, or line breaks in the final launcher path or arguments,
-with `details.launch_rejection.boundary: "argument_encoding"` and the affected source/index.
-Select literal-safe launcher/runtime paths and loader arguments, or another
-compatible provider. REA preserves original file names and evidence: a quoted
-executable name can still work when its prepared image path is literal-safe;
-database paths must themselves be representable. Other failed handoffs
-retain ownership until document closure is confirmed. If a timed-out bridge
-becomes ready later, `close_binary` connects to that run, authenticates its
-identity, and requests document shutdown. Once its listener is ready, the bridge
-allows 30 seconds for the first connection and capability validation. After a
-connection drops, it allows the same grace period for an authenticated cleanup
-reconnect, then releases Hopper's Python execution thread. Initial analysis is
-outside this listener grace period, and authenticated native work is not bounded
-by it. Expiry does not establish document closure, so REA
-retains unconfirmed ownership. Retry close while the bridge remains available.
-
-If a Linux launcher exists but cannot start, inspect its shared libraries:
+For a registration managed by REA, preview and apply the replacement provider
+setting, then restart the agent:
 
 ```bash
-ldd /absolute/path/to/Hopper | grep 'not found'
+REA_ANALYSIS_PROVIDER=ghidra rea setup --client codex --dry-run
+REA_ANALYSIS_PROVIDER=ghidra rea setup --client codex
 ```
 
-Install the missing packages and rerun the scoped check. Linux demo sessions
-need Xvfb, Python 3, X11 and XTEST; approved setup installs those dependencies
-on supported distributions. Add the curl installer's reported executable
-directory, commonly `~/.local/bin`, to your shell `PATH` if needed.
+Substitute your client ID. Setup preserves unrelated registration settings and
+creates a backup. For a manually managed registration, edit the provider
+selection in that client's launch configuration.
 
-REA starts Hopper when needed. On macOS, complete its demo or license prompt in
-the same user session before the first CLI/MCP operation or unattended job. Open
-Hopper manually if needed; its launcher can also bring the dialog forward.
-If startup reports `Cannot launch Hopper! Connection is invalid.` or waits for
-bridge readiness, check Hopper for a pending demo, license, or loader dialog.
-Complete the dialog and retry. If REA reports `cleanup_incomplete`, follow the
-retained-resource guidance below before reopening the target.
+Open the original executable in Ghidra. Other providers' databases and analysis
+snapshots cannot be opened as Ghidra sessions. Retained Evidence keeps its
+original provider identity and can still be inspected. Replace GUI cursor and
+bookmark calls with explicit address lookups where applicable.
+`inspect_address_context` returns the name and containing function at an
+address. Use `analyze_function` for entry comments and
+`annotate_native_function` to edit them in a supported Ghidra session.
 
-On macOS, Hopper can show an `Executing Python Script...` overlay while the REA
-bridge serves an active MCP connection. Long-lived MCP clients can keep that
-connection open across agent turns, so the overlay may remain visible after the
-analysis calls finish; by itself, it does not establish a stalled startup. REA
-does not automatically idle-close a still-connected target. When the
-investigation is finished, export an Evidence bundle first if you need to keep
-the session ledger, then call `close_binary`; set `snapshot_path` to save a
-provider-neutral analysis snapshot as part of closing. A successful close
-shuts down the REA bridge and clears its overlay; REA does not control the
-macOS Hopper application lifetime.
-The Hopper GUI Cancel button's behavior for this bridge has not been verified;
-`close_binary` is the supported cleanup path.
-
-Hopper serializes analysis requests. Cancelling a wait can leave provider work
-running, which the session reports. Successful decompilation is cached until
-a relevant rename or comment changes it.
-
-Analysis and annotation calls stay bound to the active target's native Hopper
-document, even when GUI focus changes or other documents have the same display
-name. Use `open_binary` to change targets. Byte reads stop at a segment boundary
-and return the readable prefix with `complete: false`. File-offset mapping checks
-the reverse lookup and original executable bounds; synthetic external-symbol
-memory has no original file offset. For FAT Mach-O, offsets refer to the original
-container file. Results retain Hopper's image-relative offset, the observed slice
-base, and the source executable path.
-Loader selection reads the Mach-O container header, including FAT files with a
-single architecture. For FAT32 and FAT64 containers, REA validates the
-architecture table and selected Mach-O header, prepares a private thin image,
-and loads it with Hopper's native Mach-O loader instead of Hopper's implicit
-FAT slice choice. For arm64 targets, REA ranks subtype bases 0 (plain arm64) and
-2 (arm64e), ignoring capability bits for ranking while retaining the raw subtype
-for slice identity. These slices' function-entry encodings decode under
-`--aarch64`, ahead of Apple's arm64e.x1 variant (base subtype 12), which is
-selected only when it is the arm64 family's only candidate. REA checks the
-entire source's SHA-256 while copying the slice; source identity and reported
-offsets still refer to the original container. Any other ambiguous architecture
-subtype requires an explicitly extracted thin image; REA does not guess.
-Set `HOPPER_LOADER_ARGS_JSON` in REA's launch environment to a JSON array of
-strings to override the derived Hopper loader arguments, for example
-`["-l","Mach-O"]`. Empty string elements are preserved; NUL bytes are not
-accepted. An omitted setting or empty array uses the derived arguments. `rea
-setup` forwards an explicitly selected setting to supported registrations;
-restart the MCP server to apply a change. These arguments are Hopper-specific.
-FAT64 is distinct from the CPU architecture: FAT32 containers can contain 64-bit
-executable images. This preparation avoids the Raw Binary loader dialog observed
-with native FAT64 loading on Hopper 6.1.0-demo.
-The prepared image and its owned document close together, including on MCP exit;
-if document closure is unconfirmed, REA retains the backing image and reports
-`cleanup_incomplete` with its path. Ordinary documents retain their existing
-MCP-exit behavior.
-Startup deadlines report missing bridge readiness and preserve the launcher
-outcome; a successful helper exit does not prove that a loader dialog completed.
-If an owned provider process exits, request failures preserve its observed exit
-code or signal and bounded output in `details.launcher`. An exit can precede
-output-stream closure; `output_closed: false` keeps that uncertainty explicit.
-Later requests retain the known exit instead of reducing it to socket loss.
-An external GUI's helper exit does not establish that the GUI itself exited.
-For cursor navigation, string decoding, symbol-name limits, and regex matching,
-see [Hopper analysis behavior](../guides/native/native-investigation.md#hopper-analysis-behavior).
-
-Closing or switching a target closes its bound Hopper document, shuts down REA's
-bridge and removes its temporary socket directory. The macOS Hopper application
-and unrelated documents remain open; the owned Linux demo application stops.
-A `cleanup_incomplete`
-result identifies resources whose cleanup could not be verified.
-REA retains unresolved cleanup ownership and any confirmed shutdown phases.
-After addressing the reported failure, retry `close_binary` on the same
-connection. Unconfirmed document or process cleanup retains the target/application
-lease and prevents another client from launching against that owned resource.
-Once document and process closure are confirmed, the lease can be released even
-if temporary-file cleanup fails. Another client can then launch, but the owning
-client must finish its retained cleanup before starting again.
-An unconfirmed external document can be retried while its authenticated bridge
-remains available. The same authentication and process-identity capture apply
-when the first successful handshake occurs during cleanup after a startup
-timeout. REA can confirm closure if that exact authenticated process exits,
-including while a shutdown request is in flight. A helper exit alone is
-insufficient, and an application that never authenticated has no verified
-process identity. If no matching bridge becomes available, inspect and close
-the reported document in Hopper before ending the owning REA connection.
-`close_binary` preserves Evidence and complete Unknown history in memory on the
-same connection. Export the bundle before ending the REA process to resume later;
-`reset_investigation(save_path)` checkpoints and explicitly clears those records.
-`binary_session.cleanup_pending` remains true while provider cleanup is retained,
-and provider health remains visible even with `open: false`; that flag alone
-does not establish successful cleanup.
-
-### Hopper in CI
-
-REA's unattended Linux path is validated against Hopper's offered demo mode.
-A paid license is not required for that path, and REA does not read, install, or
-automate license credentials. Licensed Hopper installations remain supported,
-but license activation is an operator-owned prerequisite rather than part of
-REA setup.
-
-macOS requires Hopper's first-run UI to be completed in the same user session
-that will run REA: choose the demo mode or activate an existing license before
-starting an unattended job. Ephemeral macOS runners therefore need a
-pre-provisioned user session or a deliberate interactive bootstrap step.
-
-When Hopper cannot start in CI, run
-`rea doctor --provider hopper --json` in the failing runner.
-Structured failures distinguish private-display dependencies, an unsupported
-demo dialog or build, process-ownership conflicts, and an early lifecycle exit.
-Once launcher authentication succeeds, an absent first-run dialog is reported as
-`demo_dialog_absent` rather than a build or publisher rejection. The watcher
-waits 10 seconds by default. Set `REA_HOPPER_DEMO_DIALOG_TIMEOUT_MS` in the
-environment that starts REA to a positive decimal integer of milliseconds from
-1 to 2147483647 when a slower host needs a longer window. An invalid value is
-`invalid_dialog_timeout`: the error names that setting, shows the rejected
-value and its source, lists the allowed range, and asks you to correct the
-setting and restart REA.
-If a private-display probe times out or is cancelled and its process cleanup
-fails, REA retains that exact probe owner and reports `cleanup_incomplete`.
-Session close retries the probe before releasing its cleanup marker; doctor
-uses its own retained resource scope for the same retry. A probe timeout whose
-process has already been released remains an ordinary startup diagnostic.
-Apply the reported remediation rather than exposing the runner's desktop,
-copying license secrets into logs, or killing unrelated Hopper processes.
+REA's Ghidra adapter requires a thin Mach-O. For a universal binary, choose
+a separately extracted slice. Retain the original container's path, digest and slice offset
+alongside the slice's Evidence. Ghidra file offsets refer to the selected
+slice file.
 
 ## Ghidra
 
-REA connects to an existing Ghidra installation on Linux x64/arm64, macOS x64/arm64,
-or experimental Windows x64 P0.
+REA connects to your existing Ghidra installation on Linux x64/arm64, macOS
+x64/arm64, or experimental Windows x64 P0.
 It accepts Ghidra 12.x (>=12.1) and the 64-bit full JDK declared by that installation's
 `application.java.min` and `application.java.max`. The JDK's reported platform must also
 map to the same native decompiler directory as the host: a JDK running under
@@ -1192,8 +818,8 @@ On Linux and macOS, `annotate_native_function` also edits a function name and/or
 entry comments atomically and returns refreshed analysis, and `set_address_name`
 and `set_addresses_names` name a function entry or any other mapped address
 (creating or renaming its primary label) with per-address success results. These
-session metadata edits leave executable bytes unchanged and are discarded on close. GUI controls
-require Hopper; Windows P0 remains read-only.
+session metadata edits leave executable bytes unchanged and are discarded on close.
+The adapter runs headlessly. Windows P0 remains read-only.
 
 Windows P0 admits native x86, x86-64, ARMNT (Thumb-2) and ARM64 PE applications and DLLs,
 [DOS MZ executables](../providers/ghidra-dos.md), plus explicitly
@@ -1242,9 +868,8 @@ rea providers --json
 
 `rea setup` can configure supported Windows agents and install the bundled
 REA skill after approval. Managed registrations use the absolute selected Node or
-Bun runtime and REA entry script, including when setup ran through a package runner. Hopper
-installation remains unavailable on Windows. Setup never installs Ghidra,
-Java, or Python. It preserves valid detected Ghidra/JDK settings in agent
+Bun runtime and REA entry script, including when setup ran through a package runner.
+Setup never installs Ghidra, Java, or Python. It preserves valid detected Ghidra/JDK settings in agent
 registrations. See [Windows Ghidra P0](../providers/windows-ghidra-p0.md) for provider diagnostics.
 
 `rea mcp add` registers the selected server launcher directly in client settings.
@@ -1408,8 +1033,9 @@ auto-analysis. A larger time allowance does not raise the JVM heap limit or
 guarantee completion. Keep [heap and host CPU controls](#ghidra-heap-and-cpu-controls)
 appropriate for the machine.
 
-One session contains exactly one imported Program; use `provider_id: "ghidra"`, `--provider ghidra`, or
-`REA_ANALYSIS_PROVIDER=ghidra` when both Hopper and Ghidra support the target.
+One session contains exactly one imported Program. You can explicitly select
+Ghidra with `provider_id: "ghidra"`, `--provider ghidra`, or
+`REA_ANALYSIS_PROVIDER=ghidra`.
 One persistent decompiler is owned by the Program, and a serial queue keeps
 Ghidra API calls on the owning Program thread without a fixed queue length.
 Operations run until a result, caller cancellation, or provider shutdown; there
@@ -1442,7 +1068,7 @@ every attempted function plus listing and file work; select the client deadline
 for the workload, split batches, use `decompile_all` limit/resume, or reduce
 `trace_native_values` `max_functions` to select fewer serial decompiles. Ghidra's own interactive default is 30 seconds. Unresolved computed calls
 remain unknown, reference-kind provenance is preserved, and provider-specific
-pseudocode is never treated as original source or Hopper-equivalent text.
+pseudocode is a provider observation rather than original source.
 
 ### Missing macOS native decompiler
 
@@ -2160,10 +1786,3 @@ The tag pins the selected script revision; `--version` selects the npm package
 version. Neither command verifies a signature on the downloaded script.
 
 Supported options are `--version <semver>`, `--dry-run`, `--no-setup`, `--no-prompt`, and `--verbose`. Neither `--no-prompt` nor a non-interactive shell grants permission to install external dependencies.
-
-Hopper setup distinguishes a confirmed occupied destination from a failed
-destination inspection. It also reports local archive staging and installed
-launcher inspection failures separately from download failure or launcher
-absence. Follow the reported operation, path, and available filesystem code; an
-unresolved inspection does not establish that a destination exists or a launcher
-is missing.

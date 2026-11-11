@@ -21,7 +21,7 @@ it("retains provider coverage caveats in a composed MCP overview without repeate
           ),
         );
       calls.push(operation);
-      const value = operation === "current_document" ? "fixture" : [];
+      const value = operation === "list_documents" ? ["fixture"] : [];
       return ok(
         createAnalysisExecution(
           value,
@@ -40,7 +40,7 @@ it("retains provider coverage caveats in a composed MCP overview without repeate
   expect(evidence.limitations).toEqual([
     expect.stringMatching(/artifact identity.*unavailable/iu),
     "Derived by an REA composed workflow.",
-    `Fixture (fixture 1) current_document, list_procedures, list_segments, list_strings: ${limitation}`,
+    `Fixture (fixture 1) list_documents, list_procedures, list_segments, list_strings: ${limitation}`,
   ]);
   expect(evidence.normalized_result).toMatchObject({
     document: "fixture",
@@ -68,8 +68,8 @@ it("counts canonical inventory rows in the composed overview without altering la
           ),
         );
       const value =
-        operation === "current_document"
-          ? "fixture"
+        operation === "list_documents"
+          ? ["fixture"]
           : operation === "list_procedures"
             ? procedures
             : operation === "list_strings"

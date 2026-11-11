@@ -438,19 +438,14 @@ is opt-in, so stdout carries only protocol messages and command results.
 Request arguments, bridge tokens, and environment data are redacted from
 diagnostic logs.
 
-## Real Hopper changes
+## Real Ghidra changes
 
-Run `npm run verify:hopper` on a supported macOS host or
-`npm run verify:hopper:linux` on the supported Linux demo runner. These build
-native fixtures and verify the installed engine through CLI/MCP; package or
-simulated-provider checks do not establish engine behavior. See
-[real-toolchain verification](docs/development/testing.md#end-to-end-integration-and-golden-evidence)
-for prerequisites and scope, and [Hopper setup](docs/getting-started/installation.md#hopper)
-for supported hosts and unattended startup.
-
-Use the default `build/conformance/manifest.json` unless explicitly verifying
-another source-built manifest with `REA_HOPPER_CONFORMANCE_MANIFEST_PATH`.
-Generated fixtures and manifests remain ignored.
+Run `npm run verify:ghidra` with a supported Ghidra installation and JDK to
+exercise source-built native fixtures through the CLI and MCP. Package and
+simulated provider checks cover separate contracts. See
+[installation](docs/getting-started/installation.md#ghidra) for prerequisites
+and [verification scope](docs/providers/ghidra-provider.md#admitted-function-analysis-semantics)
+for platform and format coverage.
 
 ## Maintainer release checklist
 

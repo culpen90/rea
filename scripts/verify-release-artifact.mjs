@@ -27,7 +27,7 @@ const environment = {
   ...process.env,
   npm_config_cache: join(workspace, "npm-cache"),
 };
-delete environment.HOPPER_TARGET_PATH;
+delete environment.REA_TARGET_PATH;
 const commands = await createPackageVerifierCommands({
   workspace: {
     path: workspace,

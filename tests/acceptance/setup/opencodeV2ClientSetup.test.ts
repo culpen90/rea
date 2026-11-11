@@ -58,7 +58,6 @@ const layeredOpenCode = async (
         XDG_CONFIG_HOME: configurationHome,
         APPDATA: join(home, "appdata"),
         LOCALAPPDATA: join(home, "localappdata"),
-        HOPPER_LAUNCHER_PATH: join(home, "absent-hopper"),
       },
     });
   return { lower, upper, originalLower, originalUpper, other, run };

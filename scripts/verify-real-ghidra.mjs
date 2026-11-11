@@ -390,13 +390,11 @@ async function verifyNativeApiCli(
       "inspect-native-api",
       targetPath,
       denseSwitch.address,
-      "--provider",
-      "ghidra",
       "--json",
     ],
     {
       cwd: process.cwd(),
-      env: process.env,
+      env: { ...process.env, REA_ANALYSIS_PROVIDER: undefined },
       maxBuffer: 72 * 1024 * 1024,
     },
   );

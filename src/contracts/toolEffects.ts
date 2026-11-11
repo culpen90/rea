@@ -547,20 +547,11 @@ const TOOL_EFFECT_AUDIT: Readonly<Record<string, EffectAudit>> = {
   trace_native_ui_action: providerNetworkEvidence,
   trace_native_values: providerUiNetworkEvidence,
   address_name: evidence,
-  comment: evidence,
-  current_address: evidence,
-  current_procedure: evidence,
-  current_document: evidence,
-  goto_address: effects({ mutatesSession: true, changesUiState: true }),
-  inline_comment: evidence,
-  list_bookmarks: evidence,
   list_documents: providerNetworkEvidence,
   list_names: evidence,
   list_procedures: providerNetworkEvidence,
   list_segments: evidence,
   list_strings: providerNetworkEvidence,
-  next_address: evidence,
-  prev_address: evidence,
   procedure_address: providerNetworkEvidence,
   procedure_assembly: providerUiNetworkEvidence,
   procedure_callees: providerNetworkEvidence,
@@ -584,26 +575,6 @@ const TOOL_EFFECT_AUDIT: Readonly<Record<string, EffectAudit>> = {
     mayDiscardData: true,
   }),
   set_addresses_names: effects({
-    mutatesTarget: true,
-    mutatesSession: true,
-    mayDiscardData: true,
-  }),
-  set_bookmark: effects({
-    mutatesTarget: true,
-    mutatesSession: true,
-    mayDiscardData: true,
-  }),
-  set_comment: effects({
-    mutatesTarget: true,
-    mutatesSession: true,
-    mayDiscardData: true,
-  }),
-  set_inline_comment: effects({
-    mutatesTarget: true,
-    mutatesSession: true,
-    mayDiscardData: true,
-  }),
-  unset_bookmark: effects({
     mutatesTarget: true,
     mutatesSession: true,
     mayDiscardData: true,
@@ -847,8 +818,6 @@ const TOOL_EFFECT_AUDIT: Readonly<Record<string, EffectAudit>> = {
   project_android_application_graph: evidence,
   project_apple_application_graph: evidence,
   project_harmony_application_graph: evidence,
-  // Lifecycle transitions can retire an IDA client, including a pending
-  // cleanup from an earlier provider, over its configured MCP transport.
   // Retiring Ghidra can discard ephemeral edits or save a configured checkpoint.
   open_binary: effects({
     mutatesSession: true,
@@ -883,7 +852,6 @@ const TOOL_EFFECT_AUDIT: Readonly<Record<string, EffectAudit>> = {
     mayDiscardData: true,
   }),
   get_evidence_bundle: effects(),
-  get_navigation_context: effects({ mutatesSession: true }),
   inspect_address_context: providerEffects(
     effects({ mutatesSession: true }),
     providerRemoteEffects,

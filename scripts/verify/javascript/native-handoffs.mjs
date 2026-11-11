@@ -89,7 +89,7 @@ const environment = {
   PATH: process.env.PATH ?? "/usr/bin:/bin",
   REA_LOG_LEVEL: "silent",
   REA_ANALYSIS_PROVIDER: "auto",
-  HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
+  GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
 };
 const transport = new StdioClientTransport({
   command: process.execPath,

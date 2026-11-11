@@ -159,7 +159,7 @@ it.each([
     );
     if ("REA_MCP_TOOL_FAMILIES" in environment) {
       expect(
-        (await call("discover_tools", { names: ["current_address"] })).isError,
+        (await call("discover_tools", { names: ["list_documents"] })).isError,
       ).toBe(true);
       expect((await client.listTools()).tools).toHaveLength(
         initial.tools.length + 2,

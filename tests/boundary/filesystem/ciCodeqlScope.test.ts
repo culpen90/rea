@@ -25,7 +25,7 @@ const excluded = (path: string): boolean =>
   );
 
 it.each([
-  "tests/fixtures/fakeHopper.mjs",
+  "tests/fixtures/fakeGhidra.mjs",
   "tests/conformance/ghidra/riscv-checks.mjs",
   "tests/support/analysis-efficiency/resource-run.py",
   "scripts/fixtures/http3-lab.py",
@@ -50,7 +50,6 @@ it.each([
   "install.sh",
   "scripts/rea.mjs",
   "scripts/prepack.mjs",
-  "scripts/hopper-demo-x11.py",
   "scripts/ci/release-recovery.mjs",
   "scripts/verify-package-install.mjs",
   "scripts/verify-package-update.mjs",

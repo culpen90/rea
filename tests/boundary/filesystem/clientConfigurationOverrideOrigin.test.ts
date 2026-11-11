@@ -42,7 +42,7 @@ it("keeps a malformed stored environment attributed to its file", async () => {
         rea: {
           command: "rea",
           args: ["mcp"],
-          env: { HOPPER_LOADER_ARGS_JSON: "not-json" },
+          env: { REA_REFERENCE_SECRET_PATTERNS_JSON: "not-json" },
         },
       },
     }),
@@ -67,9 +67,9 @@ it.each([
     reported: "REA_GHIDRA_LANGUAGE_ID",
   },
   {
-    stored: { HOPPER_LOADER_ARGS_JSON: "invalid-json" },
+    stored: { REA_REFERENCE_SECRET_PATTERNS_JSON: "invalid-json" },
     overrides: { REA_ASAR_MAX_HEADER_BYTES: "1024" },
-    reported: "HOPPER_LOADER_ARGS_JSON",
+    reported: "REA_REFERENCE_SECRET_PATTERNS_JSON",
   },
 ])(
   "recommends checking both sources when the reported setting is not an override: $reported",

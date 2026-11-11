@@ -24,7 +24,6 @@ const isolatedEnvironment = (workspace: TestWorkspace) => ({
   ...(process.platform === "win32"
     ? { SystemRoot: process.env.SystemRoot ?? "" }
     : {}),
-  HOPPER_LAUNCHER_PATH: workspace.path("missing-hopper"),
   REA_LOG_LEVEL: "silent",
   REA_JEB_MCP_TIMEOUT_MS: "1.5",
 });

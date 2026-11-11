@@ -3,7 +3,6 @@ import { expect, it } from "vitest";
 import { analysisSettingDefinition } from "../domain/analysisSettingDefinitions.js";
 import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import { GHIDRA_OPERATIONS } from "../ghidra/GhidraProviderMetadata.js";
-import { HOPPER_OPERATIONS } from "../hopper/HopperProviderMetadata.js";
 import { parseEnvironment } from "./environment.js";
 import { parseConfig } from "./parseConfig.js";
 import { runtimeAnalysisConfig } from "./runtimeAnalysisSettings.js";
@@ -23,14 +22,12 @@ const configured = (maximumBytes: number) =>
 
 const symbolName = "\u0001".repeat(1024);
 const session = "00000000-0000-4000-8000-000000000001";
-const token = "a".repeat(64);
 
 it("advertises the bridge ceiling for every bridge-backed operation", () => {
   const advertised = new Set(
     analysisSettingDefinition("bridge.max_request_bytes").operations,
   );
   const required = [
-    ...HOPPER_OPERATIONS,
     ...GHIDRA_OPERATIONS,
     "list_cutter_sessions",
     "cutter_command",
@@ -84,15 +81,7 @@ it("sets the maximum to the serialized string bound minus the framing LF", () =>
   );
 });
 
-it("locks the floor to the authenticated frame of the largest bounded symbol name", () => {
-  const hopper = Buffer.byteLength(
-    JSON.stringify({
-      id: Number.MAX_SAFE_INTEGER,
-      token,
-      method: "set_address_name",
-      params: { address: "0xffffffffffffffff", name: symbolName },
-    }),
-  );
+it("locks the floor to a representative authenticated Cutter frame", () => {
   const command = JSON.stringify({
     kind: "command",
     request_id: session,
@@ -112,11 +101,10 @@ it("locks the floor to the authenticated frame of the largest bounded symbol nam
   const hello = Buffer.byteLength(
     JSON.stringify({ kind: "rea-auth-v2", nonce: "ab".repeat(32) }),
   );
-  expect(hopper).toBe(6322);
   expect(framed).toBe(7464);
   expect(estimated).toBe(framed);
   expect(hello).toBeLessThan(MINIMUM_BRIDGE_MAX_REQUEST_BYTES);
-  expect(Math.max(hopper, framed)).toBe(MINIMUM_BRIDGE_MAX_REQUEST_BYTES);
+  expect(framed).toBe(MINIMUM_BRIDGE_MAX_REQUEST_BYTES);
   expect(MINIMUM_BRIDGE_MAX_REQUEST_BYTES).toBeLessThan(
     DEFAULT_BRIDGE_MAX_REQUEST_BYTES,
   );

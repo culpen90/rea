@@ -1816,7 +1816,7 @@ public final class ReaGhidraBridge extends HeadlessScript {
             "Thunk and external classifications are Ghidra FunctionManager observations; they do not resolve targetless calls."
         );
         limitations.add(
-            "Pseudocode and assembly are Ghidra-specific representations, not original source or Hopper-equivalent text."
+            "Pseudocode and assembly are Ghidra-specific representations, and do not recover original source."
         );
         limitations.add(
             "Synthetic Ghidra entry-point references without actionable memory sources are omitted."

@@ -857,16 +857,6 @@ it.each([
     "tests/boundary/process/windowsExecutableSelection.test.ts",
     { code: true, runtime: true, package: true },
   ],
-  ["src/hopper/BridgeLauncher.ts", { code: true, apple: true }],
-  ["src/domain/hopperErrors.ts", { code: true, apple: true }],
-  [
-    "tests/boundary/providers/hopper/hopperMacLaunchArguments.test.ts",
-    { code: true, apple: true },
-  ],
-  [
-    "tests/boundary/providers/hopper/hopperClient.helperFailure.test.ts",
-    { code: true, apple: true },
-  ],
   [
     "src/windows/Example.ts",
     { code: true, runtime: true, package: true, apple: false, evm: false },
@@ -1767,7 +1757,11 @@ const stepRuns = z.object({
   jobs: z.record(
     z.string(),
     z.object({
-      steps: z.array(z.object({ run: z.string().optional() })).optional(),
+      steps: z
+        .array(
+          z.object({ run: z.string().optional(), if: z.string().optional() }),
+        )
+        .optional(),
     }),
   ),
 });
@@ -1827,7 +1821,10 @@ it("never runs a manual-only verifier from an automatic workflow", async () => {
     )
       continue;
     for (const job of Object.values(workflow.jobs))
-      for (const step of job.steps ?? []) if (step.run) commands.push(step.run);
+      for (const step of job.steps ?? []) {
+        if (step.run && step.if !== "github.event_name == 'workflow_dispatch'")
+          commands.push(step.run);
+      }
   }
   const files = new Set<string>();
   const seen = new Set<string>();

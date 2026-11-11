@@ -1,4 +1,3 @@
-import { permitsCapabilityFallback } from "./CapabilityFallback.js";
 import type {
   AnalysisExecution,
   AnalysisOperationPort,
@@ -24,87 +23,53 @@ export const resolveAnalysisDocument = async (
   if (document !== undefined) return ok(document);
   if (signal?.aborted === true)
     return err(
-      new AnalysisCancelledError("current_document", { cause: signal.reason }),
+      new AnalysisCancelledError("list_documents", { cause: signal.reason }),
     );
-  const current = await analysis.execute(
-    "current_document",
+  const listed = await analysis.execute(
+    "list_documents",
     {},
     executionOptions(signal),
   );
-  if (!current.ok) {
-    if (!permitsCapabilityFallback(current.error)) return current;
-    if (signal?.aborted)
-      return err(
-        new AnalysisCancelledError("current_document", {
-          cause: signal.reason,
-        }),
-      );
-    const listed = await analysis.execute(
-      "list_documents",
-      {},
-      executionOptions(signal),
+  if (!listed.ok) return listed;
+  const parsed = parseDocuments(listed.value.result);
+  if (!parsed.ok)
+    return err(
+      new AnalysisOutputError(
+        "list_documents",
+        "expected a list of document identities",
+        { cause: parsed.error },
+      ),
     );
-    if (!listed.ok) return listed;
-    const parsed = parseDocuments(listed.value.result);
-    if (!parsed.ok)
-      return err(
-        new AnalysisOutputError(
-          "list_documents",
-          "expected one document identity when resolving a headless provider",
-          { cause: parsed.error },
-        ),
-      );
-    if (parsed.value.length !== 1)
-      return err(
-        new AnalysisOutputError(
-          "list_documents",
-          `expected exactly one document identity for a provider without current-document selection, received ${parsed.value.length}`,
-        ),
-      );
-    const [documentName] = parsed.value;
-    if (documentName === undefined || documentName.length === 0)
-      return err(
-        new AnalysisOutputError(
-          "list_documents",
-          "provider returned no document identity",
-        ),
-      );
-    return completeSelection(
-      documentName,
-      "list_documents",
-      listed.value,
-      signal,
+  if (parsed.value.length !== 1)
+    return err(
+      new AnalysisOutputError(
+        "list_documents",
+        `expected exactly one document identity for the active target, received ${parsed.value.length}`,
+      ),
     );
-  }
-  return typeof current.value.result === "string" &&
-    current.value.result.length > 0
-    ? completeSelection(
-        current.value.result,
-        "current_document",
-        current.value,
-        signal,
-      )
-    : err(
-        new AnalysisOutputError(
-          "current_document",
-          "expected a nonempty document identity string",
-        ),
-      );
+  const [documentName] = parsed.value;
+  if (documentName === undefined || documentName.length === 0)
+    return err(
+      new AnalysisOutputError(
+        "list_documents",
+        "provider returned no document identity",
+      ),
+    );
+  return completeSelection(documentName, listed.value, signal);
 };
 
 /** Preserve the completed provider observation after validating document identity. */
 const completeSelection = (
   document: string,
-  operation: "current_document" | "list_documents",
   execution: AnalysisExecution,
   signal: AbortSignal | undefined,
 ): Result<string, AnalysisError> => {
   if (signal?.aborted)
     return err(
-      new AnalysisCancelledError(operation, {
+      new AnalysisCancelledError("list_documents", {
         cause: signal.reason,
         partialObservation: createAnalysisExecutionEvidence(
-          operation,
+          "list_documents",
           {},
           execution,
           "observed",

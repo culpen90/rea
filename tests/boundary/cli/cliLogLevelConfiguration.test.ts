@@ -18,7 +18,7 @@ for (const level of ["loud", "INFO"])
       expect(help.stderr).toBe(invalidLogLevelMessage);
 
       const doctorInvocation = {
-        arguments: ["--json", "doctor", "--provider", "hopper"],
+        arguments: ["--json", "doctor", "--provider", "ghidra"],
         environment: { REA_LOG_LEVEL: level },
       };
       for (const doctor of [

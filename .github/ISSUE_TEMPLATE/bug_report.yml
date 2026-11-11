@@ -91,8 +91,8 @@ body:
     id: runtime
     attributes:
       label: Runtime and platform
-      description: Include Node.js, OS, architecture, and Hopper/Ghidra version when relevant.
-      placeholder: Node 24.18; macOS 15 arm64; Hopper 5.15
+      description: Include Node.js, OS, architecture, and Ghidra version when relevant.
+      placeholder: Node 24.18; macOS 15 arm64; Ghidra 12.1.4
     validations:
       required: true
 

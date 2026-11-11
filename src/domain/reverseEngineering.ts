@@ -33,7 +33,7 @@ export const reverseCommandTimeoutSchema = z
   .max(MAX_REVERSE_COMMAND_TIMEOUT_MS)
   .exactOptional()
   .describe(
-    "Wall-clock budget in milliseconds. Target preflight shares one budget across stat and digest, and the one-shot command receives that budget again (default 120000 each). Omitted means 120000. Applies on the next call. Output admission is separately controlled by max_output_bytes; does not raise Ghidra or Hopper startup deadlines or debugger session deadlines.",
+    "Wall-clock budget in milliseconds. Target preflight shares one budget across stat and digest, and the one-shot command receives that budget again (default 120000 each). Omitted means 120000. Applies on the next call. Output admission is separately controlled by max_output_bytes; does not raise Ghidra startup deadlines or debugger session deadlines.",
   );
 
 const commandExecutionFields = {

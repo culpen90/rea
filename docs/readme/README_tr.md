@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA, yerel bir ikili dosyayı incelerken Hopper içinde analiz köprüsünü başlatıyor" width="1200" />
-
-<br /><br />
-
 <table aria-label="REA topluluğu">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@ Bir uygulamada kendi ürününüze eklemek istediğiniz bir özellik mi gördün
 
 REA, ajanınızı yerel makine kodu içeren ikili dosyaları, JavaScript ve Electron uygulamalarını, .NET derlemelerini ve web sitelerini inceleyen araçlara bağlar. Aynı araçları terminalden de kullanabilirsiniz. Analiz yerel olarak çalışır; sonuçlar her çıkarımın dayandığı kanıtları ve sınırlamaları içerir.
 
-Kurulum, REA'yı ajanınıza kaydeder ve uyumlu iş akışı talimatlarını yükler. Yerel makine kodu analizi mevcut bir Hopper, Ghidra, IDA veya Kuna kurulumunu kullanabilir; kurulum işlemi, onayınızla isteğe bağlı olarak Hopper da yükleyebilir. Statik JavaScript analizi bu yerel analiz motorlarından hiçbirine ihtiyaç duymaz.
+Kurulum, REA'yı ajanınıza kaydeder ve uyumlu iş akışı talimatlarını yükler. Yerel makine kodu analizi mevcut bir Ghidra kurulumunu kullanır. Statik JavaScript analizi bu yerel analiz motorlarından hiçbirine ihtiyaç duymaz.
 
 > Kurulum talimatları, görselli rehberler ve gerçek örnek çalışmalar için **[REA web sitesini ziyaret edin](https://rea.tools/tr/)**.
 
@@ -155,7 +151,7 @@ REA; Node.js 22.x (>=22.23.4), 24.x (>=24.22.1) veya 26+ (>=26.12.1) ve npm gere
 
 | Hedef                                   | REA'nın döndürdükleri                                                                                       | Gereksinimler ve rehber                                                                                                                                           |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Yerel makine kodu içeren ikili dosyalar | Sözde kod, assembly kodu, dizeler, semboller, çağrılar ve referanslar                                       | Hopper, Ghidra, IDA veya Kuna; [yerel kod analizi](../guides/native/native-investigation.md)                                                                      |
+| Yerel makine kodu içeren ikili dosyalar | Sözde kod, assembly kodu, dizeler, semboller, çağrılar ve referanslar                                       | Ghidra; [yerel kod analizi](../guides/native/native-investigation.md)                                                                                             |
 | Çevrimdışı ELF yapısı                   | Bölümler, segmentler, özgün semboller/yeniden konumlandırmalar ve statik analizden olası güvenlik önlemleri | Linux x64 üzerinde çağıranın sağladığı pwntools; [ikili dosya tanılama](../guides/native/binary-diagnostics.md)                                                   |
 | Go ikili dosyaları                      | Gömülü compiler sürümü, modüller, replacement'lar ve build ayarları                                         | Yerleşik statik ELF/PE/thin Mach-O incelemesi; Go kurulumu gerekmez                                                                                               |
 | Rust ikili dosyaları                    | Gömülü cargo-auditable crate adları, sürümleri, kaynakları ve bağımlılık ilişkileri                         | Yerleşik statik ELF/PE/thin Mach-O incelemesi; [Rust ikili dosyaları](../rust-binaries.md)                                                                        |
@@ -199,7 +195,9 @@ Statik JavaScript ve .NET incelemesi, uygulamayı çalıştırmadan sağlanan do
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Yerel makine kodu içeren ikili dosya biçimleri ve ana bilgisayar desteği sağlayıcıya göre değişir. [Hopper ve Ghidra kurulumu](../getting-started/installation.md#hopper), isteğe bağlı native MCP bridge'i de açıklayan [IDA rehberi](../providers/ida-provider.md), [Kuna](../kuna-provider.md) ve [Windows için deneysel Ghidra desteği](../providers/windows-ghidra-p0.md) belgelerine bakın. Ghidra ayrıca [16 bit DOS analizini](../providers/ghidra-dos.md) destekler. Büyük ikili dosyalar için sağlayıcının başlatma zaman aşımını `REA_GHIDRA_STARTUP_TIMEOUT_MS` veya `REA_HOPPER_STARTUP_TIMEOUT_MS` ile artırın. Sağlayıcı seçimi için [CLI rehberine](../getting-started/cli.md#choose-a-provider) bakın. En son npm sürümünden sonra eklenen özellikler için [sürümlerde kullanılabilirliği](../getting-started/installation.md#released-package-and-main) kontrol edin.
+[Ghidra’ya geçiş](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
+
+Yerel makine kodu içeren ikili dosya biçimleri ve ana bilgisayar desteği sağlayıcıya göre değişir. [Ghidra](../getting-started/installation.md#ghidra), [Windows için deneysel Ghidra desteği](../providers/windows-ghidra-p0.md) belgelerine bakın. Ghidra ayrıca [16 bit DOS analizini](../providers/ghidra-dos.md) destekler. Büyük ikili dosyalar için sağlayıcının başlatma zaman aşımını `REA_GHIDRA_STARTUP_TIMEOUT_MS` ile artırın. Sağlayıcı seçimi için [CLI rehberine](../getting-started/cli.md#choose-a-provider) bakın. En son npm sürümünden sonra eklenen özellikler için [sürümlerde kullanılabilirliği](../getting-started/installation.md#released-package-and-main) kontrol edin.
 
 ## Örnek çalışmalar
 
@@ -289,16 +287,10 @@ Yerel MCP sunucularını destekleyen her ajan REA'yı kullanabilir. Kurulum, [de
 </details>
 
 <details>
-<summary><strong>Hopper, Ghidra, IDA veya Kuna gerekiyor mu?</strong></summary>
+<summary><strong>Ghidra gerekiyor mu?</strong></summary>
 
-Derin yerel kod analizi bunlardan birini kullanır. Statik JavaScript ve .NET incelemesi yerel analiz motoru olmadan çalışır. Kurulum onaydan sonra Hopper yükleyebilir; Ghidra, IDA ve Kuna mevcut kurulumlarınızı kullanır. [Sağlayıcı kurulumuna](../getting-started/installation.md#hopper) bakın.
-
-</details>
-
-<details>
-<summary><strong>Önce Hopper'ı başlatmam gerekiyor mu?</strong></summary>
-
-REA, bir işlem gerektirdiğinde Hopper'ı başlatır. macOS'ta ilk çalıştırmada demo modunu seçmenizi veya lisansınızı etkinleştirmenizi isteyen bir iletişim kutusu açılabilir. [Hopper başlatma ve sorun giderme](../getting-started/installation.md#launcher-paths-and-troubleshooting) belgesine bakın.
+Yerel makine kodu analizi mevcut bir Ghidra kurulumunu kullanır. Statik JavaScript ve .NET incelemesi yerel analiz motoru olmadan çalışır.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -396,7 +388,7 @@ materyaller kendi lisanslarını ve telif hakkı bildirimlerini korur; bağıml�
 envanteri, korunan lisans metinleri ve harici araç koşulları için [Üçüncü taraf
 bildirimleri](../../THIRD_PARTY_NOTICES.md) dosyasına bakın.
 
-**IDA Pro / Hex-Rays decompiler'ları, Hopper ve JEB dahil olmak üzere ticari
+**JEB dahil olmak üzere ticari
 araçları yasal olarak edinmeli ve ilgili lisanslar kapsamında kullanma
 yetkiniz olmalıdır.** REA hiçbir araç lisansı, anahtarı veya etkinleştirme hakkı
 vermez. Deneme sürümleri ve demolar; kullanıcı, özellik, otomasyon ve çıktı

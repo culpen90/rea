@@ -6,8 +6,6 @@ import type { CapabilityDescriptor } from "../AnalysisProvider.js";
 /** Failures of the provider adapter or process rather than of one request. */
 const PROVIDER_WIDE_FAILURES: ReadonlySet<string> = new Set([
   "ProviderAdapterError",
-  "HopperProcessError",
-  "HopperStartError",
 ]);
 
 interface Failure {

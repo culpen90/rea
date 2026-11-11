@@ -371,11 +371,9 @@ registrations include `startupTimeoutMs = 30000` and a `toolTimeoutMs` derived
 from REA's known provider allowance plus 120 seconds of operation
 headroom. The default is 450000 ms, covering the default 330-second Ghidra
 startup; an explicit Ghidra startup timeout of 2700000 ms produces a 2820000 ms
-tool timeout. The startup allowance follows an explicitly selected Ghidra or
-Hopper provider, and otherwise uses the larger known Ghidra/Hopper deadline.
+tool timeout. The Ghidra startup allowance comes from its configured timeout or the default.
 An explicit `REA_JEB_MCP_TIMEOUT_MS` deadline, shared by catalog discovery and
-each tools/call, also contributes to that maximum. An explicit `REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS` is added to the Ghidra startup allowance, because a single-decompile call can import the target and then decompile up to that limit; setup forwards it into the registration. For `ida` or `auto` selection, a valid IDA registration's parsed
-`timeoutMs` also contributes to that maximum; its default is 300000 ms.
+each tools/call, also contributes to that maximum. An explicit `REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS` is added to the Ghidra startup allowance, because a single-decompile call can import the target and then decompile up to that limit; setup forwards it into the registration.
 The derived value is a single-decompile estimate, not a deadline for an
 unbounded batch. For example, startup 330 seconds plus two 600-second
 decompiles and 120 seconds of headroom needs an estimated 1650 seconds,
@@ -393,7 +391,7 @@ This headroom is a practical default, not a guarantee for every analysis
 duration. Setup preserves positive timeout values already in the `rea` entry.
 
 Setup also forwards explicitly selected input/output schema profiles,
-`REA_MCP_MAX_RESPONSE_BYTES`, `REA_MCP_MAX_INPUT_ELEMENTS`, the Windows ChangeTime settle settings `REA_WINDOWS_CHANGE_TIME_DRIFT_MS`, `REA_WINDOWS_CHANGE_TIME_SETTLE_POLL_MS`, and `REA_WINDOWS_CHANGE_TIME_SETTLE_MAX_POLLS`, provider paths and supported Ghidra, JADX and Kuna
+`REA_MCP_MAX_RESPONSE_BYTES`, `REA_MCP_MAX_INPUT_ELEMENTS`, the Windows ChangeTime settle settings `REA_WINDOWS_CHANGE_TIME_DRIFT_MS`, `REA_WINDOWS_CHANGE_TIME_SETTLE_POLL_MS`, and `REA_WINDOWS_CHANGE_TIME_SETTLE_MAX_POLLS`, provider paths and supported Ghidra and JADX
 settings. It also forwards explicit executable and resource selections for ADB,
 apktool, packet capture, GDB/Rizin/objdump, Cutter, WABT, Wakaru, firmware and
 signal tools, browser inspection, and pwntools/pwndbg. This includes their
@@ -580,8 +578,7 @@ values in the REA entry, and doctor reports a non-blocking advisory when a tool
 timeout is shorter than the known provider allowance. An explicitly selected
 JEB request budget also contributes to the allowance, and an explicit
 `REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS` is added to the Ghidra startup
-allowance. A configured IDA
-registration's parsed `timeoutMs` contributes for `ida` or `auto` selection.
+allowance.
 An explicit `REA_JADX_OPERATION_TIMEOUT_MS` is forwarded with the JADX
 registration but does not contribute; raise `tool_timeout_sec` to cover a
 longer selected JADX deadline.
@@ -865,7 +862,7 @@ for its native configuration contract.
 
 Use REA from llama.cpp's local Web UI through `llama-server`'s native stdio
 MCP support. REA supplies the analysis tools; llama.cpp runs your chosen model.
-It is not a replacement for a native analysis provider such as Ghidra or Hopper.
+It is not a replacement for a native analysis provider such as Ghidra.
 
 Install REA in a persistent location so the configuration below can use a stable
 entrypoint. For a project-local installation, run this in your chosen directory:

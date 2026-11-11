@@ -28,7 +28,6 @@ it("validates selected and existing JEB endpoints without losing caller selectio
     HOME: home,
     USERPROFILE: home,
     REA_JEB_MCP_URL: invalidEndpoint,
-    HOPPER_LAUNCHER_PATH: join(home, "missing"),
   };
   const setup = async () => {
     let stdout = "";

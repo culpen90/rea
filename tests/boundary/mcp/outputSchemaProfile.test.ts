@@ -43,7 +43,7 @@ it("omits only output schema advertisements and keeps canonical MCP output valid
     InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "schema-profile-test", version: "1" });
   const contract = {
-    ...toolContract("comment"),
+    ...toolContract("address_name"),
     name: "output_schema_fixture",
     inputSchema: z.strictObject({}),
     outputSchema: z.strictObject({ value: z.string() }),
@@ -107,7 +107,7 @@ it("bounds output schema advertisements and keeps canonical MCP output validatio
     InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "compact-output-test", version: "1" });
   const contract = {
-    ...toolContract("comment"),
+    ...toolContract("address_name"),
     name: "compact_output_schema_fixture",
     inputSchema: z.strictObject({}),
     outputSchema: z.strictObject({
@@ -288,7 +288,7 @@ it("rejects canonical-invalid output that the reduced advertisement accepts", as
     InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "reduced-output-test", version: "1" });
   const contract = {
-    ...toolContract("comment"),
+    ...toolContract("address_name"),
     name: "reduced_output_schema_fixture",
     inputSchema: z.strictObject({}),
     outputSchema,

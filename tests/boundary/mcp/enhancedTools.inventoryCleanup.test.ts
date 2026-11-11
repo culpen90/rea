@@ -39,7 +39,7 @@ for (const [tool, refused] of [
                 "Use the ordinary inventory fallback",
               ),
             );
-          if (operation === "current_document") return observed("fixture");
+          if (operation === "list_documents") return observed(["fixture"]);
           if (operation === "list_names")
             return observed([
               { address: "0x1000", value: "_OBJC_CLASS_$_Document" },

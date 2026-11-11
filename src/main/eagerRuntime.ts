@@ -22,7 +22,7 @@ import type { AnalysisError } from "../domain/analysisErrorBase.js";
 /**
  * Start the long-lived MCP adapter and install idempotent shutdown handlers.
  * The adapter owns its BinarySession for the process lifetime; EOF and process
- * signals close bridge resources without assuming ownership of the Hopper app.
+ * signals close the resources owned by the session.
  */
 export const runEager = async (
   dependencies: RuntimeDependencies,

@@ -31,10 +31,7 @@ import {
   functionDossierSchema,
   functionInstructionWindowSchema,
 } from "../domain/native/functionDossier.js";
-import {
-  analysisBookmarkSchema,
-  nativeInventoryRowsSchemas,
-} from "../domain/native/nativeInventory.js";
+import { nativeInventoryRowsSchemas } from "../domain/native/nativeInventory.js";
 import { z } from "zod";
 import {
   evidenceBundleExportReceiptSchema,
@@ -106,7 +103,6 @@ import { nativeDispatchMetadataResultSchema } from "../domain/native/objcSwiftMe
 import { nativeInvestigationTraceSchema } from "../domain/native/nativeInvestigationGraph.js";
 import {
   addressedEntry,
-  functionDossierOutput,
   lifecycleResultOf,
   nullableText,
   procedureInfoOutput,
@@ -135,19 +131,6 @@ const contextFacetSchema = z.discriminatedUnion("state", [
     error: contextFacetErrorSchema.optional(),
   }),
 ]);
-const bookmarkFacetSchema = z.discriminatedUnion("state", [
-  z.object({
-    state: z.literal("available"),
-    value: z.array(analysisBookmarkSchema),
-  }),
-  z.object({
-    state: z.literal("unavailable"),
-    reason: z.string(),
-    remediation: z.string(),
-    error: contextFacetErrorSchema.optional(),
-  }),
-]);
-
 /** Exact structured-content schemas shared by direct analysis providers. */
 export const officialOutputSchemas = {
   search_bytes: evidenceResultOf(byteSearchResultSchema),
@@ -160,13 +143,6 @@ export const officialOutputSchemas = {
   inspect_native_instruction: evidenceResultOf(nativeInstructionSchema),
   resolve_native_call_targets: evidenceResultOf(nativeCallTargetsSchema),
   address_name: evidenceResultOf(nullableText),
-  comment: evidenceResultOf(nullableText),
-  current_address: evidenceResultOf(z.string()),
-  current_procedure: evidenceResultOf(z.string()),
-  current_document: evidenceResultOf(z.string()),
-  goto_address: evidenceResultOf(z.string()),
-  inline_comment: evidenceResultOf(nullableText),
-  list_bookmarks: evidenceResultOf(z.array(analysisBookmarkSchema)),
   list_documents: evidenceResultOf(z.array(z.string())),
   list_names: analysisDetailOutputSchemaOf(
     nativeInventoryRowsSchemas.names,
@@ -187,8 +163,6 @@ export const officialOutputSchemas = {
       parent_operation: z.literal("list_strings"),
     }),
   ),
-  next_address: evidenceResultOf(z.string()),
-  prev_address: evidenceResultOf(z.string()),
   procedure_address: analysisDetailOutputSchemaOf(
     nativeObservationSourceSchemas.procedure_address,
     nativeObservationSummaryViewResultSchemas.procedure_address,
@@ -260,10 +234,6 @@ export const officialOutputSchemas = {
   ),
   set_address_name: evidenceResultOf(z.boolean()),
   set_addresses_names: evidenceResultOf(jsonRecordSchema(z.boolean())),
-  set_bookmark: evidenceResultOf(z.boolean()),
-  set_comment: evidenceResultOf(z.boolean()),
-  set_inline_comment: evidenceResultOf(z.boolean()),
-  unset_bookmark: evidenceResultOf(z.boolean()),
   xrefs: evidenceResultOf(nativeAddressListSchema),
 } as const satisfies Readonly<Record<string, z.ZodObject>>;
 
@@ -543,22 +513,12 @@ export const sessionOutputSchemas = {
       evidenceLinkInspectionSchema,
     ]),
   ),
-  get_navigation_context: lifecycleResultOf(
-    z.object({
-      document: z.string(),
-      address: z.string(),
-      procedure: z.union([z.string(), z.null()]),
-    }),
-  ),
   inspect_address_context: lifecycleResultOf(
     z.object({
       address: z.string(),
-      document: z.string().nullable(),
+      document: z.string(),
       name: contextFacetSchema,
       procedure: contextFacetSchema,
-      comment: contextFacetSchema,
-      inline_comment: contextFacetSchema,
-      bookmarks: bookmarkFacetSchema,
     }),
   ),
   import_evidence_bundle: lifecycleResultOf(

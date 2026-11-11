@@ -34,9 +34,6 @@ export const runtimeAnalysisConfig = (
   config: AppConfig,
   read?: AnalysisSettingsReader,
 ): AppConfig => {
-  const deadline = config.regexMatchingDeadline;
-  const heap = config.regexWorkerHeapRequest;
-  const scan = config.hopperCallerScanBudget;
   const bridge = config.bridgeMaxRequestBytes;
   const overrides = () =>
     (read === undefined
@@ -53,18 +50,6 @@ export const runtimeAnalysisConfig = (
         overrides()["ghidra.startup_timeout_ms"] ??
         (admit("ghidra.startup_timeout_ms"), config.ghidraStartupTimeoutMs)
       );
-    },
-    get hopperStartupTimeoutMs() {
-      return (
-        overrides()["hopper.startup_timeout_ms"] ??
-        (admit("hopper.startup_timeout_ms"), config.hopperStartupTimeoutMs)
-      );
-    },
-    get hopperStartupTimeoutSource() {
-      if (overrides()["hopper.startup_timeout_ms"] !== undefined)
-        return "runtime";
-      admit("hopper.startup_timeout_ms");
-      return config.hopperStartupTimeoutSource;
     },
     get ghidraDecompileTimeoutSeconds() {
       const value = overrides()["ghidra.decompile_timeout_seconds"];
@@ -100,49 +85,6 @@ export const runtimeAnalysisConfig = (
         (admit("ghidra.value_flow_max_edges"),
         config.ghidraValueFlowMaxEdges ?? DEFAULT_GHIDRA_VALUE_FLOW_MAX_EDGES)
       );
-    },
-    regexMatchingDeadline: {
-      get deadlineMs() {
-        return (
-          overrides()["regex.matching_deadline_ms"] ??
-          (admit("regex.matching_deadline_ms"), deadline.deadlineMs)
-        );
-      },
-      get source() {
-        if (overrides()["regex.matching_deadline_ms"] !== undefined)
-          return "runtime";
-        admit("regex.matching_deadline_ms");
-        return deadline.source;
-      },
-    },
-    regexWorkerHeapRequest: {
-      get heapMiB() {
-        return (
-          overrides()["regex.worker_heap_request_mib"] ??
-          (admit("regex.worker_heap_request_mib"), heap.heapMiB)
-        );
-      },
-      get source() {
-        if (overrides()["regex.worker_heap_request_mib"] !== undefined)
-          return "runtime";
-        admit("regex.worker_heap_request_mib");
-        return heap.source;
-      },
-    },
-    hopperCallerScanBudget: {
-      ...scan,
-      get milliseconds() {
-        return (
-          overrides()["hopper.caller_scan_budget_ms"] ??
-          (admit("hopper.caller_scan_budget_ms"), scan.milliseconds)
-        );
-      },
-      get source() {
-        if (overrides()["hopper.caller_scan_budget_ms"] !== undefined)
-          return "runtime";
-        admit("hopper.caller_scan_budget_ms");
-        return scan.source;
-      },
     },
     bridgeMaxRequestBytes: {
       get maximumBytes() {

@@ -306,7 +306,7 @@ integers, boxed numbers, and integral-valued reals. `verify:asset-catalog`
 compiles source-owned colors with
 `actool`, invokes real `assetutil`, then checks CLI/MCP results, exact catalog
 digest, every raw metadata field, pagination and malformed input rejection.
-Neither artifact workflow requires Hopper or launches it. Both run in macOS CI.
+Neither artifact workflow requires a native analysis provider. Both run in macOS CI.
 `verify:macos-bundle` needs only macOS with Command Line Tools. It compiles a
 source-owned app with `clang`: a versioned framework, XPC services, an app
 extension, a login item, a privileged helper, launchd plists, and a helper tool,
@@ -338,104 +338,16 @@ title and prevent verified cleanup during a capture's ownership sweep.
 
 MCP SDK transport tests with recording providers remain integration tests.
 They are useful for schema drift and failure projection but do not prove that
-Hopper, Ghidra or another substituted engine works. `verify:package` proves
+Ghidra or another substituted engine works. `verify:package` proves
 packaging/install behavior and fake-provider integration; use the corresponding
 real-provider lanes for engine claims. Packed-bridge checks verify shipped files and Python syntax.
 Real Apple dispatch and Interface
 Builder verifiers currently prove format integration through production readers.
 
-`verify:hopper` exercises an installed Hopper through the production stdio MCP
-server and CLI. It checks source-owned call chains, CFG edges, references and
-complete large inventories, then probes unnamed bookmarks, annotation clearing,
-batch validation before mutation, malformed addresses and regexes, segment-end
-partial reads, and synthetic file-offset rejection. Advertised schemas are
-validated in their JSON Schema dialect and successful replies are checked against
-their advertised output schemas. Navigation checks cover interior-object cursor
-readback and mapped-memory boundaries. Annotation probes verify invalid native
-text and duplicate destinations/names before mutation, preserve unselected label
-owners, and exercise explicit batch label swaps. Function locals retain observed
-names and stack displacements. Graph probes check symbol/interior-address parity
-and a source-owned recursive cycle; literal tracing preserves complete queries
-and whitespace. Disposable binary copies prove that switching and closing
-actually removes the native document, and that CLI byte, function-dossier,
-literal-trace results and invalid-address diagnostics agree with MCP.
-No provider is mocked in this lane.
-Real search probes cover Unicode names, literal metacharacters, case and regex
-modes, annotation cache invalidation, complete native fragments of long literals
-checked against byte reads, escaped UTF-8/control text, byte-preserving Latin-1
-decoding, and Hopper's UTF-16 symbol-name truncation boundary. It verifies native
-CallReference classifications across reference and dossier results, retains long
-string fragment metadata in dossiers, and exercises pathological regex deadline
-and cancellation followed by successful requests in the same native session. When the macOS
-Objective-C fixture is present, the lane also verifies native UTF-16 string objects
-and their inferred encodings against their actual bytes. Native terminal calls
-are checked across reference, instruction, assembly, block-range and procedure-length
-projections; block endpoints are normalized using actual native membership.
-Exact Objective-C names also exercise named CLI selectors for function, instruction,
-decompilation, reference and search operations. A literal `--help` trace query proves
-that selector data is preserved independently of global CLI flags.
-Unmapped annotation destinations and
-oversized later batch names fail before any earlier edit is applied.
-
-`verify:hopper:deadlines` checks the native client's optional request deadlines
-on macOS with an owned source-built fixture. Zero and elapsed deadlines must
-leave native comments unchanged, including when a synchronous progress observer
-delays timer dispatch. It also observes a short analysis deadline and verifies
-subsequent wire recovery and clean shutdown. Caller timeout does not interrupt
-Hopper's synchronous native operation. Socket boundary tests deterministically
-cover active and queued expiry, late replies and timer cleanup.
-
-The Linux demo lane remains a separate `verify:hopper:linux` command. Hopper
-6.4.2's ELF loader did not recognize the original 4,119-byte literal or three
-non-ASCII byte strings in the measured fixtures. The lane retains complete raw
-byte checks for those literals through source-owned symbols. Recognition of the
-original full-length literal is bound to its exact source address; its decoded
-object coverage remains explicitly unverified on Linux even when recognized.
-Absent non-ASCII recognition also reports decoded-object coverage as unverified.
-Recognized non-ASCII and control-text objects must still match their source
-bytes, encoding, filters and searches.
-A separate 548-byte ASCII literal requires native fragmentation, shortened
-provider display, complete decoded fragments and dossier provenance on Linux;
-the macOS lane retains the original full-length recognition requirement. These
-are observed fixture/build capabilities, not universal Hopper length limits.
-Its lifecycle checks attempt competing CLI launches for the active target and a
-different target, requiring rejection before either can change the owning
-MCP session's documents or procedures. Lease boundary tests also preserve
-unresponsive or malformed live endpoints while allowing confirmed stale
-sockets to recover.
-
-`verify:setup:linux` exercises installation on a clean supported Linux runner as
-root. Use a disposable VM: this lane installs Hopper and its Linux runtime
-dependencies through the system package manager. Set `REA_VERIFY_SERVER_COMMAND`
-to the CLI entrypoint being verified. The command builds and checks source-owned
-ELF fixtures before testing the read-only Hopper setup plan, approved
-installation, scoped doctor, real CLI/MCP analysis, rejection of a modified
-launcher, idempotent setup without requesting a reinstall, and owned child
-cleanup. Before installation and after teardown, a clean-runner process scan
-also rejects surviving Hopper demo helpers or Xvfb groups, including orphans
-whose launcher exited. This scan observes processes without signaling them.
-Hopper detection compares executable file identity through `/proc`, covering
-alternate or configured launcher paths even after an invoked symlink is removed.
-The dedicated runner must have no unrelated Hopper/Xvfb sessions. It requires
-the repository's pinned development toolchain and an
-existing host C compiler, `file`, `nm`, and `strings`. Use `verify:hopper:linux`
-instead when Hopper is already installed.
-
-`verify:hopper:fat` is a separate macOS lane requiring installed Hopper and the
-existing Xcode clang/lipo toolchain. It compiles arm64/x86-64 thin executables and
-one- and two-slice FAT32 containers, verifies exact/interior address mappings
-against bytes in the original files, checks CLI/MCP parity, and checks owned
-runtime cleanup. Source byte changes, removal, permission denial (for non-root
-callers), and nonregular replacement must retain native partial mapping facts,
-reject unverified original-file coordinates,
-and recover after restoration. Single-slice FAT cases also relocate the slice
-without changing its loaded bytes. `verify:hopper:fat64` additionally checks
-FAT64 preparation through Hopper's native Mach-O loader, source-container
-mappings, profile identity,
-malformed and ambiguous slice rejection, and temporary-image lifetime. Both
-lanes have been verified on Hopper 6.1.0-demo; this establishes REA's prepared
-FAT64 workflow, not native FAT64-loader support.
-Cross-architecture fixture compilation is not required by `verify:hopper`.
+`verify:ghidra` exercises the installed Ghidra engine through the production CLI
+and stdio MCP server. The
+[Ghidra verification guide](../providers/ghidra-provider.md#admitted-function-analysis-semantics)
+describes its fixtures, observed coverage and additional format lanes.
 
 Golden tests use immutable captured text inputs with producer/source provenance
 under `tests/fixtures/golden/`. Expected results are reviewed for the semantic
@@ -592,7 +504,7 @@ compiler-generated member counts, token values, and MVIDs are not golden answers
 Per-scenario `factualCorrectness` is `passed`, `failed`, or `not_assessed` within
 the `configured_fixture_claims` scope. A pass establishes only the configured
 claims, not unrestricted factual correctness. Native, browser,
-navigation-context, and address-context scenarios have no factual rubric and
+program-context, and address-context scenarios have no factual rubric and
 remain `not_assessed`.
 
 The closed factual scenarios request complete producer Evidence on the initial

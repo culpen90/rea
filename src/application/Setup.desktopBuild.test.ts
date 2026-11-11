@@ -7,7 +7,7 @@ import type {
   DesktopBuildSetupFacts,
   DesktopBuildSetupHost,
 } from "./SetupDesktopBuild.js";
-import type { SetupOptions, SetupProviderEnvironment } from "./SetupTypes.js";
+import type { SetupOptions } from "./SetupTypes.js";
 import { supportedClientRegistrationProfile } from "./SupportedClients.js";
 
 const ARCHIVE = "/home/ada/.cache/rea/build-computer/rea-6.8.0.tar.xz";
@@ -47,7 +47,7 @@ const desktopHost = (facts: Partial<DesktopBuildSetupFacts> = {}) => {
       configPath: "/claude.json",
     },
   ];
-  host.hopper = "/opt/hopper/bin/Hopper";
+  host.ghidra = "/opt/ghidra";
   host.skill = "unchanged";
   return { host, calls };
 };
@@ -57,7 +57,6 @@ const desktopOptions = (
   extra: Partial<SetupOptions> = {},
 ): SetupOptions => ({
   approved,
-  installHopper: false,
   structured: true,
   clientIds: ["claude_code"],
   desktopBuild: true,
@@ -275,34 +274,6 @@ describe("rea setup --desktop-build", () => {
     expect(result.remediation).toContain(
       "uv tool install agentenv-framework==0.9.1485",
     );
-  });
-
-  it("re-checks each client with its build settings after installing Hopper", async () => {
-    const { host } = desktopHost({
-      recorded: { claude_code: ["REA_DOCKER_COMMAND"] },
-    });
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
-    const checked: SetupProviderEnvironment[] = [];
-    host.clientNeedsConfigure = (_, environment) => {
-      checked.push(environment);
-      return Promise.resolve(true);
-    };
-
-    await runSetup(desktopOptions(true, { installHopper: true }), host);
-
-    expect(checked).toEqual([
-      {
-        HOPPER_LAUNCHER_PATH: "/manual/Hopper",
-        REA_AGENT_ENV_COMMAND: SETTINGS.REA_AGENT_ENV_COMMAND,
-        REA_BUILD_COMPUTER_REA_ARCHIVE: ARCHIVE,
-      },
-    ]);
-    expect(host.configuredProviderEnvironments).toEqual([checked[0]]);
   });
 
   it("refuses to pack outside a REA checkout before changing anything", async () => {

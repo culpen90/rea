@@ -162,8 +162,7 @@ npm run verify:ghidra:mips-shared
 MIPS header and ABI record facts are committed in the analysis profile so
 interpretation changes invalidate profile-bound snapshots. The support-lane
 identity is versioned independently of file identity. Evidence, lifecycle
-outputs and saved snapshots preserve the `mips` family. Hopper and IDA adapters
-do not implicitly gain MIPS support. Windows Ghidra P0 does not admit MIPS targets.
+outputs and saved snapshots preserve the `mips` family. Windows Ghidra P0 does not admit MIPS targets.
 
 ### Soft-float prototype
 

@@ -14,11 +14,11 @@ export const openInitialTarget = async (
   { readonly ok: true } | { readonly ok: false; readonly exitCode: 0 | 1 }
 > => {
   if (signal?.aborted) return { ok: false, exitCode: 0 };
-  if (config.hopperTargetPath === undefined) return { ok: true };
-  const opened = await session.open(config.hopperTargetPath, {
-    targetKind: config.hopperTargetKind,
-    ...(signal === undefined ? {} : { signal }),
-  });
+  if (config.initialTargetPath === undefined) return { ok: true };
+  const opened = await session.open(
+    config.initialTargetPath,
+    signal === undefined ? {} : { signal },
+  );
   if (opened.ok) return { ok: true };
   if (opened.error instanceof AnalysisCancelledError && signal?.aborted)
     return { ok: false, exitCode: 0 };

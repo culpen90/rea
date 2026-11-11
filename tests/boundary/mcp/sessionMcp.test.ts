@@ -4,7 +4,7 @@ import { ProcessCaptureResourceScope } from "../../../src/process/capture/Proces
 import { parseMcpToolError } from "../../fixtures/mcpToolError.js";
 import { readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
+import { InMemoryTransport } from "@modelcontextprotocol/client";
 import type { CallToolResult } from "@modelcontextprotocol/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -44,6 +44,7 @@ import { toolContract } from "../../../src/contracts/toolContracts.js";
 import { err, ok as resultOk } from "../../../src/domain/result.js";
 import {
   createSessionMcpHarness,
+  createSessionTestClient,
   snapshotAndRecordUnknown,
 } from "./sessionMcpHarness.js";
 
@@ -198,10 +199,7 @@ describe("public provider availability", () => {
       { kind: "session", session },
       { adbDeviceAnalysis, apktoolAnalysis, logger: silentLogger },
     );
-    const mcp = new Client({
-      name: "provider-host-readiness",
-      version: "1.0.0",
-    });
+    const mcp = createSessionTestClient("provider-host-readiness");
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
     resources.push(mcp, server);
@@ -266,7 +264,7 @@ describe("owned-process prerequisite during status discovery", () => {
         { kind: "session", session },
         { adbDeviceAnalysis, apktoolAnalysis, logger: silentLogger },
       );
-      const mcp = new Client({ name: "ps-prerequisite", version: "1.0.0" });
+      const mcp = createSessionTestClient("ps-prerequisite");
       const [clientTransport, serverTransport] =
         InMemoryTransport.createLinkedPair();
       resources.push(mcp, server, apktoolAnalysis);
@@ -353,7 +351,7 @@ describe("target-free MCP lifecycle", () => {
         logger: silentLogger,
       },
     );
-    const mcp = new Client({ name: "status-readiness", version: "1.0.0" });
+    const mcp = createSessionTestClient("status-readiness");
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
     resources.push(mcp, server);
@@ -389,7 +387,7 @@ describe("target-free MCP lifecycle", () => {
       { kind: "session", session },
       { logger: silentLogger },
     );
-    const mcp = new Client({ name: "replaced-target", version: "1.0.0" });
+    const mcp = createSessionTestClient("replaced-target");
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
     resources.push(mcp, server);
@@ -403,7 +401,7 @@ describe("target-free MCP lifecycle", () => {
       }),
     ).result;
     expect(
-      (await mcp.callTool({ name: "current_document", arguments: {} })).isError,
+      (await mcp.callTool({ name: "list_documents", arguments: {} })).isError,
     ).not.toBe(true);
     await writeFile(targetPath, "second");
     const second = structured(
@@ -489,8 +487,7 @@ describe("snapshot receipt after MCP cleanup", () => {
       });
       expect(opened.isError).not.toBe(true);
       expect(
-        (await mcp.callTool({ name: "current_document", arguments: {} }))
-          .isError,
+        (await mcp.callTool({ name: "list_documents", arguments: {} })).isError,
       ).not.toBe(true);
       const cleanup = vi
         .spyOn(ProcessCaptureResourceScope.prototype, "retryCleanup")
@@ -530,6 +527,9 @@ describe("target-free MCP workflow", () => {
       directory,
       provider,
       resources,
+      undefined,
+      undefined,
+      ["session", "direct", "artifact"],
     );
     const { mcp, first, second, closed } = lifecycle;
 
@@ -538,7 +538,7 @@ describe("target-free MCP workflow", () => {
     expect(beforeNames).toContain("inspect_artifact");
     expect(beforeNames).toContain("open_binary");
     expect(beforeNames).toContain("binary_session");
-    expect(beforeNames).toContain("current_document");
+    expect(beforeNames).toContain("list_documents");
     expect(beforeNames).toContain("capture_process_scenario");
     expect(
       (await mcp.callTool({ name: "open_binary", arguments: { path: first } }))
@@ -558,7 +558,7 @@ describe("target-free MCP workflow", () => {
       ),
     ).not.toContain("inventory_artifact");
     expect(
-      text(await mcp.callTool({ name: "current_document", arguments: {} })),
+      text(await mcp.callTool({ name: "list_documents", arguments: {} })),
     ).toContain("first.hop");
     const { recordedUnknown } = await snapshotAndRecordUnknown(
       lifecycle,
@@ -677,7 +677,7 @@ describe("MCP snapshot open ordering", () => {
       name: "open_binary",
       arguments: { path: second, snapshot_path: snapshotPath },
     });
-    const reading = mcp.callTool({ name: "current_document", arguments: {} });
+    const reading = mcp.callTool({ name: "list_documents", arguments: {} });
     const closing = mcp.callTool({ name: "close_binary", arguments: {} });
 
     expect((await opening).isError, JSON.stringify(await opening)).not.toBe(
@@ -801,7 +801,7 @@ describe("json depth bounds over MCP", () => {
 const client = (path: string, closed: string[]): AnalysisClient => ({
   execute: (name) =>
     Promise.resolve(
-      ok(name === "health" ? null : name === "current_document" ? path : null),
+      ok(name === "health" ? null : name === "list_documents" ? [path] : null),
     ),
   close: () => {
     closed.push(path);
@@ -817,7 +817,7 @@ const provider = (closed: string[]): AnalysisProvider => {
   };
   const capability: CapabilityDescriptor = {
     provider: identity,
-    operation: "current_document",
+    operation: "list_documents",
     available: true,
     reason: null,
     effects: {

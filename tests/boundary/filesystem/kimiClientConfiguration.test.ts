@@ -160,7 +160,7 @@ describe("Kimi Code registration lifecycle", () => {
       await configureClientConfiguration(
         client,
         {
-          REA_ANALYSIS_PROVIDER: "ida",
+          REA_ANALYSIS_PROVIDER: "auto",
           REA_GHIDRA_STARTUP_TIMEOUT_MS: "2147483647",
         },
         command,

@@ -20,7 +20,7 @@ const CONFIGURATION_PROGRAM = `
   };
   for (const key of ['USERPROFILE','XDG_CONFIG_HOME','XDG_DATA_HOME','XDG_CACHE_HOME','XDG_STATE_HOME','APPDATA','LOCALAPPDATA'])
     insideHome(process.env[key] ?? '');
-  const { configureClientConfiguration, clientConfigurationAligned, inspectClientConfiguration } =
+  const { configureClientConfiguration, inspectClientConfiguration } =
     await import(${JSON.stringify(new URL("./SetupClientConfiguration.ts", import.meta.url).href)});
   const { currentClientRegistrationCommand } =
     await import(${JSON.stringify(new URL("./ClientRegistrationIdentity.ts", import.meta.url).href)});
@@ -38,14 +38,12 @@ const CONFIGURATION_PROGRAM = `
     if (initial.status !== 'configured') throw Error('Initial fixture configuration failed: ' + JSON.stringify(initial));
     const original = JSON.parse(await readFile(configPath, 'utf8'));
     const strictControl = {
-      aligned: await clientConfigurationAligned(client, {}, command),
       inspection: (await inspectClientConfiguration(client, {}, command)).status,
       status: (await configureClientConfiguration(client, {}, command)).status,
     };
     const jsonc = '// retained original source\\n' + JSON.stringify(original, null, 2).replace(/}$/, ',\\n}') + '\\n';
     await writeFile(configPath, jsonc);
     const before = {
-      aligned: await clientConfigurationAligned(client, {}, command),
       inspection: (await inspectClientConfiguration(client, {}, command)).status,
     };
     const filesBefore = await readdir(directory);
@@ -59,7 +57,7 @@ const CONFIGURATION_PROGRAM = `
     const repeatState = await stat(configPath);
     return {
       strictControl, before, status: repaired.status, jsonc, after, strict, original, document,
-      alignedAfter: await clientConfigurationAligned(client, {}, command),
+      inspectionAfter: (await inspectClientConfiguration(client, {}, command)).status,
       backup: repaired.backupPath === undefined ? null : await readFile(insideHome(repaired.backupPath), 'utf8'),
       repeatStatus: repeat.status,
       stableRepeat: afterState.ino === repeatState.ino && afterState.mtimeMs === repeatState.mtimeMs,
@@ -71,18 +69,17 @@ const CONFIGURATION_PROGRAM = `
 
 const observedConfiguration = z.object({
   strictControl: z.object({
-    aligned: z.boolean(),
     inspection: z.string(),
     status: z.string(),
   }),
-  before: z.object({ aligned: z.boolean(), inspection: z.string() }),
+  before: z.object({ inspection: z.string() }),
   status: z.string(),
   jsonc: z.string(),
   after: z.string(),
   strict: z.boolean(),
   original: z.unknown(),
   document: z.unknown().optional(),
-  alignedAfter: z.boolean(),
+  inspectionAfter: z.string(),
   backup: z.string().nullable(),
   repeatStatus: z.string(),
   stableRepeat: z.boolean(),
@@ -131,26 +128,23 @@ it("repairs equal-launcher Copilot JSONC syntax while strict JSON and standard J
       .parse(JSON.parse(child.stdout));
     expect(command.at(-1)).toBe("mcp");
     expect(copilot.strictControl).toEqual({
-      aligned: true,
       inspection: "already_current",
       status: "unchanged",
     });
-    expect(copilot.before).toEqual({ aligned: false, inspection: "update" });
+    expect(copilot.before).toEqual({ inspection: "update" });
     expect(copilot.status).toBe("configured");
     expect(copilot.strict).toBe(true);
     expect(copilot.document).toEqual(copilot.original);
     expect(copilot.backup).toBe(copilot.jsonc);
-    expect(copilot.alignedAfter).toBe(true);
+    expect(copilot.inspectionAfter).toBe("already_current");
     expect(copilot.repeatStatus).toBe("unchanged");
     expect(copilot.stableRepeat).toBe(true);
     expect(copilot.filesRepeat).toEqual(copilot.filesAfter);
     expect(standard.strictControl).toEqual({
-      aligned: true,
       inspection: "already_current",
       status: "unchanged",
     });
     expect(standard.before).toEqual({
-      aligned: true,
       inspection: "already_current",
     });
     expect(standard.status).toBe("unchanged");

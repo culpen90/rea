@@ -538,7 +538,7 @@ timeout does not establish complete analysis or absence of code. See the
 
 ## Bridge request ceiling
 
-Hopper and Cutter share `REA_BRIDGE_MAX_REQUEST_BYTES`. Unset, both sides use
+Ghidra and Cutter use `REA_BRIDGE_MAX_REQUEST_BYTES`. For Cutter, the bridge and client default to
 16777216 bytes. The payload budget excludes the terminating LF. A decimal
 integer from 7464 to 536870887 raises or lowers that ceiling. The floor fits
 the largest bounded symbol-name command. A tight Cutter status still returns
@@ -549,7 +549,7 @@ the framing LF still fits. Cutter measures, signs, and writes a fitting
 response in bounded chunks. The bridge searches only the newly read bytes
 for the framing LF. The client unescapes each socket chunk into one response
 string before parsing it, so this ceiling does not keep the paged wire frame
-and another concatenated copy. Invalid values are configuration errors and do not fall back to 16777216. `bridge.max_request_bytes` can be changed at runtime with `update_analysis_settings`. The launch seed is `REA_BRIDGE_MAX_REQUEST_BYTES`. Start Hopper or Cutter from that same environment so the bridge keeps the ceiling it started with until that bridge starts again. An out-of-band bridge
+and another concatenated copy. Invalid values are configuration errors and do not fall back to 16777216. `bridge.max_request_bytes` can be changed at runtime with `update_analysis_settings`. The launch seed is `REA_BRIDGE_MAX_REQUEST_BYTES`. Start Cutter from that same environment to keep the client and bridge ceilings aligned. An out-of-band bridge
 without the setting stays at 16777216 bytes. The client reports that mismatch
 during discovery only after the hello proves a live authenticated bridge, and
 does not send a status request or the command. A stale descriptor is ignored.
@@ -748,7 +748,7 @@ Use `inspect_byte_entropy` to triage high- and low-entropy ranges before extract
 For other headerless images (embedded firmware without ELF/Mach-O/PE/MZ
 headers), open with `format: "raw-binary"`, `architecture` (`x86`, `x86_64`,
 `arm`, `arm64`, `6502`, or `m68k`), and `entry_point` (`0x` hex). File offset 0 is mapped at
-that address. Hopper and IDA refuse this interpretation; Ghidra uses
+that address. Ghidra uses
 `BinaryLoader` with a generic language: big-endian for `m68k`, little-endian
 otherwise. Big-endian ARM, Thumb-only, and Cortex-M variants are unsupported.
 `6502` selects NMOS 6502; the entry and complete file mapping must fit within

@@ -2,8 +2,7 @@
 
 `inspect_binary_layout` / `inspect-binary-layout` answers what an explicit
 file contains: section/segment layout, original symbols/relocations, static
-linkage names and mitigation indicators. It works without an active Hopper,
-Ghidra or IDA target. CTF is one possible use; crash triage, compatibility and
+linkage names and mitigation indicators. It works without an active native analysis session. CTF is one possible use; crash triage, compatibility and
 ordinary binary inspection use the same modular capability.
 
 ## Bring your own engine
