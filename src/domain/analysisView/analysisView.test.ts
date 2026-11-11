@@ -139,8 +139,7 @@ it("projects a compact analyze_function summary that validates and retains the d
 
 it("keeps omitted optional dossier records unknown in the analyze_function summary", () => {
   const dossier = functionDossierSchema.parse(ghidraFunctionDossier());
-  // The fixture omits unresolved_calls and Swift literals, as IDA and Kuna
-  // dossiers and non-Swift targets do: their counts are unknown, not zero.
+  // When unresolved calls and Swift literals are unrecorded, their counts are unknown.
   const omitted = projectAnalysisView(nativeParent(dossier), {
     kind: "summary",
   });
@@ -445,6 +444,7 @@ it("pages every retained dossier collection and the native API record", () => {
     page("swift_string_literals", {
       ...original,
       swift_string_literals: [literal],
+      swift_string_literal_omissions: [],
     }),
   ).toMatchObject({ item: [literal], coverage: { total: 1 } });
   expect(page("swift_string_literals")).toMatchObject({

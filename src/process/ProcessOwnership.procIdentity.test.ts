@@ -543,12 +543,10 @@ it("preserves cancellation before and after the signal-zero probe", async () => 
   const controller = new AbortController();
   const reason = new Error("cancelled");
   controller.abort(reason);
-  filesystem.readFile.mockRejectedValueOnce(
-    Object.assign(new Error("aborted"), { name: "AbortError" }),
-  );
-  await expect(
-    host.processIdentities?.([entry], controller.signal),
-  ).rejects.toMatchObject({ name: "AbortError" });
+  const readAbort = Object.assign(new Error("aborted", { cause: reason }), {
+    name: "AbortError",
+    code: "ABORT_ERR",
+  });
 
   const afterProbe = new AbortController();
   const probeAbort = vi.spyOn(process, "kill").mockImplementation(() => {
@@ -556,10 +554,17 @@ it("preserves cancellation before and after the signal-zero probe", async () => 
     throw filesystemError("ESRCH");
   });
   try {
+    filesystem.readFile.mockRejectedValueOnce(readAbort);
+    await expect(
+      host.processIdentities?.([entry], controller.signal),
+    ).rejects.toBe(readAbort);
+    expect(probeAbort).not.toHaveBeenCalled();
+
     filesystem.readFile.mockRejectedValueOnce(filesystemError("ENOENT"));
     await expect(
       host.processIdentities?.([entry], afterProbe.signal),
     ).rejects.toBe(reason);
+    expect(probeAbort).toHaveBeenCalledExactlyOnceWith(entry.pid, 0);
   } finally {
     probeAbort.mockRestore();
   }

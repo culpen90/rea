@@ -757,7 +757,7 @@ cliTest(
 for (const invalidSetting of [
   { setting: "REA_MCP_INPUT_SCHEMA_PROFILE", value: "unknown" },
   { setting: "REA_GHIDRA_LANGUAGE_ID", value: "" },
-  { setting: "REA_JEB_MCP_TIMEOUT_MS", value: "1.5" },
+  { setting: "REA_JEB_MCP_URL", value: "https://example.invalid/mcp" },
 ] as const)
   cliTest(
     `setup rejects malformed selected ${invalidSetting.setting} before writing`,

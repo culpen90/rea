@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { INLINE_EVIDENCE_MCP_ENVIRONMENT } from "../../../scripts/lib/mcp-verification-environment.mjs";
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -1612,13 +1612,13 @@ describe("application workflow CLI export Evidence", () => {
     const rightRoot = join(root, "right");
     await Promise.all([mkdir(leftRoot), mkdir(rightRoot)]);
     await Promise.all([
-      copyFile(
-        join(process.cwd(), "tests/fixtures/replay/parser.mjs"),
+      writeFile(
         join(leftRoot, "parser.mjs"),
+        'export default () => ({ type: "heading", text: "Section" });',
       ),
-      copyFile(
-        join(process.cwd(), "tests/fixtures/replay/parser-v2.mjs"),
+      writeFile(
         join(rightRoot, "parser.mjs"),
+        'export default () => ({ type: "heading", text: "Section", depth: 1 });',
       ),
     ]);
     const [left, right] = await Promise.all([

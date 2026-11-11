@@ -36,6 +36,21 @@ const gapsWithContinuations = (
   });
 };
 
+const unclassifiedChildGap = (
+  range = { offset: 0, length: 14 },
+  continuation = "relative to the published child",
+) => ({
+  kind: "unclassified-range",
+  input_path: "$output/rootfs/config",
+  relative_path: null,
+  handler: null,
+  provider_id: null,
+  range,
+  root_file_range: null,
+  dependencies: [],
+  continuation: expect.stringContaining(continuation),
+});
+
 const directoryCloseFailure = vi.hoisted(() => ({
   mode: "off" as "off" | "transient" | "persistent",
   attempts: 0,
@@ -324,19 +339,23 @@ it("shares recovery prose across distinct unknown chunk identities", async () =>
   const normalized = firmwareResultSchemas.extract_firmware.parse(
     result.value.normalized_result,
   );
-  expect(normalized.extraction_gaps).toHaveLength(1000);
-  expect(
-    new Set(normalized.extraction_gaps.map(({ provider_id }) => provider_id))
-      .size,
-  ).toBe(1000);
-  expect(normalized.extraction_continuations).toHaveLength(1);
-  const [instruction] = normalized.extraction_continuations;
+  const chunks = normalized.extraction_gaps.filter(
+    ({ kind }) => kind === "unknown-chunk-handler",
+  );
+  expect(chunks).toHaveLength(1000);
+  expect(new Set(chunks.map(({ provider_id }) => provider_id)).size).toBe(1000);
+  expect(normalized.extraction_gaps).toHaveLength(1001);
+  expect(gapsWithContinuations(normalized)).toContainEqual(
+    unclassifiedChildGap(),
+  );
+  expect(normalized.extraction_continuations).toHaveLength(2);
+  const instruction = normalized.extraction_continuations.find(
+    ({ id }) => id === chunks[0]?.continuation_id,
+  );
   expect(instruction?.instruction).toContain("inspect_firmware_regions");
-  expect(
-    normalized.extraction_gaps.every(
-      (gap) => gap.continuation_id === instruction?.id,
-    ),
-  ).toBe(true);
+  expect(chunks.every((gap) => gap.continuation_id === instruction?.id)).toBe(
+    true,
+  );
 });
 
 it("retains a task dependency failure when the producer names no executable", async () => {
@@ -361,6 +380,7 @@ it("retains a task dependency failure when the producer names no executable", as
       dependencies: [],
       continuation: expect.stringContaining("identity is unavailable"),
     },
+    unclassifiedChildGap(),
   ]);
 });
 
@@ -386,6 +406,7 @@ it("preserves an unnamed dependency failure on its owning chunk", async () => {
       dependencies: [],
       continuation: expect.stringContaining("identity is unavailable"),
     },
+    unclassifiedChildGap(),
   ]);
 });
 
@@ -455,6 +476,10 @@ it("withholds the nested rerun advice when the published child exceeds the input
     result.value.normalized_result,
   );
   expect(gapsWithContinuations(normalized)).toEqual([
+    unclassifiedChildGap(
+      { offset: 14, length: FIRMWARE_LIMITS.inputBytes + 1 - 14 },
+      "cannot accept it as a fresh input",
+    ),
     {
       kind: "unknown-chunk-handler",
       input_path: "$output/rootfs/config",
@@ -581,7 +606,8 @@ it("retains independent failures beside dependencies at each extraction owner", 
     result.value.normalized_result,
   );
   const gaps = gapsWithContinuations(normalized);
-  expect(gaps).toHaveLength(4);
+  expect(gaps).toHaveLength(5);
+  expect(gaps).toContainEqual(unclassifiedChildGap());
   for (const provider_id of ["gzip-id", "mixed-id"]) {
     const owned = gaps.filter((gap) => gap.provider_id === provider_id);
     expect(owned.map((gap) => gap.kind).sort()).toEqual([
@@ -621,6 +647,7 @@ it("carries the owning multi-file stage on a task-level dependency gap", async (
       dependencies: ["sasquatch"],
       continuation: expect.stringContaining("installs nothing"),
     },
+    unclassifiedChildGap(),
   ]);
   expect(normalized.diagnostics).toEqual([
     expect.objectContaining({ stage: "squashfs" }),
@@ -680,6 +707,7 @@ it.each(["depth", "dependency", "link"])(
             /max_depth.*fresh output_directory/u,
           ),
         },
+        unclassifiedChildGap(),
       ]);
     if (mode === "dependency")
       expect(normalized.diagnostics).toEqual([
@@ -707,6 +735,7 @@ it.each(["depth", "dependency", "link"])(
           dependencies: ["sasquatch"],
           continuation: expect.stringContaining("installs nothing"),
         },
+        unclassifiedChildGap(),
       ]);
     const linkLimitation = expect.stringContaining(
       "Unblob rewrites absolute targets relative to the extraction root",
@@ -735,6 +764,7 @@ it.each(["depth", "dependency", "link"])(
           dependencies: [],
           continuation: expect.stringContaining("metadata"),
         },
+        unclassifiedChildGap(),
       ]);
       await expect(access(`${fixture.output}/escape`)).rejects.toMatchObject({
         code: "ENOENT",

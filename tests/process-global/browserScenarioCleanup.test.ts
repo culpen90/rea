@@ -276,8 +276,9 @@ it("retries a late Playwright open after cancellation before accepting another c
     firstCloseStarted = resolve;
   });
   let launchCount = 0;
-  let firstCloseAttempts = 0;
-  const makeContext = () => {
+  let lateCloseAttempts = 0;
+  let allowLateClose = false;
+  const makeContext = (late = false) => {
     const page = Object.assign(new EventEmitter(), {
       url: () => "https://app.example.test/",
       goto: async () => undefined,
@@ -296,14 +297,14 @@ it("retries a late Playwright open after cancellation before accepting another c
       pages: () => [page],
       newPage: async () => page,
       close: async () => {
-        if (launchCount === 1) {
-          firstCloseAttempts += 1;
-          if (firstCloseAttempts === 1) {
-            firstCloseStarted();
-            await firstClose;
-            throw new Error("injected late browser close failure");
-          }
+        if (!late) return;
+        lateCloseAttempts += 1;
+        if (lateCloseAttempts === 1) {
+          firstCloseStarted();
+          await firstClose;
         }
+        if (!allowLateClose)
+          throw new Error("injected late browser close failure");
       },
     });
   };
@@ -330,18 +331,23 @@ it("retries a late Playwright open after cancellation before accepting another c
     expect(primary).toBeInstanceOf(AnalysisCancelledError);
     expect(primary?.cause).toBe(cancellation.signal.reason);
 
-    finishLateOpen(makeContext());
+    finishLateOpen(makeContext(true));
     await closeStarted;
     finishFirstClose();
 
     const failedRetry = await provider.captureScenario(scenario);
-    expect(failedRetry.ok).toBe(false);
-    if (!failedRetry.ok) expect(failedRetry.error.cleanupIncomplete).toBe(true);
+    if (failedRetry.ok) throw new Error("Expected the cleanup retry to fail.");
+    expect(failedRetry.error.cleanupIncomplete).toBe(true);
+    expect(cancelled.error.cleanupIncomplete).toBe(true);
+    expect(launchCount).toBe(1);
 
+    const failedCloseAttempts = lateCloseAttempts;
+    allowLateClose = true;
     const retried = await provider.captureScenario(scenario);
     expect(retried.ok).toBe(true);
     if (retried.ok) expect(retried.value.steps).toHaveLength(2);
-    expect(firstCloseAttempts).toBe(2);
+    expect(lateCloseAttempts).toBe(failedCloseAttempts + 1);
+    expect(failedRetry.error.cleanupIncomplete).toBe(false);
     expect(cancelled.error).toMatchObject({
       cleanupIncomplete: false,
       cleanupResources: [],
@@ -351,7 +357,8 @@ it("retries a late Playwright open after cancellation before accepting another c
     expect(launchCount).toBe(2);
   } finally {
     cancellation.abort();
-    finishLateOpen(makeContext());
+    allowLateClose = true;
+    finishLateOpen(makeContext(true));
     finishFirstClose();
     try {
       await provider.close();

@@ -175,10 +175,20 @@ linuxX64.each([
       denied ? ProviderCleanupError : AnalysisCancelledError,
     );
     if (denied) {
-      const failure = result.error.cause;
+      const primary = result.error.cleanupPrimary;
+      expect(primary?.secondaryFailures).toEqual([
+        expect.objectContaining({ cause: controller.signal.reason }),
+      ]);
+      expect(primary?.secondaryFailures[0]).toBeInstanceOf(
+        AnalysisCancelledError,
+      );
+      const failure = primary?.cause;
       expect(failure).toBeInstanceOf(ArtifactFileCleanupFailure);
       if (!(failure instanceof ArtifactFileCleanupFailure))
         throw new Error("Expected exact file cleanup owner");
+      expect(failure.fileCleanupFailure.completionCancellation?.reason).toBe(
+        controller.signal.reason,
+      );
       expect(failure.fileCleanupFailure.outcome).toMatchObject({
         kind: "completed",
         value: {

@@ -19,17 +19,19 @@ it("attributes case-folded Windows overrides without disclosing values", async (
     undefined,
     "win32",
     {
-      rea_asar_max_header_bytes: "0",
+      rea_mcp_initialize_budget_ms: "private-override-value",
     },
   );
   expect(result).toMatchObject({
     ok: false,
     error: {
       detail: expect.stringContaining(
-        "launch overrides (REA_ASAR_MAX_HEADER_BYTES)",
+        "launch overrides (REA_MCP_INITIALIZE_BUDGET_MS)",
       ),
     },
   });
+  if (!result.ok)
+    expect(result.error.detail).not.toContain("private-override-value");
 });
 
 it("keeps a malformed stored environment attributed to its file", async () => {

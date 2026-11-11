@@ -111,45 +111,71 @@ it.each([
   },
 );
 
-it("retains an OpenCode remote registration with a REA-like command", async () => {
-  const home = await createTestTempDirectory("rea-registration-remote-owner-");
-  const configPath = join(home, ".config/opencode/opencode.json");
-  const environment = { XDG_CONFIG_HOME: join(home, ".config") };
-  const source = JSON.stringify({
-    caller_root: "keep",
-    mcp: {
-      servers: {
-        rea: {
-          type: "remote",
-          url: "https://caller.example/mcp",
-          command: [PRODUCT_IDENTITY.cliBinary, "mcp"],
-        },
-        peer: { type: "local", command: ["peer"] },
-      },
-    },
-  });
-  await mkdir(dirname(configPath), { recursive: true });
-  await writeFile(configPath, source);
-  const statuses = await readClientRegistrationStatuses(home, undefined, {
-    environment,
-  });
-  expect(statuses.find(({ client }) => client === "opencode")).toMatchObject({
-    state: "invalid",
-  });
-  const host = systemUninstallHost(home, undefined, environment);
-  try {
-    const client = (await host.clients()).find(
-      (client) =>
-        client.name === "opencode" && client.configPath === configPath,
+it.each([
+  {
+    command: PRODUCT_IDENTITY.cliBinary,
+    identity: "owned",
+    removal: "removed",
+  },
+  { command: "other-server", identity: "foreign", removal: "retained" },
+])(
+  "removes an invalid OpenCode registration only when its retained launcher is $identity",
+  async ({ command, identity, removal }) => {
+    const home = await createTestTempDirectory(
+      "rea-registration-remote-owner-",
     );
-    if (client === undefined) throw new Error("Expected the configured client");
-    expect(await host.removeClient(client)).toMatchObject({
-      name: "opencode",
-      status: "retained",
+    const configPath = join(home, ".config/opencode/opencode.json");
+    const environment = { XDG_CONFIG_HOME: join(home, ".config") };
+    const peer = { type: "local", command: ["peer"] };
+    const source = JSON.stringify({
+      caller_root: "keep",
+      mcp: {
+        servers: {
+          rea: {
+            type: "remote",
+            url: "https://caller.example/mcp",
+            command: [command, "mcp"],
+          },
+          peer,
+        },
+      },
     });
-    expect(await readFile(configPath, "utf8")).toBe(source);
-    expect(await readdir(dirname(configPath))).toEqual(["opencode.json"]);
-  } finally {
-    expect(await host.close?.()).toBeUndefined();
-  }
-});
+    await mkdir(dirname(configPath), { recursive: true });
+    await writeFile(configPath, source);
+    const statuses = await readClientRegistrationStatuses(home, undefined, {
+      environment,
+    });
+    expect(statuses.find(({ client }) => client === "opencode")).toMatchObject({
+      command_identity: identity,
+      state: "invalid",
+    });
+    const host = systemUninstallHost(home, undefined, environment);
+    try {
+      const client = (await host.clients()).find(
+        (client) =>
+          client.name === "opencode" && client.configPath === configPath,
+      );
+      if (client === undefined)
+        throw new Error("Expected the configured client");
+      expect(await host.removeClient(client)).toMatchObject({
+        name: "opencode",
+        status: removal,
+      });
+      const after = await readFile(configPath, "utf8");
+      if (removal === "removed") {
+        expect(JSON.parse(after)).toEqual({
+          caller_root: "keep",
+          mcp: { servers: { peer } },
+        });
+        await expect(
+          readFile(`${configPath}.rea.backup`, "utf8"),
+        ).resolves.toBe(source);
+      } else {
+        expect(after).toBe(source);
+        expect(await readdir(dirname(configPath))).toEqual(["opencode.json"]);
+      }
+    } finally {
+      expect(await host.close?.()).toBeUndefined();
+    }
+  },
+);
