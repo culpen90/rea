@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { withVerifierCleanup } from "../../../scripts/lib/verifier-cleanup.mjs";
+import { createDeferred } from "../../fixtures/binarySession.js";
 import { awaitAcknowledgement } from "../../fixtures/lifecycleAcknowledgement.js";
 import { fetchWebSourceMaps } from "../../../src/browser/WebSourceMapFetcher.js";
 import { fetchWebSourceMapsOk } from "../../fixtures/fetchWebSourceMapsOk.js";
@@ -1041,27 +1042,55 @@ describe("source-map response encoding", () => {
 
 describe("source-map operation deadline observations", () => {
   it("keeps completed maps when a later request times out", async () => {
-    let calls = 0;
-    const requests = [
-      request,
-      { ...request, scriptKey: `scr_${"2".repeat(64)}` },
-    ];
-    const result = await fetchWebSourceMapsOk(requests, input(), undefined, {
-      timeoutMs: 100,
-      fetch: () => {
-        calls += 1;
-        return calls === 1
-          ? Promise.resolve(validMapResponse())
-          : new Promise<Response>(() => undefined);
-      },
-    });
-
-    expect(result.status).toBe("partial");
-    expect(result.items.map(({ status }) => status)).toEqual([
-      "included",
-      "fetch_failed",
-    ]);
-    expect(result.items[0]?.original_sources).toHaveLength(1);
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "performance"] });
+    const controller = new AbortController();
+    try {
+      const secondFetch = createDeferred<void>();
+      const secondUrl = `${origin}/assets/second.js.map`;
+      const requests = [
+        request,
+        {
+          scriptKey: `scr_${"2".repeat(64)}`,
+          declaredUrl: secondUrl,
+          fetchUrl: secondUrl,
+        },
+      ];
+      const timeoutMs = 100;
+      const pending = fetchWebSourceMapsOk(
+        requests,
+        input(),
+        controller.signal,
+        {
+          timeoutMs,
+          fetch: (url, init) => {
+            if (String(url) !== secondUrl)
+              return Promise.resolve(validMapResponse());
+            return new Promise<Response>((_resolve, reject) => {
+              const signal = init?.signal;
+              if (signal == null) throw new Error("Expected a fetch signal.");
+              signal.addEventListener("abort", () => reject(signal.reason), {
+                once: true,
+              });
+              secondFetch.resolve();
+            });
+          },
+        },
+      );
+      await awaitAcknowledgement(secondFetch.promise, pending, "second fetch");
+      await vi.advanceTimersByTimeAsync(timeoutMs);
+      const result = await pending;
+      expect(result.status).toBe("partial");
+      expect(result.items[0]).toMatchObject({ status: "included" });
+      expect(result.items[0]?.original_sources).toHaveLength(1);
+      expect(result.items[1]).toMatchObject({
+        status: "fetch_failed",
+        limitation: expect.stringContaining("source_map_fetch_timeout_ms"),
+      });
+      expect(result.items).toHaveLength(2);
+    } finally {
+      controller.abort();
+      vi.useRealTimers();
+    }
   });
 });
 

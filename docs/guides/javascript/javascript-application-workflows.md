@@ -187,8 +187,8 @@ See [MCP contracts](../../reference/mcp-contracts.md) for filters. A handoff bin
 the exact native artifact digest and requested exports from the application
 graph. Trace direction selects the reachable addons; requested
 exports for each selected addon come from the complete supplied graph, so an
-outgoing trace does not discard an incoming export association. Existing Hopper
-or Ghidra Evidence is linked only when its subject digest
+outgoing trace does not discard an incoming export association. Existing native provider
+Evidence is linked only when its subject digest
 matches exactly. Otherwise the result recommends provider-neutral follow-up
 tools and reports `requires-provider-analysis`; it never starts or switches a
 provider implicitly.

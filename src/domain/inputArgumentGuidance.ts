@@ -25,22 +25,13 @@ const PROCEDURE_OPERATIONS: ReadonlySet<string> = new Set([
 const ADDRESS_OPERATIONS: ReadonlySet<string> = new Set([
   "address_name",
   "address_to_file_offset",
-  "comment",
   "get_call_graph",
-  "goto_address",
-  "inline_comment",
   "inspect_address_context",
   "inspect_native_instruction",
-  "next_address",
-  "prev_address",
   "read_bytes",
   "resolve_containing_procedure",
   "resolve_native_call_targets",
   "set_address_name",
-  "set_bookmark",
-  "set_comment",
-  "set_inline_comment",
-  "unset_bookmark",
   "xrefs",
 ]);
 

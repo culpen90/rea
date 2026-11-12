@@ -48,7 +48,7 @@ for (const version of ["1.1", "1.2"] as const) {
         environment: {
           USERPROFILE: home,
           HERMES_HOME: profile,
-          HOPPER_LAUNCHER_PATH: process.execPath,
+          GHIDRA_INSTALL_DIR: join(home, "ghidra"),
         },
         timeoutMs: 20_000,
       });
@@ -80,7 +80,7 @@ for (const version of ["1.1", "1.2"] as const) {
             environment: {
               USERPROFILE: home,
               HERMES_HOME: profile,
-              HOPPER_LAUNCHER_PATH: process.execPath,
+
               GHIDRA_INSTALL_DIR: ghidra,
               JAVA_HOME: java,
             },
@@ -106,7 +106,7 @@ for (const version of ["1.1", "1.2"] as const) {
         if (existing)
           expect(parsed.mcp_servers.rea.env).toEqual({
             FLAG: "on",
-            HOPPER_LAUNCHER_PATH: process.execPath,
+
             GHIDRA_INSTALL_DIR: ghidra,
             JAVA_HOME: java,
           });
@@ -164,7 +164,7 @@ cliTest("Hermes still registers into an explicit table", async ({ cli }) => {
     environment: {
       USERPROFILE: home,
       HERMES_HOME: profile,
-      HOPPER_LAUNCHER_PATH: process.execPath,
+      GHIDRA_INSTALL_DIR: join(home, "ghidra"),
     },
     timeoutMs: 20_000,
   });
@@ -207,7 +207,7 @@ for (const version of ["1.1", "1.2"] as const) {
         environment: {
           USERPROFILE: home,
           HERMES_HOME: profile,
-          HOPPER_LAUNCHER_PATH: process.execPath,
+          GHIDRA_INSTALL_DIR: join(home, "ghidra"),
         },
         timeoutMs: 20_000,
       });
@@ -235,7 +235,7 @@ cliTest(
         environment: {
           USERPROFILE: home,
           HERMES_HOME: profile,
-          HOPPER_LAUNCHER_PATH: process.execPath,
+          GHIDRA_INSTALL_DIR: join(home, "ghidra"),
         },
         timeoutMs: 20_000,
       });
@@ -245,7 +245,7 @@ cliTest(
     const entry = {
       command,
       args,
-      env: { HOPPER_LAUNCHER_PATH: process.execPath },
+      env: { GHIDRA_INSTALL_DIR: join(home, "ghidra") },
       enabled: true,
     };
     const defaults = { rea: entry, other: { command: "other-server" } };
@@ -314,7 +314,7 @@ for (const original of [
         environment: {
           USERPROFILE: home,
           HERMES_HOME: profile,
-          HOPPER_LAUNCHER_PATH: process.execPath,
+          GHIDRA_INSTALL_DIR: join(home, "ghidra"),
         },
         timeoutMs: 20_000,
       });

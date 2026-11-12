@@ -9,7 +9,6 @@ import type { JsonValue } from "../../../src/domain/jsonValue.js";
 import type { RecordUnknownInput } from "../../../src/domain/residualUnknown.js";
 import { createAnalysisProfile } from "../../../src/domain/analysisProfile.js";
 import { projectAnalysisError } from "../../../src/domain/analysisErrorProjection.js";
-import { HopperStartError } from "../../../src/domain/hopperErrors.js";
 import { ProviderAdapterError } from "../../../src/domain/providerAdapterError.js";
 import { ProviderCleanupError } from "../../../src/domain/providerCleanupError.js";
 import { AnalysisCleanupLease } from "../../../src/artifacts/AnalysisCleanupLease.js";
@@ -38,7 +37,12 @@ import { dirname, extname, join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 const client = (fail = false): AnalysisClient => ({
-  execute: () => Promise.resolve(fail ? err(new HopperStartError()) : ok(null)),
+  execute: () =>
+    Promise.resolve(
+      fail
+        ? err(new ProviderAdapterError("test-provider", "open_binary"))
+        : ok(null),
+    ),
   close: () => Promise.resolve(resultOk(null)),
 });
 

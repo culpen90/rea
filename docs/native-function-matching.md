@@ -24,7 +24,7 @@ or optional `list_names` Evidence identify dynamic/default names to exclude.
 Unknown or conflicting origin does not establish name correspondence; complete
 independent body bytes remain eligible. Exact names establish name correspondence,
 not unchanged code or original-source identity. Ghidra publishes its symbol facts;
-Hopper, IDA and older imported dossiers retain unknown origin when no such facts
+Older imported dossiers retain unknown origin when no such facts
 were observed. Display spelling alone, including `EntryPoint` or `FUN_` prefixes,
 does not establish whether a name was generated.
 

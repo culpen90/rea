@@ -38,17 +38,9 @@ import {
   EvidenceIntegrityError,
   EvidenceReferenceError,
 } from "./evidenceErrors.js";
-import {
-  HopperCancelledError,
-  HopperProcessError,
-  HopperRemoteError,
-  HopperStartError,
-  HopperTimeoutError,
-} from "./hopperErrors.js";
 import { ProviderAdapterError } from "./providerAdapterError.js";
 import { ProviderSelectionError } from "./providerSelectionError.js";
 import { UnknownRegistryError } from "./unknownRegistryError.js";
-import { providerRetryAction } from "./providerOperationHealth.js";
 import {
   primaryAnalysisError,
   resolvedAnalysisError,
@@ -564,11 +556,6 @@ const errorRecovery = (
 const underlyingErrorCode = (
   error: AnalysisError,
 ): AnalysisErrorProjection["code"] => {
-  if (
-    error instanceof HopperRemoteError &&
-    error.diagnosticType === "invalid_request"
-  )
-    return "invalid_request";
   if (error instanceof ProviderSelectionError)
     return error.reason === "provider_unavailable"
       ? "provider_unavailable"
@@ -665,24 +652,18 @@ type SpecializedErrorTag =
 const STATIC_ERROR_CODES = {
   AnalysisProtocolError: "unreadable_output",
   AnalysisOutputError: "unreadable_output",
-  HopperProtocolError: "unreadable_output",
   AnalysisInputError: "invalid_request",
   AnalysisAccessDeniedError: "access_denied",
   AnalysisArtifactChangedError: "artifact_changed",
   AnalysisCapabilityUnavailableError: "capability_unavailable",
   AnalysisUnsupportedTargetError: "unsupported_target",
   AnalysisCancelledError: "cancelled",
-  HopperCancelledError: "cancelled",
   AnalysisTimeoutError: "provider_timeout",
   AnalysisResourceConstraintError: "resource_constraint",
-  HopperTimeoutError: "provider_timeout",
-  HopperProcessError: "provider_unavailable",
-  HopperStartError: "provider_unavailable",
   ConfigurationError: "configuration_invalid",
   NoBinaryOpenError: "target_unavailable",
   EvidenceIntegrityError: "evidence_integrity_mismatch",
   ProviderAdapterError: "execution_failure",
-  HopperRemoteError: "execution_failure",
 } as const satisfies Readonly<
   Record<
     Exclude<AnalysisErrorTag, SpecializedErrorTag>,
@@ -912,52 +893,6 @@ const providerErrorDetails = (
         : {}),
     };
   }
-  if (error instanceof HopperRemoteError)
-    return {
-      stage: "analysis",
-      provider_code: error.code,
-      diagnostic_type: error.diagnosticType,
-      ...(error.operation === undefined ? {} : { operation: error.operation }),
-      ...(error.requestId === undefined ? {} : { request_id: error.requestId }),
-    };
-  if (error instanceof HopperProcessError) {
-    const stage = error.stage;
-    return {
-      exit_code: error.exitCode,
-      stage,
-      provider_state: error.providerState,
-      retry_action: providerRetryAction(
-        error.providerState,
-        error.failureCode !== undefined || error.stage === "launch",
-      ),
-      ...(error.failureCode === undefined
-        ? {}
-        : { failure_code: error.failureCode }),
-      ...(error.operation === undefined ? {} : { operation: error.operation }),
-      ...(error.requestId === undefined ? {} : { request_id: error.requestId }),
-      ...(error.diagnostic === undefined
-        ? {}
-        : { diagnostics: { ...error.diagnostic } }),
-      ...(error.launcherFailure === undefined
-        ? {}
-        : { launcher: error.launcherFailure }),
-    };
-  }
-  if (error instanceof HopperStartError)
-    return {
-      stage: "launch",
-      provider_state: "unknown",
-      ...(error.launchRejection === undefined
-        ? {}
-        : { launch_rejection: { ...error.launchRejection } }),
-      retry_action: error.ownerRunId === undefined ? "retry" : "unknown",
-      ...(error.ownerRunId === undefined
-        ? {}
-        : { owner_run_id: error.ownerRunId }),
-      ...(error.launcherFailure === undefined
-        ? {}
-        : { launcher: error.launcherFailure }),
-    };
   return undefined;
 };
 
@@ -992,8 +927,6 @@ const lifecycleErrorDetails = (
             execution_failure: "cancelled",
           }),
     };
-  if (error instanceof HopperCancelledError)
-    return { operation: "hopper", cleanup: "complete" };
   if (error instanceof AnalysisTimeoutError)
     return {
       operation: error.operation,
@@ -1005,18 +938,6 @@ const lifecycleErrorDetails = (
             cleanup_reason: error.cleanup.reason,
             resources: [...error.cleanup.resources],
           }),
-    };
-  if (error instanceof HopperTimeoutError)
-    return {
-      stage: error.operation === undefined ? "startup" : error.stage,
-      timeout_ms: error.timeoutMs,
-      ...(error.launcherOutcome === undefined
-        ? {}
-        : { launcher: error.launcherOutcome }),
-      provider_state: error.providerState,
-      retry_action: error.providerState === "busy" ? "wait" : "retry",
-      ...(error.operation === undefined ? {} : { operation: error.operation }),
-      ...(error.requestId === undefined ? {} : { request_id: error.requestId }),
     };
   if (error._tag === "ProcessCaptureError" && error.cleanupIncomplete)
     return {

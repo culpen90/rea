@@ -256,7 +256,7 @@ describe("installer TTY fallback", { timeout: 20_000 }, () => {
 
     expect(exitCode).toBe(0);
     expect(output).toContain(
-      `Run ${join(fixture.home, ".local/bin/rea")} setup to configure Hopper and agents.`,
+      `Run ${join(fixture.home, ".local/bin/rea")} setup to configure agents.`,
     );
     expect(await readFile(fixture.reaLog, "utf8")).toBe("--version\n");
     expect(await readFile(fixture.installerStderrLog, "utf8")).toBe("");

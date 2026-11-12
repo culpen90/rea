@@ -1347,7 +1347,7 @@ const projectPrimarySessionError = (
   );
   // A client-side ceiling refusal travels as the cause; re-attribute it to this
   // operation so callers see a typed resource constraint rather than a generic
-  // session failure, matching how Hopper and Cutter report the same ceiling.
+  // session failure, consistent with the Cutter request ceiling.
   if (physicalCause instanceof AnalysisResourceConstraintError)
     return reattributedResourceConstraint(operation, physicalCause, context);
   if (

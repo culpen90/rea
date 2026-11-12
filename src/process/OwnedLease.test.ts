@@ -6,9 +6,12 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { AnalysisCleanupLease } from "../artifacts/AnalysisCleanupLease.js";
 import { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
-import { HopperStartError } from "../domain/hopperErrors.js";
+import { ProviderAdapterError } from "../domain/providerAdapterError.js";
+import {
+  ArtifactFileCleanupFailure,
+  bindArtifactFileCleanup,
+} from "../artifacts/ArtifactFileOperation.js";
 import { createDeferred } from "../../tests/fixtures/binarySession.js";
 // Unix socket paths have a short platform limit; the canonical system temp path can exceed it.
 const createTestTempDirectory = async (prefix: string): Promise<string> => {
@@ -75,10 +78,44 @@ vi.mock("node:fs/promises", async (importOriginal) => {
   };
 });
 
-const { acquireLinuxHopperApplicationLease } = await import("./HopperLease.js");
-const { acquireOwnedLease } = await import("./OwnedLease.js");
-const { HopperApplicationLauncher } =
-  await import("../hopper/BridgeLauncher.js");
+const { acquireOwnedLease, OwnedLeaseCleanupFailure } =
+  await import("./OwnedLease.js");
+const leaseIdentity = { test: "fixture" };
+
+const acquireTestLease = (input: {
+  directory: string;
+  runId: string;
+  resources: ArtifactResourceScope;
+}) =>
+  acquireOwnedLease({
+    ...input,
+    identity: leaseIdentity,
+    failure: (failure, cause) => {
+      const primary =
+        cause instanceof OwnedLeaseCleanupFailure
+          ? cause.primary
+          : cause instanceof ArtifactFileCleanupFailure &&
+              cause.fileCleanupFailure.outcome.kind === "failed"
+            ? cause.fileCleanupFailure.outcome.cause
+            : undefined;
+      const error = new ProviderAdapterError("test", "lease", {
+        cause,
+        ...(primary instanceof ProviderAdapterError
+          ? { cleanupPrimary: primary }
+          : {}),
+        ...(cause instanceof ArtifactFileCleanupFailure ||
+        cause instanceof OwnedLeaseCleanupFailure
+          ? { cleanup: cause.cleanup }
+          : {}),
+        userMessage:
+          primary instanceof ProviderAdapterError
+            ? (primary.userMessage ?? failure.kind)
+            : failure.kind,
+      });
+      bindArtifactFileCleanup(cause, error);
+      return error;
+    },
+  });
 
 afterEach(() => {
   injection.directory = undefined;
@@ -202,7 +239,7 @@ describe.skipIf(process.platform === "win32")(
     it("preserves the failed recovery operation when its directory cleanup also fails", async () => {
       const directory = await createTestTempDirectory("rea-recovery-primary-");
       const key = createHash("sha256")
-        .update(JSON.stringify({ application: "linux-hopper-demo" }))
+        .update(JSON.stringify(leaseIdentity))
         .digest("hex")
         .slice(0, 32);
       const socketPath = join(directory, `${key}.sock`);
@@ -215,13 +252,13 @@ describe.skipIf(process.platform === "win32")(
       injection.staleRemoveFailure = true;
       injection.recoveryRemoveFailures = 1;
       const resources = new ArtifactResourceScope();
-      const failure = await acquireLinuxHopperApplicationLease({
+      const failure = await acquireTestLease({
         directory,
         runId: "recovery-primary",
         resources,
       }).catch((cause: unknown) => cause);
-      expect(failure).toBeInstanceOf(HopperStartError);
-      if (!(failure instanceof HopperStartError)) return;
+      expect(failure).toBeInstanceOf(ProviderAdapterError);
+      if (!(failure instanceof ProviderAdapterError)) return;
       expect(failure.cause).toMatchObject({
         primary: expect.objectContaining({
           message: "injected stale socket removal failure",
@@ -241,7 +278,7 @@ describe.skipIf(process.platform === "win32")(
         );
         if (recovering) {
           const key = createHash("sha256")
-            .update(JSON.stringify({ application: "linux-hopper-demo" }))
+            .update(JSON.stringify(leaseIdentity))
             .digest("hex")
             .slice(0, 32);
           await promisify(execFile)(process.execPath, [
@@ -266,26 +303,26 @@ describe.skipIf(process.platform === "win32")(
         });
         injection.socketPermissionsFailure = true;
         const resources = new ArtifactResourceScope();
-        const failure = await acquireLinuxHopperApplicationLease({
+        const failure = await acquireTestLease({
           directory,
           runId: "permissions",
           resources,
         }).catch((cause: unknown) => cause);
-        expect(failure).toBeInstanceOf(HopperStartError);
-        if (!(failure instanceof HopperStartError)) return;
+        expect(failure).toBeInstanceOf(ProviderAdapterError);
+        if (!(failure instanceof ProviderAdapterError)) return;
         let primary = failure;
-        while (primary.cleanupPrimary instanceof HopperStartError)
+        while (primary.cleanupPrimary instanceof ProviderAdapterError)
           primary = primary.cleanupPrimary;
         expect(primary.cause).toMatchObject({
           message: "injected socket permission failure",
         });
-        expect(failure.userMessage).toContain("socket permissions");
+        expect(failure.userMessage).toContain("socket_permissions");
         expect(failure.cleanupIncomplete).toBe(true);
         expect(resources.cleanupResources).toHaveLength(recovering ? 2 : 1);
         await resources.retryCleanup();
         expect(failure.cleanupIncomplete).toBe(false);
         injection.socketPermissionsFailure = false;
-        const next = await acquireLinuxHopperApplicationLease({
+        const next = await acquireTestLease({
           directory,
           runId: "next",
           resources,
@@ -305,7 +342,7 @@ describe.skipIf(process.platform === "win32")(
       async (remaining) => {
         const directory = await createTestTempDirectory("rea-recovery-close-");
         const key = createHash("sha256")
-          .update(JSON.stringify({ application: "linux-hopper-demo" }))
+          .update(JSON.stringify(leaseIdentity))
           .digest("hex")
           .slice(0, 32);
         const socketPath = join(directory, `${key}.sock`);
@@ -330,13 +367,13 @@ describe.skipIf(process.platform === "win32")(
         });
         injection.recoveryRemoveFailures = remaining === "directory" ? 2 : 1;
         const resources = new ArtifactResourceScope();
-        const failure = await acquireLinuxHopperApplicationLease({
+        const failure = await acquireTestLease({
           directory,
           runId: "recovery",
           resources,
         }).catch((cause: unknown) => cause);
-        expect(failure).toBeInstanceOf(HopperStartError);
-        if (!(failure instanceof HopperStartError)) return;
+        expect(failure).toBeInstanceOf(ProviderAdapterError);
+        if (!(failure instanceof ProviderAdapterError)) return;
         expect(failure.cleanupIncomplete).toBe(true);
         expect(failure.cleanupResources).toEqual(
           expect.arrayContaining([socketPath, `${socketPath}.recovery`]),
@@ -351,7 +388,7 @@ describe.skipIf(process.platform === "win32")(
         await resources.retryCleanup();
         expect(resources.hasPending).toBe(false);
         expect(failure.cleanupIncomplete).toBe(false);
-        const next = await acquireLinuxHopperApplicationLease({
+        const next = await acquireTestLease({
           directory,
           runId: "next",
           resources,
@@ -373,31 +410,30 @@ describe.skipIf(process.platform === "win32")(
         injection.directory = join(root, "leases");
         injection.admission = admission;
         const resources = new ArtifactResourceScope();
-        const failure = await acquireLinuxHopperApplicationLease({
+        const failure = await acquireTestLease({
           runId: "directory-close-test",
           directory: injection.directory,
           resources,
         }).catch((cause: unknown) => cause);
-        expect(failure).toBeInstanceOf(HopperStartError);
-        if (!(failure instanceof HopperStartError)) return;
+        expect(failure).toBeInstanceOf(ProviderAdapterError);
+        if (!(failure instanceof ProviderAdapterError)) return;
         expect(failure.cleanupIncomplete).toBe(true);
         expect(resources.cleanupResources).toEqual([injection.directory]);
         expect(failure.cleanupResources).toEqual([injection.directory]);
         if (admission !== "accepted") {
           expect(failure.userMessage).toContain(
             admission === "not_private"
-              ? "not a private directory"
-              : "could not access",
+              ? "directory_not_private"
+              : "directory_access_denied",
           );
-          expect(failure.cleanupPrimary).toBeInstanceOf(HopperStartError);
-        } else
-          expect(failure.userMessage).toContain("could not confirm closure");
+          expect(failure.cleanupPrimary).toBeInstanceOf(ProviderAdapterError);
+        } else expect(failure.userMessage).toContain("directory_close");
         await resources.retryCleanup();
         expect(injection.closeCalls).toBe(2);
         expect(failure.cleanupIncomplete).toBe(false);
         expect(resources.hasPending).toBe(false);
         injection.directory = undefined;
-        const retried = await acquireLinuxHopperApplicationLease({
+        const retried = await acquireTestLease({
           runId: "directory-close-retry",
           directory: join(root, "leases"),
           resources,
@@ -407,180 +443,22 @@ describe.skipIf(process.platform === "win32")(
       },
     );
 
-    it("retries the directory owner through the actual Hopper launcher cleanup", async () => {
-      const root = await createTestTempDirectory("rea-launch-lease-");
-      injection.directory = join(root, "leases");
-      injection.admission = "not_private";
-      const launcher = new HopperApplicationLauncher(
-        {
-          environment: {},
-          launcherPath: join(root, "hopper"),
-          targetPath: join(root, "target"),
-          targetKind: "database",
-          loaderArgs: [],
-          bridgeScriptPath: join(root, "bridge.py"),
-          launchMode: "verified_linux_demo",
-          demoHelperPath: join(root, "helper"),
-        },
-        {
-          platform: "linux",
-          acquireApplicationLease: (input) =>
-            acquireLinuxHopperApplicationLease({
-              ...input,
-              directory: join(root, "leases"),
-            }),
-          retryPublisherCleanup: async () => undefined,
-        },
-      );
-      const launched = await launcher.launch({
-        directory: root,
-        socketPath: join(root, "bridge.sock"),
-        token: "fixture-token",
-        runId: "launcher-lease-close-test",
-      });
-      expect(launched.ok).toBe(false);
-      if (launched.ok) return;
-      expect(launched.error.userMessage).toContain("not a private directory");
-      expect(launched.error.cleanupIncomplete).toBe(true);
-      expect(injection.closeCalls).toBe(1);
-      expect((await launcher.cleanup()).ok).toBe(true);
-      expect(injection.closeCalls).toBe(2);
-      expect(launched.error.cleanupIncomplete).toBe(false);
-      expect((await launcher.cleanup()).ok).toBe(true);
-      expect(injection.closeCalls).toBe(2);
-    });
-
     it("retains uncertainty when Node invalidates the directory handle before rejecting close", async () => {
       const root = await createTestTempDirectory("rea-lease-invalidated-");
       injection.directory = join(root, "leases");
       injection.invalidateOnClose = true;
       const resources = new ArtifactResourceScope();
-      const failure = await acquireLinuxHopperApplicationLease({
+      const failure = await acquireTestLease({
         runId: "invalidated-close-test",
         directory: injection.directory,
         resources,
       }).catch((cause: unknown) => cause);
-      expect(failure).toBeInstanceOf(HopperStartError);
+      expect(failure).toBeInstanceOf(ProviderAdapterError);
       await expect(resources.retryCleanup()).rejects.toThrow();
       expect(injection.closeCalls).toBe(1);
       expect(resources.hasPending).toBe(true);
-      if (failure instanceof HopperStartError)
+      if (failure instanceof ProviderAdapterError)
         expect(failure.cleanupIncomplete).toBe(true);
     });
-  },
-);
-
-describe.skipIf(process.platform === "win32")(
-  "launcher lease release finalization",
-  () => {
-    it.each(["bootstrap", "cancelled", "nested"] as const)(
-      "retains a lease whose release fails after %s startup failure",
-      async (stage) => {
-        const root = await createTestTempDirectory("rea-launch-release-");
-        const release = vi
-          .fn()
-          .mockRejectedValueOnce(new Error("injected lease release failure"))
-          .mockResolvedValue(undefined);
-        const socketPath = join(root, "lease.sock");
-        const controller = new AbortController();
-        const probeRelease = vi
-          .fn()
-          .mockRejectedValueOnce(new Error("probe cleanup still pending"))
-          .mockResolvedValue(undefined);
-        const probeLease = new AnalysisCleanupLease(probeRelease, ["probe"]);
-        const launcher = new HopperApplicationLauncher(
-          {
-            environment: {},
-            launcherPath: join(root, "hopper"),
-            targetPath: join(root, "target"),
-            targetKind: "database",
-            loaderArgs: [],
-            bridgeScriptPath: join(root, "bridge.py"),
-            launchMode: "verified_linux_demo",
-            demoHelperPath: join(root, "helper"),
-          },
-          {
-            platform: "linux",
-            acquireApplicationLease: async () => ({
-              acquired: true,
-              lease: { socketPath, release },
-            }),
-            retryPublisherCleanup: async () => undefined,
-            verifyLinuxLauncher: async () => ({
-              ok: true,
-              value: {
-                sha256: "0".repeat(64),
-                version: "fixture",
-                primaryFingerprint: "0".repeat(40),
-                signingFingerprint: "1".repeat(40),
-                source: "signed_package_cache",
-              },
-            }),
-            selectPrivateDisplay: async () => {
-              controller.abort("cancel during probe finalization");
-              return {
-                ok: false,
-                strategy: "unavailable",
-                exitCode: 70,
-                diagnostic: {
-                  component: "hopper_private_display",
-                  operation: "probe",
-                  status: "error",
-                  failure_code: "private_display_unavailable",
-                  reason: "fixture",
-                  socket_directory: "/tmp/.X11-unix",
-                  socket_directory_mode: null,
-                  mount_read_only: null,
-                  effective_socket_directory_mode: null,
-                  effective_mount_read_only: null,
-                  wsl: false,
-                  strategy: "unavailable",
-                  fallback_reason: null,
-                  xvfb_stderr_bytes: 0,
-                },
-                cleanup: {
-                  status: "pending",
-                  lease: probeLease,
-                  reason: "fixture cleanup",
-                },
-              };
-            },
-          },
-        );
-        const signal =
-          stage === "nested"
-            ? controller.signal
-            : AbortSignal.abort("cancel fixture");
-        const launched = await launcher.launch(
-          {
-            directory: stage === "bootstrap" ? join(root, "missing") : root,
-            socketPath: join(root, "bridge.sock"),
-            token: "fixture-token",
-            runId: "lease-release-test",
-          },
-          stage !== "bootstrap" ? { signal } : {},
-        );
-        expect(launched.ok).toBe(false);
-        if (launched.ok) return;
-        expect(launched.error.cleanupPrimary?._tag).toBe(
-          stage !== "bootstrap" ? "HopperCancelledError" : "HopperStartError",
-        );
-        expect(launched.error.cleanupIncomplete).toBe(true);
-        expect(launched.error.cleanupResources).toEqual(
-          stage === "nested" ? ["probe", socketPath] : [socketPath],
-        );
-        expect(release).toHaveBeenCalledTimes(1);
-        if (stage === "nested") {
-          expect((await launcher.cleanup()).ok).toBe(false);
-          expect(launched.error.cleanupResources).toEqual(["probe"]);
-          expect(launched.error.cleanupIncomplete).toBe(true);
-        }
-        expect((await launcher.cleanup()).ok).toBe(true);
-        expect(release).toHaveBeenCalledTimes(2);
-        expect(launched.error.cleanupIncomplete).toBe(false);
-        expect((await launcher.cleanup()).ok).toBe(true);
-        expect(release).toHaveBeenCalledTimes(2);
-      },
-    );
   },
 );

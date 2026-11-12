@@ -4,18 +4,19 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { createTestBinarySession } from "../../fixtures/binarySession.js";
+import { createMcpSchemaValidation } from "../../fixtures/mcpSchemaValidation.js";
 import { createTestTempDirectory } from "../../fixtures/temporaryDirectory.js";
 import { machoImage } from "../../../src/artifacts/apple/MachoImage.fixture.js";
 import {
+  catalogIdentityForToolFamilies,
   FULL_CATALOG_IDENTITY,
   DEFAULT_CATALOG_IDENTITY,
   createCatalogDigestProfiles,
   createCatalogDigests,
-  createCatalogIdentity,
 } from "../../../src/catalogIdentity.js";
 import { COMPACT_INPUT_SCHEMA_BUDGET_BYTES } from "../../../src/config/mcpInputSchemaProfile.js";
 import { CLI_COMMAND_NAMES } from "../../../src/cliCommandNames.js";
@@ -39,10 +40,11 @@ import type {
   CapabilityDescriptor,
 } from "../../../src/application/AnalysisProvider.js";
 
+const validation = createMcpSchemaValidation();
+afterAll(() => validation.clear());
+
 const availabilityProvider = (
-  operations: readonly CapabilityDescriptor["operation"][] = [
-    "current_address",
-  ],
+  operations: readonly CapabilityDescriptor["operation"][] = ["address_name"],
 ): AnalysisProvider => {
   const identity = { id: "fixture", name: "Fixture", version: "1" };
   const capability = (
@@ -273,13 +275,13 @@ describe("provider capability inventory", () => {
         open: true,
         kind: "artifact",
         format: "javascript",
-        capabilities: [statusCapability("current_address")],
+        capabilities: [statusCapability("address_name")],
       },
       policy,
     );
     expect(artifactTarget).toContainEqual(
       expect.objectContaining({
-        name: "current_address",
+        name: "address_name",
         available: false,
         reason: "target_unsupported",
       }),
@@ -338,6 +340,7 @@ describe("live server identity over MCP", () => {
     const client = new Client(
       { name: "identity-test", version: "9" },
       {
+        jsonSchemaValidator: validation,
         capabilities: {
           elicitation: { form: {} },
         },
@@ -356,7 +359,7 @@ describe("live server identity over MCP", () => {
       await assertSessionIdentity(client);
       expect(
         (await client.listTools()).tools.map(({ name }) => name),
-      ).toContain("current_address");
+      ).toContain("address_name");
       await client.callTool({
         name: "open_binary",
         arguments: { path: process.execPath },
@@ -364,7 +367,7 @@ describe("live server identity over MCP", () => {
       expect(toolListChanges).toBe(0);
       expect(
         (await client.listTools()).tools.map(({ name }) => name),
-      ).toContain("current_address");
+      ).toContain("address_name");
     } finally {
       await Promise.allSettled([
         client.close(),
@@ -378,16 +381,28 @@ describe("live server identity over MCP", () => {
     const session = createTestBinarySession(availabilityProvider());
     const server = createServer(
       { kind: "session", session },
-      { environment: { REA_MCP_INPUT_SCHEMA_PROFILE: "compact" } },
+      {
+        environment: {
+          REA_MCP_INPUT_SCHEMA_PROFILE: "compact",
+          REA_MCP_TOOL_FAMILIES: "session",
+        },
+      },
     );
-    const client = new Client({ name: "compact-identity-test", version: "1" });
+    const client = new Client(
+      { name: "compact-identity-test", version: "1" },
+      { jsonSchemaValidator: validation },
+    );
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
     try {
       await server.connect(serverTransport);
       await client.connect(clientTransport);
       const listed = await client.listTools();
-      expect(listed.tools).toHaveLength(TOOL_CONTRACTS.length);
+      expect(listed.tools.map(({ name }) => name).sort()).toEqual(
+        TOOL_CONTRACTS.filter(({ kind }) => kind === "session")
+          .map(({ name }) => name)
+          .sort(),
+      );
 
       const response = await client.callTool({
         name: "binary_session",
@@ -410,8 +425,16 @@ describe("live server identity over MCP", () => {
         state: "aligned",
         reasons: [],
       });
+      const scope = new Set(["session"]);
+      const expected = catalogIdentityForToolFamilies(
+        { budgetBytes: COMPACT_INPUT_SCHEMA_BUDGET_BYTES },
+        "full",
+        scope,
+      );
+      const full = catalogIdentityForToolFamilies(undefined, "full", scope);
+      expect(server.catalogIdentity).toEqual(expected);
       expect(server.catalogIdentity.digests.tools_sha256).not.toBe(
-        FULL_CATALOG_IDENTITY.digests.tools_sha256,
+        full.digests.tools_sha256,
       );
     } finally {
       await Promise.allSettled([
@@ -561,11 +584,7 @@ const assertLiveIdentity = async (client: Client): Promise<void> => {
         },
         client: { name: "identity-test", version: "9" },
         negotiated_protocol_version: expect.any(String),
-        catalog: createCatalogIdentity({
-          compactPresentation: {
-            budgetBytes: COMPACT_INPUT_SCHEMA_BUDGET_BYTES,
-          },
-        }),
+        catalog: DEFAULT_CATALOG_IDENTITY,
         alignment: { state: "unknown" },
       },
     },
@@ -600,7 +619,7 @@ const assertSessionIdentity = async (client: Client): Promise<void> => {
       },
       tool_availability: expect.arrayContaining([
         expect.objectContaining({
-          name: "current_address",
+          name: "address_name",
           available: false,
           reason: "target_required",
         }),

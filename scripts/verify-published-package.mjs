@@ -29,7 +29,7 @@ const serverEnvironment = {
   ...process.env,
   npm_config_cache: join(canaryRoot, "npm-cache"),
 };
-delete serverEnvironment.HOPPER_TARGET_PATH;
+delete serverEnvironment.REA_TARGET_PATH;
 const commands = await createPackageVerifierCommands({
   workspace: {
     path: canaryRoot,

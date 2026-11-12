@@ -43,7 +43,7 @@ processTest.for([
       const transport = new StdioClientTransport({ command: process.execPath,
         args: [${JSON.stringify(fileURLToPath(new URL("../../../scripts/rea.mjs", import.meta.url)))}, "mcp"],
         env: { PATH: process.env.PATH ?? "", REA_LOG_LEVEL: "silent",
-          HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper" }, stderr: "pipe" });
+          GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra" }, stderr: "pipe" });
       const client = new Client({ name: "synthetic-verifier-comparison", version: "1" });
       try {
         await client.connect(transport);

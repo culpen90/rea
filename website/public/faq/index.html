@@ -353,16 +353,14 @@
                 </p>
               </details>
               <details class="faq-item" id="providers">
-                <summary>Do I need Hopper, Ghidra or IDA?</summary>
+                <summary>When do I need Ghidra?</summary>
                 <p>
-                  Deep native analysis uses one of them. Static JavaScript and
-                  .NET inspection work with the supplied files and do not need a
-                  native analysis engine.
+                  REA uses Ghidra for deep native analysis. Static JavaScript
+                  and .NET inspection work with the supplied files.
                 </p>
                 <p>
-                  Connect your existing Ghidra or IDA installation, or let setup
-                  detect Hopper and propose an installation. Your host and
-                  target determine which provider can be used.
+                  Point REA at your Ghidra installation. Your host and target
+                  determine which Ghidra operations are available.
                   <a href="../get-started/#native">Set up native analysis</a>.
                 </p>
               </details>
@@ -500,12 +498,10 @@
                   <a href="../get-started/#help">More setup diagnostics</a>.
                 </p>
               </details>
-              <details class="faq-item" id="hopper">
-                <summary>Do I need to start Hopper first?</summary>
+              <details class="faq-item" id="ghidra">
+                <summary>Do I need to start Ghidra first?</summary>
                 <p>
-                  REA starts Hopper when an operation needs it. On macOS,
-                  complete the first-run choice of demo mode or license
-                  activation before unattended analysis.
+                  REA starts Ghidra in headless mode when an operation needs it.
                   <a href="../get-started/#native">See native provider setup</a
                   >.
                 </p>

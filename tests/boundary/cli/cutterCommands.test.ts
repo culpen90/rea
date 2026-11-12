@@ -184,8 +184,14 @@ describe("Cutter CLI commands", () => {
       { REA_CUTTER_BRIDGE_DIR: directory },
     );
 
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("invalid_request");
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      code: "invalid_request",
+      details: {
+        operation: "cutter_command",
+        issues: [{ path: ["session_id"], reason: "invalid_value" }],
+      },
+    });
   });
 });
 

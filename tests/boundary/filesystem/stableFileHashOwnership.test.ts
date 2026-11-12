@@ -12,13 +12,10 @@ import {
   hashStableFile,
   observeStableFile,
 } from "../../../src/filesystem/StableFileHash.js";
-import { LinuxHopperPublisher } from "../../../src/application/LinuxHopperPublisher.js";
 import {
   RegularFileCancelled,
   RegularFileCleanupFailure,
 } from "../../../src/filesystem/OwnedRegularFile.js";
-import { PrivateRuntimeRoot } from "../../../src/process/PrivateRuntimeRoot.js";
-import type { VerifiedLinuxHopperPackage } from "../../../src/application/LinuxHopperPublisher.js";
 
 it("rejects a real extent change after admission instead of replacing its baseline", async () => {
   const root = await createTestTempDirectory("rea-stable-admitted-extent-");
@@ -381,88 +378,6 @@ it("distinguishes a thrown undefined primary failure from a clean hash", async (
   }
 });
 
-it("retries a publisher-owned launcher hash close before returning its digest", async () => {
-  const root = await createTestTempDirectory("rea-publisher-hash-owner-");
-  const path = join(root, "launcher");
-  await writeFile(path, "fixture launcher bytes");
-  const publisher = new LinuxHopperPublisher({}, async () => undefined);
-  const close = vi
-    .spyOn(OwnedFileHandle.prototype, "close")
-    .mockRejectedValueOnce(new Error("fixture launcher close failure"));
-  try {
-    await expect(publisher.hashLauncher(path)).resolves.toMatch(
-      /^[a-f0-9]{64}$/u,
-    );
-    expect(close).toHaveBeenCalledTimes(2);
-    close.mockRestore();
-    await publisher.close();
-  } finally {
-    close.mockRestore();
-    await publisher.close();
-  }
-});
-
-it("retries pending cleanup before acquiring a publisher temporary root", async () => {
-  const root = await createTestTempDirectory("rea-publisher-admission-");
-  const path = join(root, "launcher");
-  const launcherBytes = "fixture launcher bytes";
-  await writeFile(path, launcherBytes);
-  const publisher = new LinuxHopperPublisher(
-    { ...process.env, XDG_CACHE_HOME: join(root, "cache") },
-    async () => undefined,
-  );
-  const originalClose = OwnedFileHandle.prototype.close;
-  const closeOwners: OwnedFileHandle[] = [];
-  let allowClose = false;
-  const close = vi
-    .spyOn(OwnedFileHandle.prototype, "close")
-    .mockImplementation(async function (this: OwnedFileHandle) {
-      closeOwners.push(this);
-      if (!allowClose) throw new Error("fixture close remains unavailable");
-      return originalClose.call(this);
-    });
-  const createRoot = vi.spyOn(PrivateRuntimeRoot, "create");
-  try {
-    await expect(publisher.hashLauncher(path)).rejects.toMatchObject({
-      reason: "cleanup_failed",
-    });
-    const retainedOwner = closeOwners[0];
-    if (retainedOwner === undefined)
-      throw new Error("Expected a retained launcher descriptor");
-    const attemptsBeforeAdmission = closeOwners.length;
-    await expect(
-      publisher.retainVerifiedArchive({} as VerifiedLinuxHopperPackage, path),
-    ).resolves.toMatchObject({
-      ok: false,
-      error: {
-        reason: "cleanup_failed",
-        cause: { cleanup: { resources: [path] } },
-      },
-    });
-    expect(createRoot).not.toHaveBeenCalled();
-    expect(closeOwners.length).toBeGreaterThan(attemptsBeforeAdmission);
-    expect(closeOwners.every((owner) => owner === retainedOwner)).toBe(true);
-
-    const attemptsBeforeRecovery = closeOwners.length;
-    allowClose = true;
-    await expect(publisher.hashLauncher(path)).resolves.toBe(
-      createHash("sha256").update(launcherBytes).digest("hex"),
-    );
-    const recoveryOwners = closeOwners.slice(attemptsBeforeRecovery);
-    expect(recoveryOwners[0]).toBe(retainedOwner);
-    expect(recoveryOwners.some((owner) => owner !== retainedOwner)).toBe(true);
-    expect(closeOwners.every((owner) => owner.handle.fd === -1)).toBe(true);
-    expect(createRoot).not.toHaveBeenCalled();
-    const attemptsAfterRecovery = closeOwners.length;
-    await publisher.close();
-    expect(closeOwners).toHaveLength(attemptsAfterRecovery);
-  } finally {
-    close.mockRestore();
-    createRoot.mockRestore();
-    await publisher.close();
-  }
-});
-
 it.each([
   { stage: "close", reason: null },
   { stage: "close", reason: "caller stopped" },
@@ -661,69 +576,6 @@ it.each(
       open.mockRestore();
       close.mockRestore();
       if (retained !== undefined) await nativeClose.call(retained);
-    }
-  },
-);
-
-it.each(["physical", "completed"] as const)(
-  "preserves the publisher's %s hash outcome after cancellation and a successful close retry",
-  async (outcome) => {
-    const root = await createTestTempDirectory(
-      "rea-publisher-hash-retry-cancel-",
-    );
-    const path = join(root, "launcher");
-    await writeFile(path, "launcher bytes");
-    const controller = new AbortController();
-    const primary = new Error("injected publisher read failure");
-    const reason = null;
-    const nativeOpen = regularFile.openRegularFile;
-    const open = vi
-      .spyOn(regularFile, "openRegularFile")
-      .mockImplementation(async (selected, options) => {
-        const descriptor = await nativeOpen(selected, options);
-        const { handle } = descriptor;
-        if (outcome === "physical")
-          vi.spyOn(handle, "read").mockRejectedValueOnce(primary);
-        return descriptor;
-      });
-    const nativeClose = OwnedFileHandle.prototype.close;
-    let ownerSeen: OwnedFileHandle | undefined;
-    let attempts = 0;
-    const close = vi
-      .spyOn(OwnedFileHandle.prototype, "close")
-      .mockImplementation(async function (this: OwnedFileHandle) {
-        ownerSeen = this;
-        attempts++;
-        if (attempts === 1) {
-          controller.abort(reason);
-          throw new Error("first close unavailable");
-        }
-        await nativeClose.call(this);
-      });
-    const publisher = new LinuxHopperPublisher(
-      { XDG_CACHE_HOME: join(root, "cache") },
-      async () => undefined,
-    );
-    try {
-      const result = await publisher.inspectLauncher(path, controller.signal);
-      if (result.ok) throw new Error("Injected hash outcome passed");
-      expect(result.error.reason).toBe(
-        outcome === "physical" ? "verification_unavailable" : "cancelled",
-      );
-      if (outcome === "physical")
-        expect(result.error.cause).toMatchObject({
-          _tag: "StableFileHashFailure",
-          cause: primary,
-        });
-      else expect(result.error.cause).toBe(reason);
-      expect(attempts).toBe(2);
-      expect(ownerSeen?.handle.fd).toBe(-1);
-    } finally {
-      open.mockRestore();
-      close.mockRestore();
-      await publisher.close();
-      if (ownerSeen !== undefined && ownerSeen.handle.fd >= 0)
-        await nativeClose.call(ownerSeen);
     }
   },
 );

@@ -44,7 +44,6 @@ cliTest.skipIf(process.platform === "win32")(
       USERPROFILE: home,
       QWEN_HOME: profile,
       PATH: restrictedPath,
-      HOPPER_LAUNCHER_PATH: join(home, "missing-hopper"),
       GHIDRA_INSTALL_DIR: join(home, "missing-ghidra"),
       JAVA_HOME: join(home, "missing-java"),
     };

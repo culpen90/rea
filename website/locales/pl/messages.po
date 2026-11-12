@@ -2483,35 +2483,6 @@ msgstr ""
 " Android, oprogramowania układowego i pakietów zasobów. {ph0}Zobacz studia "
 "przypadków{ph1} do prowadzonych dochodzeń."
 
-#: website/public/faq/index.html:354
-msgctxt "page:faq/index.html"
-msgid "Do I need Hopper, Ghidra or IDA?"
-msgstr "Czy potrzebuję Hopper, Ghidra lub IDA ?"
-
-#: website/public/faq/index.html:355
-msgctxt "page:faq/index.html"
-msgid ""
-"Deep native analysis uses one of them. Static JavaScript and .NET inspection"
-" work with the supplied files and do not need a native analysis engine."
-msgstr ""
-"Głęboka analiza programów kodu maszynowego wykorzystuje jeden z nich. "
-"Statyczne JavaScript i. NET praca Inspekcyjna z dostarczonych plików i nie "
-"wymagają analizy silnika programów kodu maszynowego."
-
-#. {ph0}: <a href="../get-started/#native">
-#. {ph1}: </a>
-#: website/public/faq/index.html:360
-#, python-brace-format
-msgctxt "page:faq/index.html"
-msgid ""
-"Connect your existing Ghidra or IDA installation, or let setup detect Hopper"
-" and propose an installation. Your host and target determine which provider "
-"can be used. {ph0}Set up native analysis{ph1}."
-msgstr ""
-"Podłącz istniejącą instalację Ghidra lub IDA lub pozwól instalatorowi wykryć"
-" Hopper i zaproponować instalację. Twój host i cel określają, który dostawca"
-" może być używany. {ph0}Skonfiguruj analizę programów kodu maszynowego{ph1}."
-
 #: website/public/faq/index.html:368
 msgctxt "page:faq/index.html"
 msgid "Can I use REA without a coding agent?"
@@ -2675,25 +2646,6 @@ msgstr ""
 "Przejrzyj jego plan i uruchom ponownie klienta. Jeśli rejestracja jest "
 "zdrowa, ale narzędzia pozostają nieobecne, sprawdź błąd połączenia MCP "
 "klienta. {ph0}Więcej diagnostyki konfiguracji{ph1}."
-
-#: website/public/faq/index.html:502
-msgctxt "page:faq/index.html"
-msgid "Do I need to start Hopper first?"
-msgstr "Czy muszę najpierw uruchomić Hopper?"
-
-#. {ph0}: <a href="../get-started/#native">
-#. {ph1}: </a >
-#: website/public/faq/index.html:503
-#, python-brace-format
-msgctxt "page:faq/index.html"
-msgid ""
-"REA starts Hopper when an operation needs it. On macOS, complete the first-"
-"run choice of demo mode or license activation before unattended analysis. "
-"{ph0}See native provider setup{ph1}."
-msgstr ""
-"REA uruchamia Hopper, gdy operacja tego potrzebuje. W macOS dokonaj "
-"pierwszego wyboru trybu demonstracyjnego lub aktywacji licencji przed "
-"analizą nienadzorowaną. {ph0}Zobacz native provider setup{ph1}."
 
 #: website/public/faq/index.html:512
 msgctxt "page:faq/index.html"
@@ -3645,32 +3597,12 @@ msgctxt "page:get-started/index.html"
 msgid "Connect Ghidra on Windows"
 msgstr "Połącz Ghidra na Windows"
 
-#: website/public/get-started/index.html:1159
-msgctxt "page:get-started/index.html"
-msgid ""
-"Windows x64 has experimental, read-only support for native x86 and x64 PE "
-"applications and DLLs on fixed local NTFS drives. Use an existing Ghidra "
-"12.1.x installation and a 64-bit JDK 21 or newer:"
-msgstr ""
-"Windows x64 ma eksperymentalną obsługę tylko do odczytu dla natywnych "
-"aplikacji x86 i x64 PE oraz bibliotek DLL na stałych lokalnych dyskach NTFS."
-" Użyj istniejącego Ghidra 12.1.instalacja x i 64-bitowy JDK 21 lub nowszy:"
-
 #: website/public/get-started/index.html:1182
 msgctxt "page:get-started/index.html"
 msgid ""
 "Replace the two paths with your installations, then review setup's plan."
 msgstr ""
 "Zastąp dwie ścieżki instalacjami, a następnie przejrzyj plan konfiguracji."
-
-#: website/public/get-started/index.html:1061
-msgctxt "page:get-started/index.html"
-msgid ""
-"Connect Hopper on macOS or Linux. Run the setup command above; it detects an"
-" existing installation or offers an installation plan for your approval."
-msgstr ""
-"Podłącz Hopper na macOS lub Linux . Uruchom powyższe polecenie konfiguracji;"
-" wykrywa istniejącą instalację lub oferuje plan instalacji do zatwierdzenia."
 
 #: website/public/get-started/index.html:1725
 msgctxt "page:get-started/index.html"
@@ -5163,44 +5095,6 @@ msgstr ""
 msgctxt "page:guides/native/index.html"
 msgid "Ask about the behavior"
 msgstr "Zapytaj o zachowanie"
-
-#. {ph0}: <a href="../../get-started/#agent" >
-#. {ph1}: </a >
-#. {ph2}: <a href="../../get-started/#native" >
-#. {ph3}: </a >
-#: website/public/guides/native/index.html:302
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"After {ph0}connecting REA to your agent{ph1} and {ph2}setting up a native "
-"analysis tool{ph3}, provide the local executable and a question:"
-msgstr ""
-"Po {ph0}łączenie REA z agentem{ph1} oraz {ph2}konfigurowanie narzędzia do "
-"analizy programów kodu maszynowego{ph3}, podaj lokalny plik wykonywalny i "
-"pytanie:"
-
-#: website/public/guides/native/index.html:313
-msgctxt "page:guides/native/index.html"
-msgid "Which analysis tool should I use?"
-msgstr "Jakiego narzędzia analitycznego powinienem użyć?"
-
-#: website/public/guides/native/index.html:314
-msgctxt "page:guides/native/index.html"
-msgid "REA needs one of these to read native programs:"
-msgstr "REA potrzebuje jednego z nich do odczytu programów natywnych:"
-
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:323
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"{ph0}Ghidra{ph1} (macOS or Linux; experimental on Windows): free, but needs "
-"an existing Ghidra 12.1.x installation and a 64-bit JDK 21 or newer."
-msgstr ""
-"{ph0} Ghidra {ph1} (macOS lub Linux ; eksperymentalny na Windows): wolny, "
-"ale potrzebuje istniejącego Ghidra 12.1.instalacja x i 64-bitowy JDK 21 lub "
-"nowszy."
 
 #. {ph0}: <a href="../../get-started/#native">
 #. {ph1}: </a>
@@ -13541,15 +13435,6 @@ msgstr ""
 "MCP to połączenie, przez które agent wywołuje REA. Umiejętność daje mu "
 "sposób postępowania przy badaniu programów."
 
-#: website/public/get-started/index.html:873
-msgctxt "page:get-started/index.html"
-msgid ""
-"For the first exercise, you can skip the optional Hopper installation. "
-"Restart your client when setup finishes."
-msgstr ""
-"W pierwszym ćwiczeniu możesz pominąć opcjonalną instalację Hopper. Po "
-"zakończeniu konfiguracji uruchom ponownie klienta."
-
 #. {ph0}: <code>codex</code>
 #. {ph1}: <code>"healthy": true</code>
 #: website/public/get-started/index.html:906
@@ -13694,86 +13579,15 @@ msgstr ""
 "Wybierz sekcję dla swojego celu. Dostawca analizy to lokalne narzędzie, "
 "którego REA używa do badania tego rodzaju oprogramowania."
 
-#: website/public/get-started/index.html:1019
-msgctxt "page:get-started/index.html"
-msgid "Native executables and libraries · Hopper, Ghidra or IDA"
-msgstr ""
-"Pliki wykonywalne i biblioteki kodu maszynowego · Hopper, Ghidra lub IDA"
-
-#: website/public/get-started/index.html:1022
-msgctxt "page:get-started/index.html"
-msgid ""
-"Install one analysis tool on the computer running REA. The host is your "
-"operating system; the target is the program you want to inspect."
-msgstr ""
-"Zainstaluj jedno narzędzie analizy na komputerze, na którym działa REA. Host"
-" to Twój system operacyjny, a cel to program, który chcesz zbadać."
-
 #: website/public/get-started/index.html:1031
 msgctxt "page:get-started/index.html"
 msgid "Provider"
 msgstr "Dostawca analizy"
 
-#: website/public/get-started/index.html:1040
-msgctxt "page:get-started/index.html"
-msgid "Unavailable"
-msgstr "Niedostępne"
-
 #: website/public/get-started/index.html:1046
 msgctxt "page:get-started/index.html"
 msgid "x64 · experimental"
 msgstr "x64 · eksperymentalnie"
-
-#: website/public/get-started/index.html:1052
-msgctxt "page:get-started/index.html"
-msgid "Verified profiles"
-msgstr "Zweryfikowane profile"
-
-#: website/public/get-started/index.html:1053
-msgctxt "page:get-started/index.html"
-msgid "Verified headless profile"
-msgstr "Zweryfikowany profil bez interfejsu graficznego"
-
-#: website/public/get-started/index.html:1054
-msgctxt "page:get-started/index.html"
-msgid "See provider guide"
-msgstr "Zobacz przewodnik dostawcy"
-
-#: website/public/get-started/index.html:1060
-msgctxt "page:get-started/index.html"
-msgid "Hopper · let setup install or connect it"
-msgstr "Hopper · pozwól konfiguratorowi go zainstalować lub połączyć"
-
-#: website/public/get-started/index.html:1066
-msgctxt "page:get-started/index.html"
-msgid ""
-"Choose Hopper in setup and review its separate installation plan. On macOS, "
-"choose demo mode or activate your license when Hopper first opens. On Linux,"
-" setup prepares the supported demo and its private display."
-msgstr ""
-"Wybierz Hopper podczas konfiguracji i przejrzyj jego oddzielny plan "
-"instalacji. W macOS przy pierwszym uruchomieniu Hopper wybierz tryb "
-"demonstracyjny lub aktywuj licencję. W Linux konfigurator przygotowuje "
-"obsługiwaną wersję demonstracyjną i osobny ekran dla niej."
-
-#: website/public/get-started/index.html:1094
-msgctxt "page:get-started/index.html"
-msgid ""
-"If macOS asks for Automation permission, allow the app that starts REA in "
-"System Settings → Privacy & Security → Automation, then retry."
-msgstr ""
-"Jeśli macOS poprosi o uprawnienie do automatyzacji, zezwól aplikacji "
-"uruchamiającej REA w Ustawienia systemowe → Prywatność i ochrona → "
-"Automatyzacja, a następnie spróbuj ponownie."
-
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/getting-
-#. started/installation.md#hopper" >
-#. {ph1}: </a >
-#: website/public/get-started/index.html:1099
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid "{ph0}Hopper setup and troubleshooting{ph1}"
-msgstr "{ph0}Konfiguracja Hopper i rozwiązywanie problemów{ph1}"
 
 #: website/public/get-started/index.html:1107
 msgctxt "page:get-started/index.html"
@@ -13863,64 +13677,6 @@ msgid ""
 msgstr ""
 "{ph0}Konfiguracja Ghidra i wymagania architektury{ph1} · {ph2}Przewodnik po "
 "Ghidra w Windows{ph3}"
-
-#: website/public/get-started/index.html:1271
-msgctxt "page:get-started/index.html"
-msgid "IDA · connect an existing installation"
-msgstr "IDA · połącz istniejącą instalację"
-
-#: website/public/get-started/index.html:1272
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use the IDA provider guide to prepare an upstream MCP registration. Choose "
-"an attached GUI with the original binary open, or a headless supervisor that"
-" opens a private database."
-msgstr ""
-"Przygotuj rejestrację serwera MCP po stronie IDA zgodnie z przewodnikiem "
-"dostawcy IDA. Wybierz połączenie z interfejsem graficznym, w którym otwarty "
-"jest oryginalny plik binarny, lub z nadzorcą bez interfejsu graficznego, "
-"który otwiera osobną bazę danych."
-
-#: website/public/get-started/index.html:1277
-msgctxt "page:get-started/index.html"
-msgid ""
-"Verified profiles include the Windows legacy GUI and headless supervisor, "
-"plus a macOS arm64 headless supervisor with IDA Professional 9.1. The "
-"optional native GUI bridge has its own version and platform requirements."
-msgstr ""
-"Zweryfikowane profile obejmują starsze połączenie GUI i nadzorcę bez "
-"interfejsu graficznego w Windows oraz nadzorcę bez interfejsu graficznego w "
-"macOS arm64 z IDA Professional 9.1. Opcjonalny natywny most do GUI ma własne"
-" wymagania dotyczące wersji i platformy."
-
-#: website/public/get-started/index.html:1372
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use the JSON registration file you prepared with the provider guide, then "
-"rerun setup and restart your agent."
-msgstr ""
-"Użyj pliku rejestracji JSON przygotowanego według przewodnika dostawcy, a "
-"następnie ponownie uruchom konfigurację i agenta."
-
-#. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/providers/ida-
-#. provider.md" >
-#. {ph1}: </a >
-#: website/public/get-started/index.html:1376
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid "{ph0}IDA profiles, registration examples and verified platforms{ph1}"
-msgstr ""
-"{ph0}Profile IDA, przykłady rejestracji i zweryfikowane platformy{ph1}"
-
-#: website/public/get-started/index.html:1384
-msgctxt "page:get-started/index.html"
-msgid ""
-"Once connected, give your agent the original executable's full path and name"
-" your provider:"
-msgstr ""
-"Po połączeniu podaj agentowi pełną ścieżkę do oryginalnego pliku "
-"wykonywalnego i nazwę dostawcy analizy:"
 
 #. {ph0}: <a href="../guides/native/">
 #. {ph1}: </a>
@@ -14256,55 +14012,6 @@ msgstr ""
 msgctxt "page:get-started/index.html"
 msgid "OpenCode · choose an AI model"
 msgstr "OpenCode · wybierz model AI"
-
-#: website/public/get-started/index.html:1299
-msgctxt "page:get-started/index.html"
-msgid "Prepare the IDA registration file"
-msgstr "Przygotuj plik rejestracji IDA"
-
-#. {ph0}: <code>ida-mcp.json</code>
-#. {ph1}: <code>.txt</code>
-#: website/public/get-started/index.html:1300
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"Install and configure the upstream server using the IDA guide below. Then "
-"save its working registration as {ph0} in a text editor. On Windows, choose "
-"“All files” when saving in Notepad so it doesn't add {ph1}."
-msgstr ""
-"Zainstaluj i skonfiguruj serwer po stronie IDA zgodnie z przewodnikiem "
-"poniżej. Następnie zapisz jego działającą rejestrację jako {ph0} w edytorze "
-"tekstu. W Windows podczas zapisywania w Notatniku wybierz „Wszystkie pliki”,"
-" aby nie dodał {ph1}."
-
-#. {ph0}: <code>idb_open</code>
-#. {ph1}: <code>idb_list</code>
-#. {ph2}: <code>idb_close</code>
-#: website/public/get-started/index.html:1307
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"For a headless supervisor providing {ph0}, {ph1} and {ph2}, the file can "
-"look like this:"
-msgstr ""
-"Dla nadzorcy bez interfejsu graficznego udostępniającego {ph0}, {ph1} i "
-"{ph2} plik może wyglądać tak:"
-
-#. {ph0}: <code>command</code>
-#. {ph1}: <code>args</code>
-#. {ph2}: <code>env</code>
-#: website/public/get-started/index.html:1330
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"For an attached legacy 1.4.0 GUI server, copy its working {ph0}, {ph1} and "
-"optional {ph2} into the file. Open the original binary in IDA and start its "
-"upstream plugin before asking REA to inspect it."
-msgstr ""
-"Dla podłączonego starszego serwera GUI 1.4.0 skopiuj do pliku jego "
-"działające wartości {ph0}, {ph1} i opcjonalnie {ph2}. Otwórz oryginalny plik"
-" binarny w IDA i uruchom wtyczkę po stronie IDA, zanim poprosisz REA o jego "
-"zbadanie."
 
 #: website/public/get-started/index.html:1499
 msgctxt "page:get-started/index.html"
@@ -14835,36 +14542,6 @@ msgstr ""
 "Postępuj zgodnie ze wskazówkami konfiguracji, aby połączyć agenta. Jeśli się"
 " nie pojawią, uruchom {ph0}."
 
-#. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
-#. setup" >
-#. {ph1}: </a >
-#. {ph2}: <code>6.4.0</code>
-#: website/public/get-started/index.html:1283
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"The macOS headless profile and native GUI bridge require a {ph0}REA source "
-"build{ph1} or a release containing those changes. npm {ph2} does not include"
-" them."
-msgstr ""
-"Profil bez interfejsu na macOS i natywny most GUI wymagają {ph0}REA "
-"zbudowanego ze źródeł{ph1} lub wydania zawierającego te zmiany. npm {ph2} "
-"ich nie zawiera."
-
-#. {ph0}: <code>node scripts/rea.mjs doctor --provider ida --json</code>
-#. {ph1}: <code>node scripts/rea.mjs setup</code>
-#. {ph2}: <code>npx</code>
-#: website/public/get-started/index.html:1292
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"From the built checkout, run {ph0} and {ph1} instead of the {ph2} commands "
-"below."
-msgstr ""
-"W katalogu zbudowanego kodu źródłowego uruchom {ph0} i {ph1} zamiast "
-"poniższych poleceń {ph2}."
-
 #. {ph0}: <code>rea</code>
 #. {ph1}: <code>"$HOME/.local/bin/rea" setup</code>
 #: website/public/get-started/index.html:1716
@@ -14877,19 +14554,6 @@ msgstr ""
 "Jeśli powłoka nie znajduje {ph0}, użyj ścieżki pliku wykonywalnego "
 "wyświetlonej przez instalator. W systemie Linux domyślne polecenie "
 "konfiguracji to {ph1}."
-
-#. {ph0}: <code>/absolute/path/to/program</code>
-#: website/public/get-started/index.html:1389
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use REA with my configured provider to inspect {ph0}. List its functions and"
-" strings, then explain the part that handles user input with references to "
-"the code."
-msgstr ""
-"Użyj REA z dostawcą, którego skonfigurowałem, aby zbadać {ph0}. Wymień "
-"funkcje i ciągi znaków, a następnie wyjaśnij część obsługującą dane "
-"użytkownika, podając odwołania do kodu."
 
 #: website/public/blog/index.html:244
 #: website/public/blog/reverse-engineering-models/index.html:883
@@ -15799,22 +15463,6 @@ msgid ""
 "later. {ph7} requires npm 6.8.0 or later."
 msgstr ""
 
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:328
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"{ph0}IDA{ph1} (Windows; macOS arm64 headless): use an existing IDA setup "
-"with an MCP registration. The macOS headless profile requires a source build"
-" or a release that includes it."
-msgstr ""
-
-#: website/public/get-started/index.html:1042
-msgctxt "page:get-started/index.html"
-msgid "x86_64 installer on supported distributions"
-msgstr ""
-
 #. {ph0}: <a href="../../get-started/">
 #. {ph1}: </a>
 #. {ph2}: <a
@@ -15832,27 +15480,406 @@ msgid ""
 "another option."
 msgstr ""
 
-#: website/public/get-started/index.html:1072
-msgctxt "page:get-started/index.html"
-msgid ""
-"Automated Linux setup requires an x86_64 host running Ubuntu 24.04+, Fedora "
-"41+, Nobara 44+, Arch Linux, CachyOS or Omarchy. An existing Hopper launcher"
-" can also be configured on other supported Linux distributions. On Linux "
-"arm64, use Ghidra. Hopper is commercial software; its demo has vendor-"
-"defined limits."
+#: website/public/faq/index.html:356
+msgctxt "page:faq/index.html"
+msgid "When do I need Ghidra?"
 msgstr ""
 
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:316
+#: website/public/faq/index.html:357
+msgctxt "page:faq/index.html"
+msgid ""
+"REA uses Ghidra for deep native analysis. Static JavaScript and .NET "
+"inspection work with the supplied files."
+msgstr ""
+
+#. {ph0}: <a href="../get-started/#native">
+#. {ph1}: </a>
+#: website/public/faq/index.html:361
+#, python-brace-format
+msgctxt "page:faq/index.html"
+msgid ""
+"Point REA at your Ghidra installation. Your host and target determine which "
+"Ghidra operations are available. {ph0}Set up native analysis{ph1}."
+msgstr ""
+
+#: website/public/faq/index.html:502
+msgctxt "page:faq/index.html"
+msgid "Do I need to start Ghidra first?"
+msgstr ""
+
+#. {ph0}: <a href="../get-started/#native">
+#. {ph1}: </a >
+#: website/public/faq/index.html:503
+#, python-brace-format
+msgctxt "page:faq/index.html"
+msgid ""
+"REA starts Ghidra in headless mode when an operation needs it. {ph0}See "
+"native provider setup{ph1}."
+msgstr ""
+
+#: website/public/get-started/index.html:875
+msgctxt "page:get-started/index.html"
+msgid ""
+"Restart your client when setup finishes. The first exercise uses static "
+"JavaScript analysis and runs without Ghidra."
+msgstr ""
+
+#: website/public/get-started/index.html:1021
+msgctxt "page:get-started/index.html"
+msgid "Native executables and libraries · Ghidra"
+msgstr ""
+
+#: website/public/get-started/index.html:1022
+msgctxt "page:get-started/index.html"
+msgid ""
+"Install Ghidra on the computer running REA. The host is your operating "
+"system. The target is the program you want to inspect."
+msgstr ""
+
+#: website/public/get-started/index.html:1209
+msgctxt "page:get-started/index.html"
+msgid ""
+"Once connected, give your agent the original executable's full path and a "
+"question about the program."
+msgstr ""
+
+#. {ph0}: <code>/absolute/path/to/program</code>
+#: website/public/get-started/index.html:1214
+#, python-brace-format
+msgctxt "page:get-started/index.html"
+msgid ""
+"Use REA to inspect {ph0}. List its functions and strings, then explain the "
+"part that handles user input with references to the code."
+msgstr ""
+
+#. {ph0}: <a href="../../get-started/#agent" >
+#. {ph1}: </a >
+#. {ph2}: <a href="../../get-started/#native">
+#. {ph3}: </a>
+#: website/public/guides/native/index.html:304
 #, python-brace-format
 msgctxt "page:guides/native/index.html"
 msgid ""
-"{ph0}Hopper{ph1} (macOS or Linux): REA's setup detects it or offers to "
-"install it. On macOS, open Hopper once and choose demo mode or activate a "
-"license before your first analysis. Automated Linux setup requires x86_64; "
-"use Ghidra on Linux arm64."
+"After {ph0}connecting REA to your agent{ph1} and {ph2}setting up "
+"Ghidra{ph3}, provide the local executable and a question:"
 msgstr ""
+
+#: website/public/guides/native/index.html:314
+msgctxt "page:guides/native/index.html"
+msgid "What does Ghidra require?"
+msgstr ""
+
+#: website/public/get-started/index.html:1099
+msgctxt "page:get-started/index.html"
+msgid ""
+"Windows x64 has experimental, read-only support for native x86 and x64 PE "
+"applications and DLLs on fixed local NTFS drives. This example uses Ghidra "
+"12.1.4 and a 64-bit JDK 21:"
+msgstr ""
+
+#: website/public/guides/native/index.html:315
+msgctxt "page:guides/native/index.html"
+msgid ""
+"REA uses a local Ghidra installation and the 64-bit JDK required by that "
+"release. Ghidra support is experimental on Windows."
+msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Windows x64 has experimental, read-only support for native x86 and x64 PE "
+#~ "applications and DLLs on fixed local NTFS drives. Use an existing Ghidra "
+#~ "12.1.x installation and a 64-bit JDK 21 or newer:"
+#~ msgstr ""
+#~ "Windows x64 ma eksperymentalną obsługę tylko do odczytu dla natywnych "
+#~ "aplikacji x86 i x64 PE oraz bibliotek DLL na stałych lokalnych dyskach NTFS."
+#~ " Użyj istniejącego Ghidra 12.1.instalacja x i 64-bitowy JDK 21 lub nowszy:"
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid "Do I need Hopper, Ghidra or IDA?"
+#~ msgstr "Czy potrzebuję Hopper, Ghidra lub IDA ?"
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "Deep native analysis uses one of them. Static JavaScript and .NET inspection"
+#~ " work with the supplied files and do not need a native analysis engine."
+#~ msgstr ""
+#~ "Głęboka analiza programów kodu maszynowego wykorzystuje jeden z nich. "
+#~ "Statyczne JavaScript i. NET praca Inspekcyjna z dostarczonych plików i nie "
+#~ "wymagają analizy silnika programów kodu maszynowego."
+
+#, python-brace-format
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "Connect your existing Ghidra or IDA installation, or let setup detect Hopper"
+#~ " and propose an installation. Your host and target determine which provider "
+#~ "can be used. {ph0}Set up native analysis{ph1}."
+#~ msgstr ""
+#~ "Podłącz istniejącą instalację Ghidra lub IDA lub pozwól instalatorowi wykryć"
+#~ " Hopper i zaproponować instalację. Twój host i cel określają, który dostawca"
+#~ " może być używany. {ph0}Skonfiguruj analizę programów kodu maszynowego{ph1}."
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid "Do I need to start Hopper first?"
+#~ msgstr "Czy muszę najpierw uruchomić Hopper?"
+
+#, python-brace-format
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "REA starts Hopper when an operation needs it. On macOS, complete the first-"
+#~ "run choice of demo mode or license activation before unattended analysis. "
+#~ "{ph0}See native provider setup{ph1}."
+#~ msgstr ""
+#~ "REA uruchamia Hopper, gdy operacja tego potrzebuje. W macOS dokonaj "
+#~ "pierwszego wyboru trybu demonstracyjnego lub aktywacji licencji przed "
+#~ "analizą nienadzorowaną. {ph0}Zobacz native provider setup{ph1}."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Connect Hopper on macOS or Linux. Run the setup command above; it detects an"
+#~ " existing installation or offers an installation plan for your approval."
+#~ msgstr ""
+#~ "Podłącz Hopper na macOS lub Linux . Uruchom powyższe polecenie konfiguracji;"
+#~ " wykrywa istniejącą instalację lub oferuje plan instalacji do zatwierdzenia."
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "After {ph0}connecting REA to your agent{ph1} and {ph2}setting up a native "
+#~ "analysis tool{ph3}, provide the local executable and a question:"
+#~ msgstr ""
+#~ "Po {ph0}łączenie REA z agentem{ph1} oraz {ph2}konfigurowanie narzędzia do "
+#~ "analizy programów kodu maszynowego{ph3}, podaj lokalny plik wykonywalny i "
+#~ "pytanie:"
+
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid "Which analysis tool should I use?"
+#~ msgstr "Jakiego narzędzia analitycznego powinienem użyć?"
+
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid "REA needs one of these to read native programs:"
+#~ msgstr "REA potrzebuje jednego z nich do odczytu programów natywnych:"
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}Ghidra{ph1} (macOS or Linux; experimental on Windows): free, but needs "
+#~ "an existing Ghidra 12.1.x installation and a 64-bit JDK 21 or newer."
+#~ msgstr ""
+#~ "{ph0} Ghidra {ph1} (macOS lub Linux ; eksperymentalny na Windows): wolny, "
+#~ "ale potrzebuje istniejącego Ghidra 12.1.instalacja x i 64-bitowy JDK 21 lub "
+#~ "nowszy."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For the first exercise, you can skip the optional Hopper installation. "
+#~ "Restart your client when setup finishes."
+#~ msgstr ""
+#~ "W pierwszym ćwiczeniu możesz pominąć opcjonalną instalację Hopper. Po "
+#~ "zakończeniu konfiguracji uruchom ponownie klienta."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Native executables and libraries · Hopper, Ghidra or IDA"
+#~ msgstr ""
+#~ "Pliki wykonywalne i biblioteki kodu maszynowego · Hopper, Ghidra lub IDA"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Install one analysis tool on the computer running REA. The host is your "
+#~ "operating system; the target is the program you want to inspect."
+#~ msgstr ""
+#~ "Zainstaluj jedno narzędzie analizy na komputerze, na którym działa REA. Host"
+#~ " to Twój system operacyjny, a cel to program, który chcesz zbadać."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Unavailable"
+#~ msgstr "Niedostępne"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Verified profiles"
+#~ msgstr "Zweryfikowane profile"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Verified headless profile"
+#~ msgstr "Zweryfikowany profil bez interfejsu graficznego"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "See provider guide"
+#~ msgstr "Zobacz przewodnik dostawcy"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Hopper · let setup install or connect it"
+#~ msgstr "Hopper · pozwól konfiguratorowi go zainstalować lub połączyć"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Choose Hopper in setup and review its separate installation plan. On macOS, "
+#~ "choose demo mode or activate your license when Hopper first opens. On Linux,"
+#~ " setup prepares the supported demo and its private display."
+#~ msgstr ""
+#~ "Wybierz Hopper podczas konfiguracji i przejrzyj jego oddzielny plan "
+#~ "instalacji. W macOS przy pierwszym uruchomieniu Hopper wybierz tryb "
+#~ "demonstracyjny lub aktywuj licencję. W Linux konfigurator przygotowuje "
+#~ "obsługiwaną wersję demonstracyjną i osobny ekran dla niej."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "If macOS asks for Automation permission, allow the app that starts REA in "
+#~ "System Settings → Privacy & Security → Automation, then retry."
+#~ msgstr ""
+#~ "Jeśli macOS poprosi o uprawnienie do automatyzacji, zezwól aplikacji "
+#~ "uruchamiającej REA w Ustawienia systemowe → Prywatność i ochrona → "
+#~ "Automatyzacja, a następnie spróbuj ponownie."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "{ph0}Hopper setup and troubleshooting{ph1}"
+#~ msgstr "{ph0}Konfiguracja Hopper i rozwiązywanie problemów{ph1}"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "IDA · connect an existing installation"
+#~ msgstr "IDA · połącz istniejącą instalację"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use the IDA provider guide to prepare an upstream MCP registration. Choose "
+#~ "an attached GUI with the original binary open, or a headless supervisor that"
+#~ " opens a private database."
+#~ msgstr ""
+#~ "Przygotuj rejestrację serwera MCP po stronie IDA zgodnie z przewodnikiem "
+#~ "dostawcy IDA. Wybierz połączenie z interfejsem graficznym, w którym otwarty "
+#~ "jest oryginalny plik binarny, lub z nadzorcą bez interfejsu graficznego, "
+#~ "który otwiera osobną bazę danych."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Verified profiles include the Windows legacy GUI and headless supervisor, "
+#~ "plus a macOS arm64 headless supervisor with IDA Professional 9.1. The "
+#~ "optional native GUI bridge has its own version and platform requirements."
+#~ msgstr ""
+#~ "Zweryfikowane profile obejmują starsze połączenie GUI i nadzorcę bez "
+#~ "interfejsu graficznego w Windows oraz nadzorcę bez interfejsu graficznego w "
+#~ "macOS arm64 z IDA Professional 9.1. Opcjonalny natywny most do GUI ma własne"
+#~ " wymagania dotyczące wersji i platformy."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use the JSON registration file you prepared with the provider guide, then "
+#~ "rerun setup and restart your agent."
+#~ msgstr ""
+#~ "Użyj pliku rejestracji JSON przygotowanego według przewodnika dostawcy, a "
+#~ "następnie ponownie uruchom konfigurację i agenta."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "{ph0}IDA profiles, registration examples and verified platforms{ph1}"
+#~ msgstr ""
+#~ "{ph0}Profile IDA, przykłady rejestracji i zweryfikowane platformy{ph1}"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Once connected, give your agent the original executable's full path and name"
+#~ " your provider:"
+#~ msgstr ""
+#~ "Po połączeniu podaj agentowi pełną ścieżkę do oryginalnego pliku "
+#~ "wykonywalnego i nazwę dostawcy analizy:"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Prepare the IDA registration file"
+#~ msgstr "Przygotuj plik rejestracji IDA"
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Install and configure the upstream server using the IDA guide below. Then "
+#~ "save its working registration as {ph0} in a text editor. On Windows, choose "
+#~ "“All files” when saving in Notepad so it doesn't add {ph1}."
+#~ msgstr ""
+#~ "Zainstaluj i skonfiguruj serwer po stronie IDA zgodnie z przewodnikiem "
+#~ "poniżej. Następnie zapisz jego działającą rejestrację jako {ph0} w edytorze "
+#~ "tekstu. W Windows podczas zapisywania w Notatniku wybierz „Wszystkie pliki”,"
+#~ " aby nie dodał {ph1}."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For a headless supervisor providing {ph0}, {ph1} and {ph2}, the file can "
+#~ "look like this:"
+#~ msgstr ""
+#~ "Dla nadzorcy bez interfejsu graficznego udostępniającego {ph0}, {ph1} i "
+#~ "{ph2} plik może wyglądać tak:"
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For an attached legacy 1.4.0 GUI server, copy its working {ph0}, {ph1} and "
+#~ "optional {ph2} into the file. Open the original binary in IDA and start its "
+#~ "upstream plugin before asking REA to inspect it."
+#~ msgstr ""
+#~ "Dla podłączonego starszego serwera GUI 1.4.0 skopiuj do pliku jego "
+#~ "działające wartości {ph0}, {ph1} i opcjonalnie {ph2}. Otwórz oryginalny plik"
+#~ " binarny w IDA i uruchom wtyczkę po stronie IDA, zanim poprosisz REA o jego "
+#~ "zbadanie."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "The macOS headless profile and native GUI bridge require a {ph0}REA source "
+#~ "build{ph1} or a release containing those changes. npm {ph2} does not include"
+#~ " them."
+#~ msgstr ""
+#~ "Profil bez interfejsu na macOS i natywny most GUI wymagają {ph0}REA "
+#~ "zbudowanego ze źródeł{ph1} lub wydania zawierającego te zmiany. npm {ph2} "
+#~ "ich nie zawiera."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "From the built checkout, run {ph0} and {ph1} instead of the {ph2} commands "
+#~ "below."
+#~ msgstr ""
+#~ "W katalogu zbudowanego kodu źródłowego uruchom {ph0} i {ph1} zamiast "
+#~ "poniższych poleceń {ph2}."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use REA with my configured provider to inspect {ph0}. List its functions and"
+#~ " strings, then explain the part that handles user input with references to "
+#~ "the code."
+#~ msgstr ""
+#~ "Użyj REA z dostawcą, którego skonfigurowałem, aby zbadać {ph0}. Wymień "
+#~ "funkcje i ciągi znaków, a następnie wyjaśnij część obsługującą dane "
+#~ "użytkownika, podając odwołania do kodu."
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}IDA{ph1} (Windows; macOS arm64 headless): use an existing IDA setup "
+#~ "with an MCP registration. The macOS headless profile requires a source build"
+#~ " or a release that includes it."
+#~ msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "x86_64 installer on supported distributions"
+#~ msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Automated Linux setup requires an x86_64 host running Ubuntu 24.04+, Fedora "
+#~ "41+, Nobara 44+, Arch Linux, CachyOS or Omarchy. An existing Hopper launcher"
+#~ " can also be configured on other supported Linux distributions. On Linux "
+#~ "arm64, use Ghidra. Hopper is commercial software; its demo has vendor-"
+#~ "defined limits."
+#~ msgstr ""
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}Hopper{ph1} (macOS or Linux): REA's setup detects it or offers to "
+#~ "install it. On macOS, open Hopper once and choose demo mode or activate a "
+#~ "license before your first analysis. Automated Linux setup requires x86_64; "
+#~ "use Ghidra on Linux arm64."
+#~ msgstr ""
 
 #~ msgctxt "page:get-started/index.html"
 #~ msgid ""

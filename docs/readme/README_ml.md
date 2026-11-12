@@ -38,10 +38,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="ഒരു native binary പരിശോധിക്കുന്നതിനിടെ Hopper-ൽ REA അതിന്റെ analysis bridge ആരംഭിക്കുന്നു" width="1200" />
-
-<br /><br />
-
 <table aria-label="REA community">
 <tr>
 <td align="center" width="360">
@@ -64,7 +60,7 @@
 
 Native binaries, JavaScript, Electron apps, .NET assemblies, websites എന്നിവ പരിശോധിക്കുന്നതിനുള്ള tools-ലേക്ക് REA നിങ്ങളുടെ agent-നെ ബന്ധിപ്പിക്കുന്നു. ഇതേ tools നിങ്ങളുടെ terminal-ൽ നിന്നും ഉപയോഗിക്കാം. വിശകലനം local ആയി നടക്കുന്നു; ഓരോ നിഗമനത്തിനും പിന്നിലെ തെളിവുകളും പരിമിതികളും ഫലങ്ങളിൽ ഉൾപ്പെടുന്നു.
 
-Setup നിങ്ങളുടെ agent-ിൽ REA രജിസ്റ്റർ ചെയ്യുകയും അനുയോജ്യമായ workflow നിർദ്ദേശങ്ങൾ ഇൻസ്റ്റാൾ ചെയ്യുകയും ചെയ്യുന്നു. Native analysis-നായി നിലവിലുള്ള Hopper, Ghidra, IDA, അല്ലെങ്കിൽ Kuna installation ഉപയോഗിക്കാം; അനുമതി നൽകിയാൽ setup-ന് Hopper ഇൻസ്റ്റാൾ ചെയ്യാനും കഴിയും. Static JavaScript analysis-ന് native analysis engine ആവശ്യമില്ല.
+Setup നിങ്ങളുടെ agent-ിൽ REA രജിസ്റ്റർ ചെയ്യുകയും അനുയോജ്യമായ workflow നിർദ്ദേശങ്ങൾ ഇൻസ്റ്റാൾ ചെയ്യുകയും ചെയ്യുന്നു. Native analysis-നായി നിലവിലുള്ള Ghidra installation ഉപയോഗിക്കുന്നു. Static JavaScript analysis-ന് native analysis engine ആവശ്യമില്ല.
 
 > **[REA വെബ്സൈറ്റ് സന്ദർശിക്കുക](https://rea.tools/)** — setup നിർദ്ദേശങ്ങൾക്കും ചിത്രങ്ങളോടുകൂടിയ ഗൈഡുകൾക്കും യഥാർത്ഥ case study-കൾക്കും.
 
@@ -157,7 +153,7 @@ REA-യ്ക്ക് Node.js 22.x (>=22.23.4), 24.x (>=24.22.1), അല്ല�
 
 | Target                 | REA നൽകുന്ന ഫലങ്ങൾ                                                                             | ആവശ്യകതകളും ഗൈഡും                                                                                                                                                   |
 | ---------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Native binaries        | Pseudocode, assembly, strings, symbols, calls, references                                   | Hopper, Ghidra, IDA അല്ലെങ്കിൽ Kuna; [native analysis](../guides/native/native-investigation.md)                                                                   |
+| Native binaries        | Pseudocode, assembly, strings, symbols, calls, references                                   | Ghidra; [native analysis](../guides/native/native-investigation.md)                                                                                              |
 | Offline ELF layout     | Sections, segments, യഥാർത്ഥ symbols/relocations, static mitigation candidates                 | Linux x64-ൽ caller നൽകുന്ന pwntools; [binary diagnostics](../guides/native/binary-diagnostics.md)                                                                  |
 | Go binaries            | ഉൾച്ചേർത്ത compiler version, modules, replacements, build settings                            | Built-in static ELF/PE/thin Mach-O പരിശോധന; Go installation ആവശ്യമില്ല                                                                                             |
 | Rust binaries          | ഉൾച്ചേർത്ത cargo-auditable crate പേരുകൾ, versions, sources, dependency edges                   | Built-in static ELF/PE/thin Mach-O പരിശോധന; [Rust binaries](../rust-binaries.md)                                                                                 |
@@ -203,9 +199,11 @@ Offline native-binary പരിശോധനയ്ക്കായി REA, caller 
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Native formats-ഉം host support-ഉം provider അനുസരിച്ച് വ്യത്യാസപ്പെടും. [Hopper and Ghidra setup](../getting-started/installation.md#hopper), [IDA guide](../providers/ida-provider.md) (ഐച്ഛിക native MCP bridge ഉൾപ്പെടെ), [Kuna decompiler guide](../kuna-provider.md), [പരീക്ഷണഘട്ടത്തിലുള്ള Windows Ghidra support](../providers/windows-ghidra-p0.md) എന്നിവ കാണുക.
+[Ghidra-ലേക്കുള്ള മാറ്റം](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
+
+Native formats-ഉം host support-ഉം provider അനുസരിച്ച് വ്യത്യാസപ്പെടും. [Ghidra](../getting-started/installation.md#ghidra), [പരീക്ഷണഘട്ടത്തിലുള്ള Windows Ghidra support](../providers/windows-ghidra-p0.md) എന്നിവ കാണുക.
 Ghidra, [16-bit DOS analysis](../providers/ghidra-dos.md)-ഉം പിന്തുണയ്ക്കുന്നു.
-വലിയ binaries-നായി `REA_GHIDRA_STARTUP_TIMEOUT_MS` അല്ലെങ്കിൽ `REA_HOPPER_STARTUP_TIMEOUT_MS` ഉപയോഗിച്ച് provider-ന്റെ startup deadline വർധിപ്പിക്കുക.
+വലിയ binaries-നായി `REA_GHIDRA_STARTUP_TIMEOUT_MS` ഉപയോഗിച്ച് provider-ന്റെ startup deadline വർധിപ്പിക്കുക.
 Provider തിരഞ്ഞെടുക്കാൻ [CLI guide](../getting-started/cli.md#choose-a-provider) കാണുക.
 ഏറ്റവും പുതിയ npm release-നുശേഷം ചേർത്ത features അറിയാൻ [release availability](../getting-started/installation.md#released-package-and-main) പരിശോധിക്കുക.
 
@@ -299,16 +297,10 @@ Local MCP servers പിന്തുണയ്ക്കുന്ന ഏത് age
 </details>
 
 <details>
-<summary><strong>Hopper, Ghidra, IDA അല്ലെങ്കിൽ Kuna ആവശ്യമാണോ?</strong></summary>
+<summary><strong>Ghidra ആവശ്യമാണോ?</strong></summary>
 
-ആഴത്തിലുള്ള native analysis-ന് ഇവയിൽ ഒന്ന് ആവശ്യമാണ്. Static JavaScript, .NET പരിശോധനകൾ native analysis engine ഇല്ലാതെയും പ്രവർത്തിക്കും. അനുമതി ലഭിച്ചാൽ setup-ന് Hopper ഇൻസ്റ്റാൾ ചെയ്യാം; Ghidra, IDA, Kuna എന്നിവയ്ക്കായി നിങ്ങളുടെ നിലവിലുള്ള installations ഉപയോഗിക്കുന്നു. [Provider setup](../getting-started/installation.md#hopper) കാണുക.
-
-</details>
-
-<details>
-<summary><strong>Hopper ആദ്യം ആരംഭിക്കേണ്ടതുണ്ടോ?</strong></summary>
-
-ഒരു operation-ന് ആവശ്യമാകുമ്പോൾ REA Hopper ആരംഭിക്കും. macOS-ൽ ആദ്യമായി പ്രവർത്തിപ്പിക്കുമ്പോൾ demo mode തിരഞ്ഞെടുക്കാനോ license activate ചെയ്യാനോ ആവശ്യപ്പെടുന്ന dialog പ്രത്യക്ഷപ്പെടാം. ആദ്യ CLI/MCP operation അല്ലെങ്കിൽ unattended job നടത്തുന്നതിന് മുമ്പ് അതേ user session-ൽ ആ prompt പൂർത്തിയാക്കുക. ആവശ്യമെങ്കിൽ Hopper സ്വമേധയാ തുറക്കുക. [Hopper startup and troubleshooting](../getting-started/installation.md#launcher-paths-and-troubleshooting) കാണുക.
+Native analysis-നായി നിലവിലുള്ള Ghidra installation ഉപയോഗിക്കുന്നു. Static JavaScript, .NET പരിശോധനകൾ native analysis engine ഇല്ലാതെയും പ്രവർത്തിക്കും.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -402,4 +394,4 @@ Development setup-നും checks-നും [CONTRIBUTING.md](../../CONTRIBUTIN
 
 REA-യുടെ രചയിതാക്കൾ സൃഷ്ടിച്ച code MIT license പ്രകാരമാണ് ലൈസൻസ് ചെയ്തിരിക്കുന്നത്. Third-party material അതിന്റെ സ്വന്തം licenses-ഉം copyright notices-ഉം നിലനിർത്തുന്നു; dependencies-ന്റെ പട്ടിക, നിലനിർത്തിയ license text-ുകൾ, external tool നിബന്ധനകൾ എന്നിവയ്ക്കായി [Third-party notices](../../THIRD_PARTY_NOTICES.md) കാണുക.
 
-**IDA Pro / Hex-Rays decompilers, Hopper, JEB എന്നിവ ഉൾപ്പെടെയുള്ള commercial tools നിയമാനുസൃതമായി സ്വന്തമാക്കുകയും അവയുടെ ബാധകമായ licenses പ്രകാരം ഉപയോഗിക്കാൻ അനുമതിയുണ്ടെന്ന് ഉറപ്പാക്കുകയും വേണം.** REA ഒരു tool license-ഓ key-യോ activation entitlement-ഓ നൽകുന്നില്ല. Trials-ഉം demos-ഉം ഉൾപ്പെടെ vendor നിബന്ധനകൾക്ക് വിധേയമാണ്; ഇതിൽ user, feature, automation, output sharing നിയന്ത്രണങ്ങളും ഉൾപ്പെടാം. Cracked copies, മോഷ്ടിച്ച keys, അനുമതിയില്ലാത്ത key sharing, license നിയന്ത്രണങ്ങൾ മറികടക്കൽ എന്നിവയ്ക്ക് അനുമതിയില്ല. ഈ മാർഗനിർദ്ദേശം MIT അല്ലെങ്കിൽ third-party licenses-ൽ മാറ്റം വരുത്തുന്നില്ല.
+**JEB എന്നിവ ഉൾപ്പെടെയുള്ള commercial tools നിയമാനുസൃതമായി സ്വന്തമാക്കുകയും അവയുടെ ബാധകമായ licenses പ്രകാരം ഉപയോഗിക്കാൻ അനുമതിയുണ്ടെന്ന് ഉറപ്പാക്കുകയും വേണം.** REA ഒരു tool license-ഓ key-യോ activation entitlement-ഓ നൽകുന്നില്ല. Trials-ഉം demos-ഉം ഉൾപ്പെടെ vendor നിബന്ധനകൾക്ക് വിധേയമാണ്; ഇതിൽ user, feature, automation, output sharing നിയന്ത്രണങ്ങളും ഉൾപ്പെടാം. Cracked copies, മോഷ്ടിച്ച keys, അനുമതിയില്ലാത്ത key sharing, license നിയന്ത്രണങ്ങൾ മറികടക്കൽ എന്നിവയ്ക്ക് അനുമതിയില്ല. ഈ മാർഗനിർദ്ദേശം MIT അല്ലെങ്കിൽ third-party licenses-ൽ മാറ്റം വരുത്തുന്നില്ല.

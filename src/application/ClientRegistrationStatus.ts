@@ -36,12 +36,11 @@ import type { SetupClient } from "./SupportedClients.js";
 import { compareUnicodeCodePoints } from "../domain/unicodeCodePointOrder.js";
 import { dshDocument } from "./DshCordisPatch.js";
 import {
-  clientRegistrationEnvironmentDetailsWithBudget,
+  clientRegistrationEnvironmentDetailsForTimeouts,
   recordedProviderSettings,
 } from "./ClientRegistrationEnvironment.js";
 import type {
   OwnedProviderSetting,
-  ProviderRequestBudgetResolver,
   RecordedProviderSettings,
 } from "./ClientRegistrationEnvironment.js";
 import type { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
@@ -112,7 +111,6 @@ interface ClientRegistrationReadOptions {
    * product profile is absent.
    */
   readonly evidence?: "readiness" | "ownership";
-  readonly resolveProviderRequestBudget?: ProviderRequestBudgetResolver;
   /** Settings to compare with each registration's file; omitted skips that read. */
   readonly providerSettings?: Readonly<Record<string, string>>;
   /** Which recorded provider settings hold a value the caller owns. */
@@ -338,14 +336,11 @@ export const readClientRegistrationInspections = async (
       }
       const registrationEnvironment =
         compactInputSchemaByDefault(client) || client.name === "codex"
-          ? await clientRegistrationEnvironmentDetailsWithBudget(
+          ? clientRegistrationEnvironmentDetailsForTimeouts(
               parsed,
               client.name,
               {},
               "effective",
-              client.name === "kimi" || client.name === "codex"
-                ? options.resolveProviderRequestBudget
-                : undefined,
               options.platform,
             )
           : undefined;
@@ -618,9 +613,7 @@ const timeoutAdvisory = (
   // A bigint is beyond the safe Number range, so rounding cannot cross the allowance.
   const toolTimeoutMs = Number(toolTimeout) * (isKimi ? 1 : 1000);
   const batchScope =
-    timeoutInputs.ghidraDecompileTimeoutMs !== undefined &&
-    (timeoutInputs.analysisProvider === "ghidra" ||
-      timeoutInputs.analysisProvider === "auto")
+    timeoutInputs.ghidraDecompileTimeoutMs !== undefined
       ? "The derived Ghidra deadline is a single-decompile estimate. For multi-function workflows such as batch_decompile, decompile_all or trace_native_values, allow startup plus every attempted function's limit and other work; split calls, reduce trace_native_values max_functions, or select a larger client deadline when needed. Explicit caller deadlines remain unchanged."
       : undefined;
   if (toolTimeoutMs >= providerAllowance) return batchScope;

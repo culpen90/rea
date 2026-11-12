@@ -11,9 +11,6 @@ export const PROVIDER_OPERATION_STATES = [
 /** Operational state REA can support with evidence, or unknown. */
 export type ProviderOperationState = (typeof PROVIDER_OPERATION_STATES)[number];
 
-/** States a Hopper process failure can establish. */
-export type HopperProcessProviderState = "exited" | "unreachable" | "unknown";
-
 /** What the caller should do next for this provider state. */
 export const PROVIDER_RETRY_ACTIONS = [
   "retry",

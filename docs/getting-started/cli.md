@@ -562,9 +562,7 @@ selector and distinguishes null from empty text. The MCP tool additionally
 supports `detail: "summary"` on its first call to retain the complete source
 without returning the body inline; see [native investigation](../guides/native/native-investigation.md).
 
-Configure [Hopper or Ghidra](installation.md#hopper), the
-[IDA adapter](../providers/ida-provider.md), or [Kuna](../kuna-provider.md) before analyzing a
-native target. Substitute
+Configure [Ghidra](installation.md#ghidra) before analyzing a native target. Substitute
 your target, search text and function name or address in these examples:
 
 ```bash
@@ -610,11 +608,14 @@ These commands describe binary-session providers and auxiliary capabilities.
 For the complete MCP surface, use the connected server's tool list and the
 session's advertised availability; individual guides describe prerequisites.
 
-With automatic selection, REA uses the single available provider that supports
-the target. When several providers support it, select one explicitly:
+Ghidra is the only deep native analysis provider. With the provider omitted
+or set to `auto`, REA uses Ghidra when it is available and supports the target.
+REA can still open an unbound target for static inspection. A deep analysis
+request reports the missing prerequisite or target restriction. To require a
+Ghidra binding when opening the target:
 
 ```bash
-rea analyze /absolute/path/to/program --provider hopper
+rea analyze /absolute/path/to/program --provider ghidra
 ```
 
 Set `REA_ANALYSIS_PROVIDER` for a standing preference. An explicit `--provider`
@@ -623,13 +624,12 @@ overrides it. In MCP, pass `provider_id` to `open_binary`:
 ```json
 {
   "path": "/absolute/path/to/program",
-  "provider_id": "hopper"
+  "provider_id": "ghidra"
 }
 ```
 
 The selected provider remains bound to the session until an explicit switch
-or close. Provider failures are returned with their original reason. For an
-`ambiguous` selection error, choose from `details.candidate_ids`; for
+or close. Provider failures are returned with their original reason. For
 `provider_unavailable`, follow `message`, `remediation.action`, and the original
 reasons in `details.rejections`. Each rejection names its `origin`: `availability`
 entries describe local readiness failures, including missing configuration or an
@@ -637,7 +637,7 @@ invalid existing registration; they do not establish target support. `target`
 entries record a refused kind, format, architecture, or role. An availability-only
 message describes the recorded rejections without claiming that every provider
 is unconfigured or that target support is known.
-For Hopper, Ghidra, IDA, JADX, and Kuna, run
+For Ghidra and JADX, run
 `rea doctor --provider ID --json` to diagnose the selected engine. Other adapters,
 such as `pwntools-elf`, report their configuration requirements directly and are
 not accepted by `doctor --provider`. See

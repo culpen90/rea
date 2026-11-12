@@ -66,10 +66,7 @@ const inspection = async (
     installationHost(overrides, options.platform ?? "linux"),
   );
 
-const doctorHost = (
-  ghidra: GhidraInstallationInspection,
-  hopperAvailable = false,
-): DoctorHost =>
+const doctorHost = (ghidra: GhidraInstallationInspection): DoctorHost =>
   createDoctorHostFixture({
     platform: "linux",
     architecture: "x64",
@@ -79,29 +76,17 @@ const doctorHost = (
         id: "ubuntu",
         versionId: "24.04",
         packageFamily: "deb",
-        hopperSetupSupported: true,
       }),
     validTarget: () => Promise.resolve(true),
-    executable: (path) =>
-      Promise.resolve(hopperAvailable && path.includes("Hopper")),
-    linuxDemoRuntimeCheck: () =>
-      Promise.resolve({
-        name: "hopper-demo-runtime",
-        ok: true,
-        classification: "healthy",
-      }),
-    brewHopperPath: () => Promise.resolve(undefined),
-    manualHopperPaths: () => Promise.resolve([]),
     providerInspections: () =>
       Promise.resolve([projectGhidraDoctorInspection(ghidra)]),
   });
 
 describe("Ghidra doctor integration", async () => {
-  it("accepts a valid BYO Ghidra engine when Hopper is absent", async () => {
+  it("accepts a valid BYO Ghidra engine", async () => {
     const result = await runDoctor(undefined, doctorHost(await inspection()));
 
     expect(result.healthy).toBe(true);
-    expect(result.hopperPath).toBeUndefined();
     expect(result.providerInspections?.[0]).toMatchObject({
       id: "ghidra",
       available: true,
@@ -173,7 +158,7 @@ describe("Ghidra doctor integration", async () => {
       "ghidra-architecture",
     ],
   ] as const)("distinguishes %s", async (_label, ghidra, checkName) => {
-    const result = await runDoctor(undefined, doctorHost(ghidra, true));
+    const result = await runDoctor(undefined, doctorHost(ghidra));
 
     expect(result.healthy).toBe(false);
     expect(result.checks.find(({ name }) => name === checkName)).toMatchObject({
@@ -182,13 +167,10 @@ describe("Ghidra doctor integration", async () => {
     });
   });
 
-  it("treats unconfigured Ghidra as optional when Hopper is healthy", async () => {
-    const result = await runDoctor(
-      undefined,
-      doctorHost(await inspection({}), true),
-    );
+  it("reports missing Ghidra readiness", async () => {
+    const result = await runDoctor(undefined, doctorHost(await inspection({})));
 
-    expect(result.healthy).toBe(true);
+    expect(result.healthy).toBe(false);
     expect(result.checks.find(({ name }) => name === "ghidra")).toMatchObject({
       ok: false,
       classification: "missing_analysis_engine",

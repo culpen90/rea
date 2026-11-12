@@ -30,7 +30,6 @@ import {
   bundleComparisonMcpInputSchema,
   importEvidenceBundleInputSchema,
   listUnknownsInputSchema,
-  navigationContextInputSchema,
   getEvidenceBundleInputSchema,
   verifyUnknownResolutionInputSchema,
 } from "./sessionToolSchemas.js";
@@ -68,7 +67,7 @@ export const exportEvidenceBundleInputSchema = z.strictObject({
 export const SESSION_TOOL_CONTRACTS = [
   session(
     "open_binary",
-    "Open a validated local artifact or analysis database and bind its analysis provider. Switching target/provider can discard ephemeral Ghidra edits even if the later open fails; retained investigation Evidence does not restore them. Reopening the same target/profile retains the engine and edits. provider_id selects a provider or deterministic auto routing, with no failure fallback. Omitted format uses headers; format dos-com admits 1..65280 headerless bytes, while raw-binary requires architecture and entry_point and maps file offset 0 there. Optional snapshots must match target, provider and analysis profile; close/reopen before importing into a mutated engine. For Ghidra cross-process edits, set a private absolute REA_GHIDRA_CHECKPOINT_DIR at startup (stock ELF/PE/Mach-O on Linux/macOS); normal opens/closes restore/save metadata. Failed opens report selection_at_failure and target/provider at completion; use binary_session for current state. close_binary releases engine resources; reset_investigation clears retained records.",
+    "Open a validated local artifact and bind Ghidra for eligible native executables. Switching targets can discard ephemeral Ghidra edits even if the later open fails; retained investigation Evidence does not restore them. Reopening the same target/profile retains the engine and edits. Select provider_id ghidra to require a binding, or auto to allow supported static inspection without one. When omitted, REA_ANALYSIS_PROVIDER applies and defaults to auto. Omitted format uses headers; format dos-com admits 1..65280 headerless bytes, while raw-binary requires architecture and entry_point and maps file offset 0 there. Optional snapshots must match target, provider and analysis profile; close/reopen before importing into a mutated engine. For Ghidra cross-process edits, set a private absolute REA_GHIDRA_CHECKPOINT_DIR at startup (stock ELF/PE/Mach-O on Linux/macOS); normal opens/closes restore/save metadata. Failed opens report selection_at_failure and target/provider at completion; use binary_session for current state. close_binary releases engine resources; reset_investigation clears retained records.",
     openBinaryInputSchema,
   ),
   session(
@@ -178,16 +177,8 @@ export const SESSION_TOOL_CONTRACTS = [
   ),
   {
     ...session(
-      "get_navigation_context",
-      "Return the selected document, current address, and containing/current procedure in one provider-neutral result. The result reflects sequential provider observations, not an atomic cursor snapshot; a cursor outside any procedure returns procedure: null.",
-      navigationContextInputSchema,
-    ),
-    requiresActiveTarget: true,
-  },
-  {
-    ...session(
       "inspect_address_context",
-      "Inspect one explicit reproducible address for its analyzed name, containing procedure, regular and inline comments, and matching bookmarks. Each unsupported facet returns a typed unavailable outcome. A facet rejected for invalid input, source Evidence integrity, or a resource constraint retains its canonical error and recovery alongside successful facets. Use xrefs, assembly, or pseudocode for those deeper views.",
+      "Inspect one explicit reproducible address for its analyzed name and containing procedure. Each unsupported facet returns a typed unavailable outcome. A facet rejected for invalid input, source Evidence integrity, or a resource constraint retains its canonical error and recovery alongside successful facets. Use xrefs, assembly, or pseudocode for deeper views, or analyze_function to read entry comments.",
       addressContextInputSchema,
     ),
     requiresActiveTarget: true,

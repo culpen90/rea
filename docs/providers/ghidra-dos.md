@@ -175,7 +175,7 @@ are separate from the initialized MZ module. Headerless COM requires the
 from the filename or unrecognized bytes. DOS extenders without an admitted
 MZ real-mode entry remain outside this import boundary.
 
-DOS MZ is available through Ghidra, with no Hopper support claim. Windows Ghidra
+DOS MZ is available through Ghidra. Windows Ghidra
 P0 admits DOS MZ read-only: function annotations and naming edits are refused
 there, and explicit COM is not admitted. macOS x64 DOS verification remains unverified.
 

@@ -7,7 +7,6 @@ import type { SetupProgressEvent } from "./SetupTypes.js";
 import { FakeSetupHost, options } from "./Setup.fixture.js";
 import { SetupSkillInstallError } from "./SetupSkill.js";
 import { err, ok } from "../domain/result.js";
-import { HopperReleaseError } from "./HopperReleaseFeed.js";
 import { supportedClientRegistrationProfile } from "./SupportedClients.js";
 
 const linkedSkillFailure = () =>
@@ -20,50 +19,12 @@ const linkedSkillFailure = () =>
     cause: undefined,
   });
 
-describe("Linux publisher cache approval", () => {
-  it.each([true, false])(
-    "discloses the selected cache or blocks an unresolved path before approval: %s",
-    async (valid) => {
-      const host = Object.assign(new FakeSetupHost("linux"), {
-        linuxHopperReleaseCache: valid
-          ? ok("/caller/cache/rea/hopper-releases")
-          : err(
-              new HopperReleaseError(
-                "verification_unavailable",
-                "Invalid selected cache path",
-              ),
-            ),
-      });
-      host.distribution = {
-        id: "ubuntu",
-        versionId: "24.04",
-        packageFamily: "deb",
-        hopperSetupSupported: true,
-      };
-      const result = await runSetup(options(false, true), host);
-      if (valid)
-        expect(
-          result.plannedActions.find(({ kind }) => kind === "install_hopper")
-            ?.detail,
-        ).toContain("/caller/cache/rea/hopper-releases/<launcher-sha256>");
-      else
-        expect(result).toMatchObject({
-          status: "needs_human",
-          plannedActions: [],
-        });
-      expect(host.hopperInstalls).toBe(0);
-      expect(host.configurations).toBe(0);
-      expect(host.skillInstalls).toBe(0);
-    },
-  );
-});
-
 describe("selected skill admission", () => {
   it.each(["codex", "shared"] as const)(
     "keeps %s choices when an unselected client is linked",
     async (choice) => {
       const host = new FakeSetupHost();
-      host.hopper = "/Applications/Hopper";
+      host.ghidra = "/opt/ghidra";
       host.clients = [
         {
           name: "claude_code",
@@ -119,7 +80,7 @@ describe("selected skill admission", () => {
     "keeps a CLI-only skill choice independent of detected personal copies ($decision)",
     async ({ acceptAll }) => {
       const host = new FakeSetupHost();
-      host.hopper = "/Applications/Hopper";
+      host.ghidra = "/opt/ghidra";
       host.clients = [
         {
           name: "claude_code",
@@ -167,14 +128,9 @@ describe("selected skill admission", () => {
     },
   );
 
-  it("rechecks directory admission after approval before changing clients or Hopper", async () => {
+  it("rechecks directory admission after approval before changing clients", async () => {
     const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
+
     host.clients = [
       {
         name: "claude_code",
@@ -187,7 +143,7 @@ describe("selected skill admission", () => {
       linked ? err(linkedSkillFailure()) : ok(undefined);
     const result = await runSetup(
       {
-        ...options(false, true),
+        ...options(false),
         clientIds: ["claude_code"],
         structured: false,
       },
@@ -203,7 +159,6 @@ describe("selected skill admission", () => {
       appliedActions: [],
     });
     expect(host.configurations).toBe(0);
-    expect(host.hopperInstalls).toBe(0);
     expect(host.skillInstalls).toBe(0);
   });
 });
@@ -346,7 +301,7 @@ describe("setup client selection", () => {
     },
   ])("configures and verifies $name", async ({ selection, expected }) => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     const codex = {
       name: "codex",
@@ -392,7 +347,6 @@ describe("setup client selection", () => {
       skill: true,
       skillClients: expected,
     });
-    expect(host.hopperInstalls).toBe(0);
     expect(host.skillInstalls).toBe(0);
   });
 });
@@ -432,7 +386,7 @@ describe("automatic client readiness and selection identity", () => {
     "handles repeated clients once in first-selected order (dry run: %s)",
     async (dryRun) => {
       const host = new FakeSetupHost();
-      host.hopper = "/Applications/Hopper";
+      host.ghidra = "/opt/ghidra";
       host.skill = "unchanged";
       host.clients = [
         {
@@ -487,7 +441,6 @@ describe("automatic client readiness and selection identity", () => {
         });
         expect(host.doctorScopes.at(-1)?.clients).toEqual(["codex", "cursor"]);
       }
-      expect(host.hopperInstalls).toBe(0);
       expect(host.skillInstalls).toBe(0);
     },
   );
@@ -512,44 +465,10 @@ describe("setup plan application", () => {
       "configure_client",
       "install_skill",
     ]);
-    expect(host.hopperInstalls).toBe(0);
     expect(host.configurations).toBe(0);
     expect(result.remediation).toBe(
       "Review the setup plan, then rerun interactively or with --yes.",
     );
-  });
-
-  it("reports ready after an accepted Linux plan installs healthy Hopper", async () => {
-    const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
-    const result = await runSetup(
-      { ...options(false), structured: false },
-      host,
-      () => Promise.resolve(true),
-    );
-    expect(result.status).toBe("ready");
-    expect(result.appliedActions).toEqual([
-      "installed_hopper",
-      "installed_skill",
-    ]);
-    expect(host.hopperInstalls).toBe(1);
-    expect(result.remediation).toBeUndefined();
-  });
-
-  it("requires first-run activation after installing Hopper on macOS", async () => {
-    const host = new FakeSetupHost();
-    const result = await runSetup(
-      { ...options(false), structured: false },
-      host,
-      () => Promise.resolve(true),
-    );
-    expect(result.status).toBe("needs_human");
-    expect(result.remediation).toContain("choose its demo mode");
   });
 
   it("declines an interactive plan without mutation", async () => {
@@ -561,7 +480,6 @@ describe("setup plan application", () => {
     );
     expect(result.status).toBe("cancelled");
     expect(result.appliedActions).toEqual([]);
-    expect(host.hopperInstalls).toBe(0);
     expect(host.doctorCalls).toBe(1);
   });
 
@@ -586,23 +504,14 @@ describe("setup plan application", () => {
     expect(result.appliedActions).toEqual([]);
     expect(host.configurations).toBe(0);
     expect(host.skillInstalls).toBe(0);
-    expect(host.hopperInstalls).toBe(0);
     expect(host.doctorCalls).toBe(2);
   });
 });
 
 describe("explicit setup authorization and dry runs", () => {
-  it("requires the Hopper flag for unattended setup", async () => {
-    const host = new FakeSetupHost();
-    const result = await runSetup(options(true), host);
-    expect(result.status).toBe("ready");
-    expect(host.hopperInstalls).toBe(0);
-    expect(result.appliedActions).toEqual([]);
-  });
-
   it("returns an approved planning outcome for explicit dry runs", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.skill = "unchanged";
     host.clients = [
       {
@@ -621,47 +530,12 @@ describe("explicit setup authorization and dry runs", () => {
     expect(result.plannedActions.map(({ id }) => id)).toEqual([
       "configure_client:codex",
     ]);
-    expect(host.hopperInstalls).toBe(0);
     expect(host.configurations).toBe(0);
   });
 
-  it("installs Hopper when unattended authorization is explicit", async () => {
-    const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
-    const result = await runSetup(options(true, true), host);
-    expect(result.appliedActions).toEqual(["installed_hopper"]);
-    expect(host.hopperInstalls).toBe(1);
-    expect(result.status).toBe("ready");
-    expect(result.remediation).toBeUndefined();
-  });
-
-  it("records an installed Hopper when opening the app needs manual recovery", async () => {
-    const host = new FakeSetupHost("darwin");
-    host.installHopper = () =>
-      Promise.resolve({
-        status: "installed",
-        launcherPath: "/Applications/Hopper.app/Contents/MacOS/hopper",
-        warning:
-          "Hopper was installed, but macOS could not open it. Open it manually.",
-      });
-
-    const result = await runSetup(options(true, true), host);
-
-    expect(result).toMatchObject({
-      status: "needs_human",
-      appliedActions: ["installed_hopper"],
-      remediation: expect.stringContaining("Open it manually"),
-    });
-  });
-
-  it("reuses existing Hopper without selecting every detected client", async () => {
+  it("reuses existing Ghidra without selecting every detected client", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.clients = [
       {
         name: "claude",
@@ -678,14 +552,13 @@ describe("explicit setup authorization and dry runs", () => {
     const result = await runSetup(options(true), host);
     expect(result.status).toBe("ready");
     expect(result.appliedActions).toEqual([]);
-    expect(host.hopperInstalls).toBe(0);
   });
 });
 
 describe("setup workflow lifecycle and provider planning", () => {
   it("reports append-only lifecycle progress for each selected action", async () => {
     const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     host.clients = [
       {
         name: "codex",
@@ -731,12 +604,7 @@ describe("setup workflow lifecycle and provider planning", () => {
 
   it("plans and propagates BYO Ghidra without installing software", async () => {
     const host = new FakeSetupHost("linux");
-    host.distribution = {
-      id: "ubuntu",
-      versionId: "24.04",
-      packageFamily: "deb",
-      hopperSetupSupported: true,
-    };
+
     host.ghidra = "/opt/ghidra_12.1.4_PUBLIC";
     host.javaHome = "/usr/lib/jvm/jdk-21";
     host.doctorHealthy = true;
@@ -762,7 +630,6 @@ describe("setup workflow lifecycle and provider planning", () => {
     expect(plan.plannedActions[0]?.detail).toContain(
       "JAVA_HOME=/usr/lib/jvm/jdk-21",
     );
-    expect(host.hopperInstalls).toBe(0);
     expect(host.configurations).toBe(0);
 
     const applied = await runSetup(
@@ -770,40 +637,10 @@ describe("setup workflow lifecycle and provider planning", () => {
       host,
     );
     expect(applied.status).toBe("ready");
-    expect(host.hopperInstalls).toBe(0);
     expect(host.configuredProviderEnvironments).toContainEqual({
       GHIDRA_INSTALL_DIR: "/opt/ghidra_12.1.4_PUBLIC",
       JAVA_HOME: "/usr/lib/jvm/jdk-21",
     });
-  });
-
-  it("reinstalls existing Hopper when explicitly requested", async () => {
-    const host = new FakeSetupHost();
-    host.hopper = "/Applications/Hopper";
-    host.skill = "unchanged";
-    host.clients = [
-      {
-        name: "codex",
-        registrationProfile: supportedClientRegistrationProfile("codex"),
-        configPath: "/codex.toml",
-      },
-    ];
-    host.clientResults.set("codex", { status: "unchanged" });
-
-    const result = await runSetup(
-      { ...options(true, true), clientIds: ["codex"] },
-      host,
-    );
-
-    expect(result.plannedActions.map(({ kind }) => kind)).toEqual([
-      "install_hopper",
-      "configure_client",
-    ]);
-    expect(result.appliedActions).toEqual(["installed_hopper"]);
-    expect(host.hopperInstalls).toBe(1);
-    expect(host.hopperReplaceRequests).toEqual([true]);
-    expect(host.configurations).toBe(0);
-    expect(host.checkedHopperPaths).toEqual(["/manual/Hopper"]);
   });
 
   it("does not write a file when Grok Bot is selected", async () => {
@@ -842,7 +679,7 @@ describe("setup workflow lifecycle and provider planning", () => {
 
 it("records verified skill installation while its staging cleanup remains incomplete", async () => {
   const host = new FakeSetupHost();
-  host.hopper = "/Applications/Hopper";
+  host.ghidra = "/opt/ghidra";
   host.installSkill = async () =>
     err(
       new SetupSkillInstallError({

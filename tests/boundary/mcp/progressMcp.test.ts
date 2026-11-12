@@ -28,7 +28,7 @@ describe("ordinary MCP progress and cancellation", () => {
             message,
           });
         }
-        return observed("0x1000");
+        return observed(["fixture-program"]);
       },
     };
     const server = createServer({ kind: "fixed", analysis });
@@ -44,11 +44,14 @@ describe("ordinary MCP progress and cancellation", () => {
       await server.connect(serverTransport);
       await client.connect(clientTransport);
       const result = await client.callTool(
-        { name: "current_address", arguments: {} },
+        { name: "list_documents", arguments: {} },
         { onprogress: (update) => progress.push(update) },
       );
 
       expect(result.isError).not.toBe(true);
+      expect(result.structuredContent).toMatchObject({
+        normalized_result: ["fixture-program"],
+      });
       expect(progress[0]?.progress).toBe(1);
       expect(progress.map((update) => update.message)).toEqual(
         expect.arrayContaining([
@@ -146,7 +149,7 @@ describe("ordinary MCP progress and cancellation", () => {
       await server.connect(serverTransport);
       await client.connect(clientTransport);
       const request = client.callTool(
-        { name: "current_address", arguments: {} },
+        { name: "list_documents", arguments: {} },
         { signal: controller.signal },
       );
       await awaitAcknowledgement(providerStarted, request, "provider request");

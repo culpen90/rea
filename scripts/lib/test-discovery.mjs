@@ -1,5 +1,38 @@
-import { relative, resolve } from "node:path";
+import { execFile } from "node:child_process";
+import { stat } from "node:fs/promises";
+import { join, relative, resolve } from "node:path";
+import { promisify } from "node:util";
 import { projectForTest } from "./test-projects.mjs";
+
+const execute = promisify(execFile);
+
+/** List owned test files present in the working tree, including unstaged additions. */
+export const workingTreeTestPaths = async (root) => {
+  const { stdout } = await execute(
+    "git",
+    [
+      "ls-files",
+      "-z",
+      "--cached",
+      "--others",
+      "--exclude-standard",
+      "--",
+      "src",
+      "tests",
+    ],
+    { cwd: root, maxBuffer: 8 * 1024 * 1024 },
+  );
+  const paths = [];
+  for (const path of stdout.split("\0")) {
+    if (!path.endsWith(".test.ts")) continue;
+    try {
+      if ((await stat(join(root, path))).isFile()) paths.push(path);
+    } catch (cause) {
+      if (cause.code !== "ENOENT") throw cause;
+    }
+  }
+  return paths;
+};
 
 /** Compare actual Vitest discovery with repository-owned test paths. */
 export const compareTestDiscovery = (expectedPaths, discovery, root) => {

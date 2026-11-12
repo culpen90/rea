@@ -1,7 +1,7 @@
 # REA roadmap
 
 The [platform tracker](https://github.com/morluto/rea/issues/32),
-[process/Hopper tracker](https://github.com/morluto/rea/issues/48), and
+and
 [browser tracker](https://github.com/morluto/rea/issues/39) track capability and
 verification work. Available tools and setup are documented in the
 [investigation guides](https://rea.tools/guides/),
@@ -30,6 +30,4 @@ See [tool design](tool-design.md) for choosing a tool boundary and
 [Ghidra semantics](../providers/ghidra-provider.md) for the existing deep-provider contract.
 
 Setup remains additive, reuses existing tools, and requires approval for disclosed
-configuration and Hopper installation changes. Additional installer choices need
-an implemented toolchain and explicit scope; setup does not install or upgrade
-unrelated runtimes or dependencies.
+configuration changes. Ghidra and its JDK use existing installations.

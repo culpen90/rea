@@ -1,6 +1,5 @@
 import { GHIDRA_BRIDGE_SOURCES } from "../src/ghidra/GhidraBridgeSources.ts";
 
-const packedHopperBridge = "package/bridge/hopper_bridge.py";
 const packedCutterBridge = "package/bridge/cutter/rea_bridge.py";
 
 /** Check shipped bridge files; real-provider lanes verify runtime behavior. */
@@ -13,7 +12,6 @@ export async function verifyPackedBridge({ tarball, packedFiles, commands }) {
     throw new Error("package contained generated Python bytecode");
   }
   for (const path of [
-    packedHopperBridge,
     packedCutterBridge,
     ...Object.values(GHIDRA_BRIDGE_SOURCES).map(
       (name) => `package/bridge/ghidra/${name}`,
@@ -38,6 +36,6 @@ export async function verifyPackedBridge({ tarball, packedFiles, commands }) {
       "        ast.parse(source.read().decode('utf-8'), filename=sys.argv[2])",
     ].join("\n"),
     tarball,
-    packedHopperBridge,
+    packedCutterBridge,
   ]);
 }

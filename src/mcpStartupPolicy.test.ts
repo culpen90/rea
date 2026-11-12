@@ -10,31 +10,21 @@ import {
 
 const inputs = {
   ghidraStartupTimeoutMs: 330_000,
-  hopperStartupTimeoutMs: 120_000,
 } as const;
 
 describe("MCP tool deadline allowance for a Ghidra decompile limit", () => {
-  it.each([
-    ["ghidra", 930_000],
-    ["auto", 930_000],
-    ["hopper", 120_000],
-  ] as const)(
-    "allows %s cold startup plus the selected decompile limit",
-    (analysisProvider, expected) => {
-      expect(
-        mcpProviderDeadlineAllowanceMs({
-          ...inputs,
-          analysisProvider,
-          ghidraDecompileTimeoutMs: 600_000,
-        }),
-      ).toBe(expected);
-    },
-  );
+  it("adds cold startup and the selected decompile limit", () => {
+    expect(
+      mcpProviderDeadlineAllowanceMs({
+        ...inputs,
+        ghidraDecompileTimeoutMs: 600_000,
+      }),
+    ).toBe(930_000);
+  });
 
   it("keeps the startup-only allowance when no decompile limit is set", () => {
-    const allowance = { ...inputs, analysisProvider: "ghidra" } as const;
-    expect(mcpProviderDeadlineAllowanceMs(allowance)).toBe(330_000);
-    expect(recommendedMcpToolTimeoutSeconds(allowance)).toBe(450);
+    expect(mcpProviderDeadlineAllowanceMs(inputs)).toBe(330_000);
+    expect(recommendedMcpToolTimeoutSeconds(inputs)).toBe(450);
   });
 
   it("derives the registration allowance from REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS", () => {
@@ -58,7 +48,6 @@ describe("MCP tool deadline allowance for a Ghidra decompile limit", () => {
     );
     if (!details.ok) throw details.error;
     expect(details.value.timeoutInputs).toMatchObject({
-      analysisProvider: "ghidra",
       ghidraDecompileTimeoutMs: 600_000,
     });
     // 330 s default startup + 600 s limit + 120 s operation headroom.

@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA khởi chạy cầu nối phân tích bên trong Hopper khi kiểm tra tệp nhị phân mã máy" width="1200" />
-
-<br /><br />
-
 <table aria-label="Cộng đồng REA">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@ Bạn thấy một tính năng trong ứng dụng và muốn đưa nó vào sả
 
 REA kết nối tác nhân của bạn với các công cụ kiểm tra tệp nhị phân mã máy, ứng dụng JavaScript và Electron, assembly .NET và trang web. Bạn cũng có thể dùng các công cụ đó từ terminal. Việc phân tích chạy cục bộ; kết quả bao gồm bằng chứng và giới hạn làm cơ sở cho từng kết luận.
 
-Thiết lập đăng ký REA với tác nhân và cài hướng dẫn công việc tương ứng. Phân tích native dùng Hopper, Ghidra, IDA hoặc Kuna có sẵn; có thể cài Hopper sau khi bạn chấp thuận. Phân tích tĩnh JavaScript không cần công cụ phân tích native.
+Thiết lập đăng ký REA với tác nhân và cài hướng dẫn công việc tương ứng. Phân tích mã máy dùng bản cài đặt Ghidra có sẵn. Phân tích tĩnh JavaScript không cần công cụ phân tích native.
 
 > **[Truy cập trang web REA](https://rea.tools/vi/)** để xem cách thiết lập, hướng dẫn có hình minh họa và các nghiên cứu điển hình thực tế.
 
@@ -157,7 +153,7 @@ REA yêu cầu Node.js 22.x (>=22.23.4), 24.x (>=24.22.1) hoặc 26+ (>=26.12.1)
 
 | Mục tiêu                          | REA trả về gì                                                                                                   | Yêu cầu và hướng dẫn                                                                                                                                                     |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Tệp nhị phân mã máy               | Mã giả, hợp ngữ, chuỗi, ký hiệu, lời gọi và tham chiếu                                                          | Hopper, Ghidra, IDA hoặc Kuna; [phân tích mã máy](../guides/native/native-investigation.md)                                                                              |
+| Tệp nhị phân mã máy               | Mã giả, hợp ngữ, chuỗi, ký hiệu, lời gọi và tham chiếu                                                          | Ghidra; [phân tích mã máy](../guides/native/native-investigation.md)                                                                                                     |
 | Bố cục ELF ngoại tuyến            | Các section, segment, ký hiệu/thông tin tái định vị gốc và các biện pháp giảm thiểu có thể có từ phân tích tĩnh | pwntools do bên gọi cung cấp trên Linux x64; [chẩn đoán tệp nhị phân](../guides/native/binary-diagnostics.md)                                                            |
 | Bytecode EVM                      | Bộ chọn điều phối, độ lệch byte, tham số suy luận và khả năng thay đổi trạng thái                               | Đầu vào cục bộ chứa byte thô hoặc dạng thập lục phân trên Linux x64; [hướng dẫn EVM ngoại tuyến](../guides/evm/evm-bytecode.md)                                          |
 | Rust binaries                     | Embedded cargo-auditable dependency list                                                                        | [Rust binaries](../rust-binaries.md)                                                                                                                                     |
@@ -203,9 +199,11 @@ Kiểm tra tĩnh JavaScript và .NET đọc các tệp được cung cấp mà k
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Với tệp nhị phân lớn, tăng hạn khởi động bằng `REA_GHIDRA_STARTUP_TIMEOUT_MS` hoặc `REA_HOPPER_STARTUP_TIMEOUT_MS`.
+[Chuyển sang Ghidra](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
 
-Định dạng mã máy và nền tảng chạy REA được hỗ trợ khác nhau tùy trình phân tích. Xem [thiết lập Hopper và Ghidra](../getting-started/installation.md#hopper), [hướng dẫn IDA](../providers/ida-provider.md), [Kuna](../kuna-provider.md) và [hỗ trợ Ghidra thử nghiệm trên Windows](../providers/windows-ghidra-p0.md). Ghidra cũng hỗ trợ [phân tích DOS 16 bit](../providers/ghidra-dos.md). Để chọn trình phân tích, xem [hướng dẫn CLI](../getting-started/cli.md#choose-a-provider). Kiểm tra [khả năng sử dụng theo bản phát hành](../getting-started/installation.md#released-package-and-main) đối với tính năng được bổ sung sau phiên bản npm mới nhất.
+Với tệp nhị phân lớn, tăng hạn khởi động bằng `REA_GHIDRA_STARTUP_TIMEOUT_MS`.
+
+Định dạng mã máy và nền tảng chạy REA được hỗ trợ khác nhau tùy trình phân tích. Xem [Ghidra](../getting-started/installation.md#ghidra), [hỗ trợ Ghidra thử nghiệm trên Windows](../providers/windows-ghidra-p0.md). Ghidra cũng hỗ trợ [phân tích DOS 16 bit](../providers/ghidra-dos.md). Để chọn trình phân tích, xem [hướng dẫn CLI](../getting-started/cli.md#choose-a-provider). Kiểm tra [khả năng sử dụng theo bản phát hành](../getting-started/installation.md#released-package-and-main) đối với tính năng được bổ sung sau phiên bản npm mới nhất.
 
 ## Các nghiên cứu điển hình
 
@@ -295,16 +293,10 @@ Bất kỳ tác nhân nào hỗ trợ máy chủ MCP cục bộ. Quá trình thi
 </details>
 
 <details>
-<summary><strong>Tôi có cần Hopper, Ghidra, IDA hoặc Kuna không?</strong></summary>
+<summary><strong>Tôi có cần Ghidra không?</strong></summary>
 
-Phân tích mã máy chuyên sâu sử dụng một trong những công cụ đó. Kiểm tra tĩnh JavaScript và .NET hoạt động mà không cần bộ máy phân tích mã máy. Quá trình thiết lập có thể cài Hopper sau khi được chấp thuận; Ghidra, IDA và Kuna dùng bản cài đặt sẵn có. Xem [thiết lập trình phân tích](../getting-started/installation.md#hopper).
-
-</details>
-
-<details>
-<summary><strong>Tôi có cần khởi chạy Hopper trước không?</strong></summary>
-
-REA khởi chạy Hopper khi một thao tác cần đến nó. Trên macOS, hộp thoại lần chạy đầu có thể yêu cầu chọn chế độ dùng thử hoặc kích hoạt giấy phép. Xem [khởi động Hopper và khắc phục sự cố](../getting-started/installation.md#launcher-paths-and-troubleshooting).
+Phân tích mã máy dùng bản cài đặt Ghidra có sẵn. Kiểm tra tĩnh JavaScript và .NET hoạt động mà không cần bộ máy phân tích mã máy.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -402,7 +394,7 @@ licenses and copyright notices; see [Third-party notices](../../THIRD_PARTY_NOTI
 for the dependency inventory, preserved license texts, and external-tool terms.
 
 **You must legally obtain and be authorized to use commercial tools**, including
-IDA Pro / Hex-Rays decompilers, Hopper, and JEB, under their applicable licenses.
+JEB, under its applicable license.
 REA grants no tool license, key, or activation entitlement. Trials and demos
 remain subject to vendor terms, including user, feature, automation, and output
 sharing restrictions. Cracked copies, stolen keys, unauthorized key sharing,

@@ -17,3 +17,5 @@ export function compareTestDiscovery(
   }[];
   readonly discovered: number;
 };
+/** List owned test files present in the working tree, including unstaged additions. */
+export function workingTreeTestPaths(root: string): Promise<readonly string[]>;

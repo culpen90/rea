@@ -4,10 +4,12 @@ import { join } from "node:path";
 
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import type { CallToolResult } from "@modelcontextprotocol/server";
-import { expect } from "vitest";
+import { afterAll, expect } from "vitest";
 import { z } from "zod";
 
 import { createTestBinarySession } from "../../fixtures/binarySession.js";
+import { createMcpSchemaValidation } from "../../fixtures/mcpSchemaValidation.js";
+import type { ToolFamilyId } from "../../../src/contracts/toolFamilyIds.js";
 import { createAnalysisProfile } from "../../../src/domain/analysisProfile.js";
 import { createEvidence } from "../../../src/domain/evidence.js";
 import type {
@@ -24,6 +26,12 @@ import {
 import { ok } from "../../../src/domain/result.js";
 import { silentLogger } from "../../../src/logger.js";
 import { createServer } from "../../../src/server/createServer.js";
+
+const validation = createMcpSchemaValidation();
+afterAll(() => validation.clear());
+
+export const createSessionTestClient = (name: string): Client =>
+  new Client({ name, version: "1.0.0" }, { jsonSchemaValidator: validation });
 
 const SNAPSHOT_PROFILE = createAnalysisProfile(
   { id: "fixture", name: "Fixture analysis provider", version: "1" },
@@ -76,6 +84,7 @@ export const createSessionMcpHarness = async (
   resources: Array<{ close(): Promise<unknown> }>,
   maximumInputElements?: number,
   outputSchemaProfile?: "off",
+  toolFamilies?: readonly ToolFamilyId[],
 ): Promise<SessionMcpHarness> => {
   const first = join(root, "first.hop");
   const second = join(root, "second.hop");
@@ -92,23 +101,21 @@ export const createSessionMcpHarness = async (
       adbDeviceAnalysis,
       apktoolAnalysis,
       logger: silentLogger,
-      ...(maximumInputElements === undefined &&
-      outputSchemaProfile === undefined
-        ? {}
-        : {
-            environment: {
-              ...process.env,
-              ...(maximumInputElements === undefined
-                ? {}
-                : { REA_MCP_MAX_INPUT_ELEMENTS: String(maximumInputElements) }),
-              ...(outputSchemaProfile === undefined
-                ? {}
-                : { REA_MCP_OUTPUT_SCHEMA_PROFILE: outputSchemaProfile }),
-            },
-          }),
+      environment: {
+        ...process.env,
+        ...(maximumInputElements === undefined
+          ? {}
+          : { REA_MCP_MAX_INPUT_ELEMENTS: String(maximumInputElements) }),
+        ...(outputSchemaProfile === undefined
+          ? {}
+          : { REA_MCP_OUTPUT_SCHEMA_PROFILE: outputSchemaProfile }),
+        ...(toolFamilies === undefined
+          ? {}
+          : { REA_MCP_TOOL_FAMILIES: toolFamilies.join(",") }),
+      },
     },
   );
-  const mcp = new Client({ name: "session-test", version: "1.0.0" });
+  const mcp = createSessionTestClient("session-test");
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
   resources.push(mcp, server);

@@ -85,7 +85,6 @@ const env = {
   REA_LOG_LEVEL: "silent",
   REA_ANALYSIS_PROVIDER: "ghidra",
   REA_PROCESS_RUN_ID: run.run_id,
-  HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
   GHIDRA_INSTALL_DIR: process.env.GHIDRA_INSTALL_DIR,
   ...(process.env.JAVA_HOME === undefined
     ? {}

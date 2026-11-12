@@ -205,7 +205,6 @@ it.skipIf(process.platform === "win32").each([
 it("rejects an omitted auxiliary source at the actual package verification boundary", async () => {
   const source = GHIDRA_BRIDGE_SOURCES.prepareCom;
   const packedFiles = [
-    "package/bridge/hopper_bridge.py",
     "package/bridge/cutter/rea_bridge.py",
     ...Object.values(GHIDRA_BRIDGE_SOURCES)
       .filter((name) => name !== source)

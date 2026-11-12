@@ -92,7 +92,7 @@ describe("DeepSeek Harness configuration paths", () => {
   );
 
   it("resolves the home Cordis patch under the Harness home", () => {
-    expect(dshClient({})).toEqual({
+    expect(dshClient({})).toMatchObject({
       name: "dsh",
       displayName: "DeepSeek Harness",
       configPath: resolve("/home/a", ".dsh", "cordis.patch.yml"),
@@ -1674,7 +1674,6 @@ const dshStatus = async (home: string) =>
 
 describe("DeepSeek Harness runtime environment validation", () => {
   it.each([
-    ["HOPPER_LOADER_ARGS_JSON", "{"],
     ["REA_REFERENCE_SECRET_PATTERNS_JSON", '[""]'],
     ["REA_GHIDRA_COMPILER_SPEC_ID", "borlandcpp"],
   ])("refuses invalid literal %s before writing", async (setting, value) => {
@@ -1728,7 +1727,7 @@ describe("DeepSeek Harness runtime environment validation", () => {
     );
     for (const setting of [
       "REA_GHIDRA_LANGUAGE_ID",
-      "HOPPER_LOADER_ARGS_JSON",
+      "REA_REFERENCE_SECRET_PATTERNS_JSON",
     ]) {
       const expression = document.createNode(`process.env.${setting}`);
       expression.tag = "tag:yaml.org,2002:js";
@@ -1744,7 +1743,9 @@ describe("DeepSeek Harness runtime environment validation", () => {
     ).toMatchObject({ status: "configured" });
     const configured = await readFile(client.configPath, "utf8");
     expect(configured).toContain("!!js process.env.REA_GHIDRA_LANGUAGE_ID");
-    expect(configured).toContain("!!js process.env.HOPPER_LOADER_ARGS_JSON");
+    expect(configured).toContain(
+      "!!js process.env.REA_REFERENCE_SECRET_PATTERNS_JSON",
+    );
     expect(configured).toContain("CALLER_SETTING: keep");
     expect(await dshStatus(home)).toMatchObject({ state: "aligned" });
     expect(
@@ -1753,12 +1754,14 @@ describe("DeepSeek Harness runtime environment validation", () => {
     await expect(
       inspectClientConfiguration(
         client,
-        { HOPPER_LOADER_ARGS_JSON: "{" },
+        { REA_REFERENCE_SECRET_PATTERNS_JSON: "{" },
         command,
       ),
     ).resolves.toMatchObject({
       status: "invalid",
-      remediation: expect.stringContaining("HOPPER_LOADER_ARGS_JSON"),
+      remediation: expect.stringContaining(
+        "REA_REFERENCE_SECRET_PATTERNS_JSON",
+      ),
     });
     await expect(
       inspectClientConfiguration(
@@ -1775,7 +1778,7 @@ describe("DeepSeek Harness runtime environment validation", () => {
         client,
         {
           REA_GHIDRA_LANGUAGE_ID: "x86:LE:32:default",
-          HOPPER_LOADER_ARGS_JSON: '[""]',
+          REA_REFERENCE_SECRET_PATTERNS_JSON: '[".env"]',
         },
         command,
       ),

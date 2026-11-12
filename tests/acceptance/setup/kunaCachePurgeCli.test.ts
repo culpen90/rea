@@ -8,11 +8,11 @@ import { cliTest } from "../../support/cli/cliFixture.js";
 cliTest
   .runIf(process.platform === "linux" || process.platform === "darwin")
   .for([
-    { label: "default directory alias", suffix: "/", retained: false },
-    { label: "literal POSIX backslash", suffix: "\\", retained: true },
+    { label: "default directory alias", suffix: "/" },
+    { label: "literal POSIX backslash", suffix: "\\" },
   ])(
-  "reports actual Kuna purge effects for $label",
-  async ({ suffix, retained }, { cli }) => {
+  "retains legacy Kuna cache during purge for $label",
+  async ({ suffix }, { cli }) => {
     const home = await createTestTempDirectory("rea-kuna-purge-cli-");
     const cacheRoot = join(
       home,
@@ -48,35 +48,17 @@ cliTest
     expect(result.json).toMatchObject({
       status: "complete",
       items: expect.arrayContaining([
-        expect.objectContaining({ name: "kuna", status: "removed" }),
+        expect.objectContaining({
+          name: "kuna-custom-cache",
+          status: "retained",
+          detail: expect.stringContaining(custom),
+        }),
       ]),
     });
-    if (retained) {
-      expect(result.json).toMatchObject({
-        items: expect.arrayContaining([
-          expect.objectContaining({
-            name: "kuna-custom-cache",
-            status: "retained",
-            detail: expect.stringContaining(custom),
-          }),
-        ]),
-      });
-      expect(await readFile(join(custom, "selected"), "utf8")).toBe(
-        "caller evidence",
-      );
-    } else {
-      expect(result.json).not.toMatchObject({
-        items: expect.arrayContaining([
-          expect.objectContaining({ name: "kuna-custom-cache" }),
-        ]),
-      });
-      await expect(readFile(join(custom, "selected"))).rejects.toMatchObject({
-        code: "ENOENT",
-      });
-    }
-    await expect(readFile(join(cache, "owned"))).rejects.toMatchObject({
-      code: "ENOENT",
-    });
+    expect(await readFile(join(custom, "selected"), "utf8")).toBe(
+      "caller evidence",
+    );
+    expect(await readFile(join(cache, "owned"), "utf8")).toBe("owned cache");
     expect(await readFile(sibling, "utf8")).toBe("unrelated evidence");
   },
 );

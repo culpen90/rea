@@ -170,7 +170,7 @@ A large label "Your agent"
 
 Below stage 2 only, put a supporting box and a thin vertical connector to REA. Box labels verbatim:
 "Analysis tools"
-"Ghidra / Hopper / IDA / other adapters"
+"Ghidra and format-specific adapters"
 It is a set of available adapters, not a requirement that all engines be used. Do not put this box under other stages.
 Add exactly one subtle feedback arrow above the main row: from stage 4 back to stage 2, pointing into REA. Its label is "Follow-up question". Do not cross text.
 Semantics: REA provides inspection and analysis evidence via CLI/MCP. The user's agent uses that evidence to explain, implement, or test. Never imply REA automatically clones a program.

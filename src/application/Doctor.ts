@@ -8,7 +8,7 @@ import { ArtifactReaderFailure } from "../artifacts/ArtifactReader.js";
 import { AnalysisCleanupLease } from "../artifacts/AnalysisCleanupLease.js";
 import { STARTUP_OWNER_CLOSED } from "../process/SharedStartupAttempt.js";
 import { constants } from "node:fs";
-import { access, stat } from "node:fs/promises";
+import { access } from "node:fs/promises";
 import { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
 import type { RetainedResourceScope } from "./AnalysisProvider.js";
 import {
@@ -17,7 +17,6 @@ import {
 } from "../config/parseConfig.js";
 import { homeDirectoryFromEnvironment } from "../config/homeDirectory.js";
 import { snapshotEnvironment } from "../process/snapshotEnvironment.js";
-import { appendCallerPath } from "../filesystem/callerPath.js";
 
 import { analysisErrorRemediationAction } from "../domain/analysisErrorPresentation.js";
 import { BinaryTargetError } from "../domain/configurationErrors.js";
@@ -33,17 +32,10 @@ import {
   javaScriptRuntime,
   type JavaScriptRuntime,
 } from "../domain/runtimeVersion.js";
-import { installedCaskAppdir, probeHomebrew } from "./homebrew.js";
-import { readMacHopperRenamedLauncherCandidates } from "./MacHopperPaths.js";
 import {
-  inspectLinuxHopperLauncher,
-  linuxSharedLibrariesAvailable,
   readLinuxDistribution,
   type LinuxDistribution,
-} from "./LinuxHopper.js";
-import type { Result } from "../domain/result.js";
-import type { HopperReleaseError } from "./HopperReleaseFeed.js";
-import type { VerifiedLinuxHopperLauncher } from "./LinuxHopperPublisher.js";
+} from "./LinuxDistribution.js";
 import {
   readInstalledSkillIdentity,
   type InstalledSkillIdentity,
@@ -56,10 +48,7 @@ import {
   type ClientRegistrationStatus,
   type UnhealthyClientRegistrationStatus,
 } from "./ClientRegistrationStatus.js";
-import type {
-  OwnedProviderSetting,
-  ProviderRequestBudgetResolver,
-} from "./ClientRegistrationEnvironment.js";
+import type { OwnedProviderSetting } from "./ClientRegistrationEnvironment.js";
 import { registrationSpelledSettings } from "./SetupRegistrationEnvironment.js";
 import {
   collectDoctorDiagnostics,
@@ -125,7 +114,6 @@ export interface DoctorHost {
   readonly architecture: NodeJS.Architecture;
   readonly runtime: JavaScriptRuntime;
   readonly homeDirectory: string;
-  readonly configuredHopperPath?: string;
   /**
    * Settings `parseConfig` rejects before native analysis starts.
    * Undefined means this host did not run that admission.
@@ -137,20 +125,9 @@ export interface DoctorHost {
   validTarget(path: string): Promise<boolean>;
   /** Route-specific target admission details, when supplied by the host. */
   inspectTarget?(path: string): Promise<DoctorCheck>;
-  executable(path: string): Promise<boolean>;
-  inspectLinuxHopper(
-    path: string,
-  ): Promise<Result<VerifiedLinuxHopperLauncher, HopperReleaseError>>;
-  linuxDemoRuntimeCheck(): Promise<DoctorCheck>;
-  /** Homebrew cask launcher; consulted only where macOS bundles are probed. */
-  brewHopperPath(): Promise<string | undefined>;
-  /** Renamed `Hopper*.app` launchers; consulted only where macOS bundles are probed. */
-  manualHopperPaths(): Promise<readonly string[]>;
   providerInspections?(
     clients: readonly string[],
   ): Promise<readonly DoctorProviderInspection[]>;
-  /** Resolve a parsed upstream request budget from the effective client environment. */
-  resolveProviderRequestBudget?: ProviderRequestBudgetResolver;
   installationPaths?(): Promise<readonly string[]>;
   /** Undefined checks installed skill roots; explicit selections stay scoped. */
   installedSkillIdentity?(
@@ -179,7 +156,6 @@ export interface DoctorReport {
   readonly scope: DoctorScopeReport;
   readonly scope_checks: readonly DoctorCheck[];
   readonly informational_checks: readonly DoctorCheck[];
-  readonly hopperPath?: string;
   readonly providerInspections?: readonly DoctorProviderInspection[];
   readonly checks: readonly DoctorCheck[];
   readonly identity?: DoctorIdentity;
@@ -293,22 +269,9 @@ const inspectDoctor = async (
   if (host.signal?.aborted)
     throw new AnalysisCancelledError("doctor", { cause: host.signal.reason });
   const scope = normalizeDoctorScope(requestedScope, target);
-  const {
-    checks: diagnosticChecks,
-    hopperPath,
-    providerInspections,
-  } = await collectDoctorDiagnostics(target, host, scope.clients);
-  const hopperAvailable =
-    hopperPath !== undefined &&
-    diagnosticChecks
-      .filter(({ name }) => name.startsWith("hopper"))
-      .every(({ ok }) => ok);
-  const selections = providerSettingSelections(
-    providerInspections,
-    hopperAvailable && hopperPath === host.configuredHopperPath
-      ? hopperPath
-      : undefined,
-  );
+  const { checks: diagnosticChecks, providerInspections } =
+    await collectDoctorDiagnostics(target, host, scope.clients);
+  const selections = providerSettingSelections(providerInspections);
   const identity = await collectDoctorIdentity(host, scope, selections);
   const checks = [
     ...diagnosticChecks,
@@ -317,17 +280,12 @@ const inspectDoctor = async (
     ...registrationEnvironmentChecks(identity.value.registrations, selections),
     ...(await selectedDesktopBuildChecks(host, scope, identity.value.skill)),
   ];
-  const providers = {
-    hopperAvailable,
-    hopperConfigured: host.configuredHopperPath !== undefined,
-    providerInspections,
-  };
-  const environmentHealthy = doctorHealthy(checks, providers);
+  const environmentHealthy = doctorHealthy(checks, providerInspections);
   const scoped = scopeDoctorChecks({
     checks,
     registrations: identity.value.registrations,
     skillState: identity.value.skill.state,
-    providers,
+    providerInspections,
     scope,
   });
   return {
@@ -337,7 +295,6 @@ const inspectDoctor = async (
     scope_checks: scope.mode === "audit-wide" ? checks : scoped.scopeChecks,
     informational_checks:
       scope.mode === "audit-wide" ? [] : scoped.informationalChecks,
-    ...(hopperPath === undefined ? {} : { hopperPath }),
     ...(providerInspections === undefined ? {} : { providerInspections }),
     checks,
     identity: identity.value,
@@ -368,25 +325,13 @@ interface ProviderSettingSelection {
 
 const providerSettingSelections = (
   inspections: readonly DoctorProviderInspection[] | undefined,
-  configuredHopperPath: string | undefined,
-): readonly ProviderSettingSelection[] => [
-  ...(inspections ?? [])
+): readonly ProviderSettingSelection[] =>
+  (inspections ?? [])
     .filter(({ available }) => available)
     .map(({ id, registrationEnvironment }) => ({
       provider: id,
       settings: registrationEnvironment,
-    })),
-  // Startup probes the fixed and renamed locations on its own, so only an
-  // explicit path is something this terminal selected for the server.
-  ...(configuredHopperPath === undefined
-    ? []
-    : [
-        {
-          provider: "hopper",
-          settings: { HOPPER_LAUNCHER_PATH: configuredHopperPath },
-        },
-      ]),
-];
+    }));
 
 /** Render what the registration comparison established without inferring its effective environment. */
 const registrationEnvironmentDetail = (
@@ -643,16 +588,6 @@ export interface SystemDoctorHostOptions {
     signal: AbortSignal,
     clients: readonly string[],
   ) => Promise<readonly DoctorProviderInspection[]>;
-  readonly resolveProviderRequestBudget?: (
-    provider: Parameters<ProviderRequestBudgetResolver>[0],
-    environment: Parameters<ProviderRequestBudgetResolver>[1],
-    resources: RetainedResourceScope,
-    signal: AbortSignal,
-  ) => ReturnType<ProviderRequestBudgetResolver>;
-  readonly linuxDemoRuntimeCheck?: (
-    resourceScope: RetainedResourceScope,
-    signal: AbortSignal,
-  ) => Promise<DoctorCheck>;
   readonly desktopBuildFacts?: (
     input: DesktopBuildFactsInput,
   ) => Promise<DesktopBuildFacts>;
@@ -726,35 +661,19 @@ export const systemDoctorHost = (
       }),
     run: (operation) => resources.run(operation),
   };
-  const resolveProviderRequestBudget =
-    options.resolveProviderRequestBudget === undefined
-      ? undefined
-      : (
-          provider: Parameters<ProviderRequestBudgetResolver>[0],
-          environment: Parameters<ProviderRequestBudgetResolver>[1],
-        ) =>
-          options.resolveProviderRequestBudget!(
-            provider,
-            environment,
-            resourceScope,
-            inspectionSignal,
-          );
   const host: DoctorHost = {
     ...(options.signal === undefined ? {} : { signal: options.signal }),
     platform,
     architecture,
     runtime: javaScriptRuntime(process.versions),
     homeDirectory,
-    ...(environment.HOPPER_LAUNCHER_PATH === undefined
-      ? {}
-      : { configuredHopperPath: environment.HOPPER_LAUNCHER_PATH }),
     nativeConfiguration,
     ...(environment.REA_ILSPY_CMD_PATH === undefined
       ? {}
       : { configuredIlspyCmdPath: environment.REA_ILSPY_CMD_PATH }),
     macosVersion: () =>
       readMacosVersion(hostExecFileOutput, commandEnvironment),
-    linuxDistribution: () => readLinuxDistribution(architecture),
+    linuxDistribution: readLinuxDistribution,
     async validTarget(path) {
       return (
         await parseBinaryTarget(path, {
@@ -795,52 +714,6 @@ export const systemDoctorHost = (
         remediation: analysisErrorRemediationAction(error),
       };
     },
-    executable: (path) =>
-      executableAvailable(
-        path,
-        platform,
-        hostExecFileOutput,
-        commandEnvironment,
-      ),
-    linuxDemoRuntimeCheck: () =>
-      options.linuxDemoRuntimeCheck === undefined
-        ? uncomposedLinuxDemoRuntimeCheck()
-        : options.linuxDemoRuntimeCheck(resourceScope, inspectionSignal),
-    inspectLinuxHopper: (path) => inspectLinuxHopperLauncher(path, environment),
-    async brewHopperPath() {
-      return probeHomebrew(async (command) => {
-        let caskroom: string;
-        try {
-          // Without a cask argument, `--caskroom` does not load Homebrew's
-          // cask API, so doctor writes no Homebrew cache files.
-          caskroom = (
-            await hostExecFileOutput(
-              command,
-              ["--caskroom"],
-              commandEnvironment,
-            )
-          ).stdout.trim();
-        } catch (cause: unknown) {
-          if (cause instanceof AnalysisCancelledError) throw cause;
-          // best-effort cleanup: optional Homebrew probing; absence means uninstalled.
-          void cause;
-          return undefined;
-        }
-        const appdir = await installedCaskAppdir(
-          caskroom,
-          "hopper-disassembler",
-          homeDirectory,
-        );
-        return appdir === undefined
-          ? undefined
-          : appendCallerPath(
-              appdir,
-              "Hopper Disassembler.app/Contents/MacOS/hopper",
-            );
-      });
-    },
-    manualHopperPaths: () =>
-      readMacHopperRenamedLauncherCandidates(homeDirectory),
     ...(options.providerInspections === undefined
       ? {}
       : {
@@ -853,9 +726,6 @@ export const systemDoctorHost = (
               ),
             ),
         }),
-    ...(resolveProviderRequestBudget === undefined
-      ? {}
-      : { resolveProviderRequestBudget }),
     async ilspyCmdVersion(path) {
       try {
         await access(path, constants.X_OK);
@@ -936,11 +806,6 @@ export const systemDoctorHost = (
                 environment,
               ),
             }),
-        ...(resolveProviderRequestBudget === undefined
-          ? {}
-          : {
-              resolveProviderRequestBudget,
-            }),
       }),
   };
   const readFacts = options.desktopBuildFacts;
@@ -978,35 +843,6 @@ const readMacosVersion = async (
     return undefined;
   }
 };
-
-const executableAvailable = async (
-  path: string,
-  platform: NodeJS.Platform,
-  run: typeof execFileOutput,
-  options: { readonly env: NodeJS.ProcessEnv },
-): Promise<boolean> => {
-  try {
-    await access(path, constants.X_OK);
-    if (!(await stat(path)).isFile()) return false;
-    if (platform !== "linux") return true;
-    const linked = await run("ldd", [path], options);
-    return linuxSharedLibrariesAvailable(`${linked.stdout}\n${linked.stderr}`);
-  } catch (cause: unknown) {
-    if (cause instanceof AnalysisCancelledError) throw cause;
-    // best-effort cleanup: optional executable probing; failure means unavailable.
-    void cause;
-    return false;
-  }
-};
-
-const uncomposedLinuxDemoRuntimeCheck = (): Promise<DoctorCheck> =>
-  Promise.resolve({
-    name: "hopper-demo-runtime",
-    ok: false,
-    classification: "config_drift",
-    detail: "Linux Hopper private-display diagnostics were not composed",
-    remediation: "Run rea doctor through the production CLI adapter.",
-  });
 
 const uniqueLines = (value: string): string[] => [
   ...new Set(

@@ -729,24 +729,30 @@ it("saves a witness record again after a failed save, without checking again", a
   ).toContain("ended");
 });
 
-it("returns the record a witness saved when the computer closes while the save commits", async () => {
+it("retains the published witness evidence when the computer closes during commit", async () => {
   const witness = await witnessed();
   const { client, id, check, directory } = witness;
   await throughNearMiss(witness);
   await witness.act("reset");
-  let closed: Promise<unknown> = Promise.resolve();
+  let closed: Promise<CallToolResult> | undefined;
   cancelDuringCommit(() => {
     closed = client.callTool({
       name: "close_build_computer",
       arguments: { computer_id: id },
     });
+    void closed.catch(() => undefined);
   });
-  const saved = parsed(await check({ stage: "after_reset" }));
-  expect(saved.witness?.record).toMatchObject({
-    path: join(directory, "witness.json"),
-    verdict: "held",
+  const result = await check({ stage: "after_reset" });
+  expect(await closed).toMatchObject({
+    structuredContent: { computer_id: id, teardown: "agentenv" },
   });
-  await closed;
+  const path = join(directory, "witness.json");
+  const evidence = parseEvidence(JSON.parse(await readFile(path, "utf8")));
+  expect(evidence.normalized_result).toMatchObject({ verdict: "held" });
+  expect(parseMcpToolError(result).error).toMatchObject({
+    code: "cancelled",
+    details: { partial_observation: { evidence_id: evidence.evidence_id } },
+  });
 });
 
 it("returns a record saved as its check was cancelled when that check is asked again", async () => {

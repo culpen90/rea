@@ -31,7 +31,7 @@ const entrypoint = fileURLToPath(new URL("./rea.mjs", import.meta.url));
 const environment = Object.fromEntries(
   Object.entries(process.env).filter(([, value]) => typeof value === "string"),
 );
-delete environment.HOPPER_TARGET_PATH;
+delete environment.REA_TARGET_PATH;
 const goEnvironment = {
   ...environment,
   CGO_ENABLED: "0",

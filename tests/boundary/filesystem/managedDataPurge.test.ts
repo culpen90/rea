@@ -60,22 +60,20 @@ finally { await host.close?.(); }`,
     expect(JSON.parse(result.stdout)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name, status: "removed" }),
-        expect.objectContaining({ name: "kuna", status: "removed" }),
       ]),
     );
     await expect(lstat(cwd)).rejects.toMatchObject({ code: "ENOENT" });
-    await expect(lstat(cache)).rejects.toMatchObject({ code: "ENOENT" });
+    expect(await readFile(join(cache, "cached"), "utf8")).toBe("owned cache");
     expect(await readFile(join(callerCache, "evidence"), "utf8")).toBe(
       "caller evidence",
     );
-    if (relative)
-      expect(JSON.parse(result.stdout)).toContainEqual(
-        expect.objectContaining({
-          name: "kuna-custom-cache",
-          status: "retained",
-          detail: expect.stringContaining(selected),
-        }),
-      );
+    expect(JSON.parse(result.stdout)).toContainEqual(
+      expect.objectContaining({
+        name: "kuna-custom-cache",
+        status: "retained",
+        detail: expect.stringContaining(selected),
+      }),
+    );
   },
 );
 
@@ -90,12 +88,18 @@ it.each(["darwin", "linux"] as const)(
     const directories = [
       join(home, ".rea", "cache"),
       join(home, ".rea", "state"),
-      join(cache, "rea", "kuna"),
-      ...(platform === "linux" ? [join(cache, "rea", "hopper-releases")] : []),
     ];
     for (const directory of directories) {
       await mkdir(directory, { recursive: true });
       await writeFile(join(directory, "cached"), "REA cache");
+    }
+    const legacy = [
+      join(cache, "rea", "kuna"),
+      join(cache, "rea", "hopper-releases"),
+    ];
+    for (const directory of legacy) {
+      await mkdir(directory, { recursive: true });
+      await writeFile(join(directory, "cached"), "legacy cache");
     }
     const sibling = join(cache, "rea", "caller-evidence");
     await mkdir(sibling);
@@ -115,6 +119,10 @@ it.each(["darwin", "linux"] as const)(
         await expect(readFile(join(directory, "cached"))).rejects.toMatchObject(
           { code: "ENOENT" },
         );
+      for (const directory of legacy)
+        expect(await readFile(join(directory, "cached"), "utf8")).toBe(
+          "legacy cache",
+        );
       expect(await readFile(join(sibling, "retained"), "utf8")).toBe(
         "caller evidence",
       );
@@ -127,91 +135,7 @@ it.each(["darwin", "linux"] as const)(
   },
 );
 
-it("retains an arbitrary caller-selected Kuna cache and refuses a linked managed namespace", async () => {
-  const home = await createTestTempDirectory("rea-managed-cache-link-");
-  const custom = join(home, "caller-data");
-  await mkdir(custom);
-  await writeFile(join(custom, "evidence"), "retained");
-  const cache = join(home, "cache");
-  await mkdir(cache);
-  await symlink(custom, join(cache, "rea"), "dir");
-  const host = systemUninstallHost(
-    home,
-    undefined,
-    {
-      XDG_CACHE_HOME: cache,
-      REA_KUNA_CACHE_DIR: custom,
-    },
-    "linux",
-  );
-  try {
-    expect(await host.purgeData()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: "kuna-custom-cache",
-          status: "retained",
-        }),
-        expect.objectContaining({ name: "kuna", status: "retained" }),
-        expect.objectContaining({
-          name: "hopper-releases",
-          status: "retained",
-        }),
-      ]),
-    );
-    expect(await readFile(join(custom, "evidence"), "utf8")).toBe("retained");
-  } finally {
-    await host.close?.();
-  }
-});
-
-it.each([
-  {
-    label: "trailing separator",
-    spelling: (cache: string) => `${cache}/`,
-  },
-  {
-    label: "dot segment",
-    spelling: (cache: string) => `${cache}/.`,
-  },
-  {
-    label: "duplicate separator",
-    spelling: (cache: string) =>
-      `${cache.slice(0, cache.lastIndexOf("kuna"))}/${"kuna"}`,
-  },
-])(
-  "purges a default Kuna cache selected with a $label",
-  async ({ spelling }) => {
-    const home = await createTestTempDirectory("rea-managed-cache-spelling-");
-    const root = join(home, "Library/Caches");
-    const cache = join(root, "rea", "kuna");
-    await mkdir(cache, { recursive: true });
-    await writeFile(join(cache, "cached"), "REA cache");
-    const host = systemUninstallHost(
-      home,
-      undefined,
-      {
-        REA_KUNA_CACHE_DIR: spelling(cache),
-      },
-      "darwin",
-    );
-    try {
-      const result = await host.purgeData();
-      expect(result).not.toContainEqual(
-        expect.objectContaining({ name: "kuna-custom-cache" }),
-      );
-      expect(result).toContainEqual(
-        expect.objectContaining({ name: "kuna", status: "removed" }),
-      );
-      await expect(readFile(join(cache, "cached"))).rejects.toMatchObject({
-        code: "ENOENT",
-      });
-    } finally {
-      await host.close?.();
-    }
-  },
-);
-
-it("purges the Darwin ownership-helper cache with the default Kuna namespace", async () => {
+it("purges the Darwin ownership-helper cache when purging managed data", async () => {
   const home = await createTestTempDirectory("rea-managed-helper-cache-");
   const helper = join(home, "Library/Caches/rea/process-helper");
   await mkdir(join(helper, "a".repeat(64)), { recursive: true });
@@ -222,31 +146,6 @@ it("purges the Darwin ownership-helper cache with the default Kuna namespace", a
       expect.objectContaining({ name: "process-helper", status: "removed" }),
     );
     await expect(lstat(helper)).rejects.toMatchObject({ code: "ENOENT" });
-  } finally {
-    await host.close?.();
-  }
-});
-
-it("reports the Hopper producer's invalid cache selection rather than silently falling back", async () => {
-  const home = await createTestTempDirectory("rea-managed-cache-invalid-");
-  const fallback = join(home, ".cache", "rea", "hopper-releases");
-  await mkdir(fallback, { recursive: true });
-  await writeFile(join(fallback, "release"), "retained");
-  const host = systemUninstallHost(
-    home,
-    undefined,
-    { XDG_CACHE_HOME: "relative" },
-    "linux",
-  );
-  try {
-    expect(await host.purgeData()).toContainEqual(
-      expect.objectContaining({
-        name: "hopper-releases",
-        status: "failed",
-        detail: expect.stringContaining("absolute"),
-      }),
-    );
-    expect(await readFile(join(fallback, "release"), "utf8")).toBe("retained");
   } finally {
     await host.close?.();
   }
@@ -278,15 +177,10 @@ it("reports a retained Kuna cache reached through symlink parent traversal", asy
         status: "retained",
       }),
     );
-    expect(result).toContainEqual(
-      expect.objectContaining({ name: "kuna", status: "removed" }),
-    );
     expect(await readFile(join(external, "kuna", "evidence"), "utf8")).toBe(
       "caller evidence",
     );
-    await expect(readFile(join(cache, "cached"))).rejects.toMatchObject({
-      code: "ENOENT",
-    });
+    expect(await readFile(join(cache, "cached"), "utf8")).toBe("owned cache");
   } finally {
     await host.close?.();
   }
@@ -295,7 +189,7 @@ it("reports a retained Kuna cache reached through symlink parent traversal", asy
 /** One caller selection that purge must not delete, with the namespace that holds it. */
 interface NestedSelection {
   readonly label: string;
-  readonly namespace: "kuna" | "cache";
+  readonly namespace: "cache";
   readonly skip?: boolean;
   /** Create the selection's files and return the spellings purge receives. */
   readonly prepare: (home: string) => Promise<{
@@ -313,15 +207,6 @@ const withEvidence = async (directory: string): Promise<string> => {
 };
 
 const nestedSelections: readonly NestedSelection[] = [
-  {
-    label: "inside the default Kuna cache",
-    namespace: "kuna",
-    prepare: async (home) => {
-      const cacheHome = join(home, "xdg-cache");
-      const custom = join(cacheHome, "rea", "kuna", "selected");
-      return { cacheHome, custom, evidence: await withEvidence(custom) };
-    },
-  },
   {
     label: "inside ~/.rea/cache",
     namespace: "cache",
@@ -341,19 +226,6 @@ const nestedSelections: readonly NestedSelection[] = [
       const custom = join(home, ".rea", "cache");
       return {
         cacheHome: join(home, "xdg-cache"),
-        custom,
-        evidence: await withEvidence(custom),
-      };
-    },
-  },
-  {
-    label: "with parent traversal in the cache home",
-    namespace: "kuna",
-    prepare: async (home) => {
-      const cacheHome = join(home, "xdg-cache");
-      const custom = join(cacheHome, "rea", "kuna", "selected");
-      return {
-        cacheHome: `${cacheHome}/../xdg-cache`,
         custom,
         evidence: await withEvidence(custom),
       };

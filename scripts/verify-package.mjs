@@ -7,7 +7,7 @@ import { PRODUCT_IDENTITY } from "../dist/identity.js";
 import { resolveMcpStartupBudgets } from "../dist/config/mcpStartupBudgets.js";
 import * as prompts from "./verify-package-prompts.mjs";
 import { verifyPackageArtifactAndElectron } from "./verify-package-artifact.mjs";
-import { verifyPackageCapabilitiesAndSearch } from "./verify-package-capabilities.mjs";
+import { verifyPackageCapabilities } from "./verify-package-capabilities.mjs";
 import { verifyPackageDiscovery } from "./verify-package-discovery.mjs";
 import { verifyPackageEnvironment } from "./verify-package-environment.mjs";
 import { verifyPackageEvidence } from "./verify-package-evidence.mjs";
@@ -96,7 +96,6 @@ await withVerifierCleanup(async () => {
   ));
   const environmentData = await runStage("package environment", () =>
     verifyPackageEnvironment({
-      root,
       workspace,
       evidenceRoot,
       referenceRoot,
@@ -147,14 +146,12 @@ await withVerifierCleanup(async () => {
       packageName: PRODUCT_IDENTITY.packageName,
     }),
   );
-  const { supportedSetupHost, hopperSetupSupported } = await runStage(
-    "package discovery",
-    () =>
-      verifyPackageDiscovery({
-        commands,
-        cli,
-        environment: environmentData.environment,
-      }),
+  const { supportedSetupHost } = await runStage("package discovery", () =>
+    verifyPackageDiscovery({
+      commands,
+      cli,
+      environment: environmentData.environment,
+    }),
   );
   const { artifactArchive } = await runStage("artifact and Electron CLI", () =>
     verifyPackageArtifactAndElectron({
@@ -179,15 +176,15 @@ await withVerifierCleanup(async () => {
       environment: environmentData.environment,
     }),
   );
-  await runStage("platform CLI", () =>
+  await runStage("default Ghidra CLI", () =>
     verifyPackagePlatform({
       commands,
       cli,
       environment: environmentData.environment,
     }),
   );
-  await runStage("capabilities and search CLI", () =>
-    verifyPackageCapabilitiesAndSearch({
+  await runStage("capabilities CLI", () =>
+    verifyPackageCapabilities({
       commands,
       cli,
       environment: environmentData.environment,
@@ -216,7 +213,6 @@ await withVerifierCleanup(async () => {
       codexTarget: environmentData.codexTarget,
       cursorTarget: environmentData.cursorTarget,
       supportedSetupHost,
-      hopperSetupSupported,
       root,
     }),
   );
@@ -236,7 +232,7 @@ await withVerifierCleanup(async () => {
   );
   report = {
     cli: true,
-    analysisCli: true,
+    unconfiguredGhidraDiagnostics: true,
     artifactCli: true,
     managedCli: true,
     managedReconstructionCli: true,
@@ -250,7 +246,6 @@ await withVerifierCleanup(async () => {
       ? "planned-then-idempotent"
       : "unsupported-host-rejected",
     setupPlanReadOnly: supportedSetupHost,
-    existingHopperPreserved: supportedSetupHost,
     clients: supportedSetupHost ? 4 : 0,
     backupReadback: supportedSetupHost,
     failureRecovery: supportedSetupHost,
@@ -261,7 +256,6 @@ await withVerifierCleanup(async () => {
     mcpTools: TOOL_CONTRACTS.length,
     mcpPrompts: prompts.names.length,
     promptCompletion: true,
-    promptCompletionLifecycle: true,
     evidenceMcp: true,
     extractedPluginMcp: true,
     targetFree: true,

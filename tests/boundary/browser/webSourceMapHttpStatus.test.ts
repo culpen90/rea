@@ -1,10 +1,15 @@
 import { once } from "node:events";
 import { createServer } from "node:http";
 
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 
 import { fetchWebSourceMaps } from "../../../src/browser/WebSourceMapFetcher.js";
 import { fetchWebSourceMapsOk } from "../../fixtures/fetchWebSourceMapsOk.js";
+import {
+  AnalysisCancelledError,
+  AnalysisResourceConstraintError,
+} from "../../../src/domain/analysisErrorCore.js";
+import { ProviderCleanupError } from "../../../src/domain/providerCleanupError.js";
 import {
   analyzeWebBundleInputSchema,
   webSourceMapsSchema,
@@ -248,18 +253,26 @@ it.each([
     );
     if (cancellationFails) {
       const result = await pending;
-      expect(result).toMatchObject({
-        ok: false,
-        error: {
-          _tag: "AnalysisResourceConstraintError",
-          message: expect.stringContaining("Expanded source-map evidence"),
-          cleanupIncomplete: true,
-          cleanupResources: ["source-map-response"],
-          cause: expect.objectContaining({
-            errors: expect.arrayContaining([reason]),
-          }),
-        },
+      if (result.ok)
+        throw new Error("Expected an incomplete response cleanup.");
+      const failure = result.error;
+      expect(failure).toBeInstanceOf(AnalysisResourceConstraintError);
+      expect(failure.message).toContain("Expanded source-map evidence");
+      expect(failure.cleanupIncomplete).toBe(true);
+      expect(failure.cleanupResources).toEqual([fetchedUrl]);
+      await vi.waitFor(() => {
+        const cleanupFailure = failure.secondaryFailures
+          .flatMap((secondary) => secondary.secondaryFailures)
+          .find((secondary) => secondary instanceof ProviderCleanupError);
+        expect(cleanupFailure).toBeDefined();
+        expect(cleanupFailure?.cause).toBe(reason);
       });
+      if (abortDuringCleanup) {
+        const cancellation = failure.secondaryFailures.find(
+          (secondary) => secondary instanceof AnalysisCancelledError,
+        );
+        expect(cancellation?.cause).toBe(controller.signal.reason);
+      }
     } else {
       await expect(pending).resolves.toMatchObject({
         ok: true,

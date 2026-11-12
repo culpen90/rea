@@ -1,15 +1,4 @@
-export interface PackageHopperEnvironment {
-  readonly HOPPER_LAUNCHER_PATH: string;
-  readonly HOPPER_LOADER_ARGS_JSON: string;
-}
-
-export function packageHopperEnvironment(
-  root: string,
-  platform?: string,
-): PackageHopperEnvironment;
-
 export function verifyPackageEnvironment(input: {
-  readonly root: string;
   readonly workspace: string;
   readonly evidenceRoot: string;
   readonly referenceRoot: string;

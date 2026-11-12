@@ -8,9 +8,6 @@ import type {
   ElfFamilyMetadata,
 } from "../domain/binaryTargetTypes.js";
 import { silentLogger } from "../logger.js";
-import { HopperProvider } from "../hopper/HopperProvider.js";
-import { hopperLoaderArgsForTarget } from "../hopper/HopperAnalysisProfile.js";
-import { IdaProvider } from "../ida/IdaProvider.js";
 import {
   ghidraPinnedLanguage,
   ghidraProfileLanguageOverride,
@@ -164,12 +161,4 @@ describe("bounded Ghidra PowerPC admission", () => {
       });
     },
   );
-
-  it("keeps PowerPC out of unverified Hopper and IDA adapter lanes", () => {
-    const hopper = new HopperProvider(config, silentLogger, {}, "linux");
-    expect(hopper.inspectTargetSupport(target()).status).toBe("unsupported");
-    expect(hopperLoaderArgsForTarget(target()).ok).toBe(false);
-    const ida = new IdaProvider(config, {});
-    expect(ida.inspectTargetSupport(target()).status).toBe("unsupported");
-  });
 });

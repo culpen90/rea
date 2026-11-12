@@ -461,7 +461,7 @@ it("preserves a readback failure with mixed rollback and retryable cleanup failu
   expect(await result.error.retryCleanup()).toEqual([]);
 });
 
-it.each(["settled", "unresolved", "hopper-failed"] as const)(
+it.each(["settled", "unresolved"] as const)(
   "finalizes verified skill installation with %s cleanup and independent outcomes",
   async (scenario) => {
     const home = await createTestTempDirectory("rea-skill-final-host-close-");
@@ -473,8 +473,7 @@ it.each(["settled", "unresolved", "hopper-failed"] as const)(
         return undefined;
       },
     });
-    if (scenario === "hopper-failed") host.hopperInstallSucceeds = false;
-    else host.hopper = "/Applications/Hopper";
+    host.ghidra = "/opt/ghidra";
     let attempts = 0;
     let blocked = scenario === "unresolved";
     host.installSkill = () =>
@@ -505,7 +504,7 @@ it.each(["settled", "unresolved", "hopper-failed"] as const)(
     const progress: string[] = [];
     const result = await runSetup(
       {
-        ...options(true, scenario === "hopper-failed"),
+        ...options(true),
         clientIds: [],
         installSkill: true,
         onProgress: (event) => {

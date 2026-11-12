@@ -30,44 +30,31 @@ const serve = async (
 };
 
 describe("CLI selected environment", () => {
-  it("retains the selected binary provider and launcher after caller and ambient environment changes", async () => {
-    vi.stubEnv("REA_ANALYSIS_PROVIDER", "ambient-provider");
-    vi.stubEnv("HOPPER_LAUNCHER_PATH", "/ambient/hopper");
+  it("retains selected Ghidra settings after caller and ambient environment changes", async () => {
+    vi.stubEnv("REA_ANALYSIS_PROVIDER", "hopper");
+    vi.stubEnv("GHIDRA_INSTALL_DIR", "/ambient/ghidra");
     const environment = {
-      REA_ANALYSIS_PROVIDER: "selected-provider",
-      HOPPER_LAUNCHER_PATH: process.execPath,
+      REA_ANALYSIS_PROVIDER: "ghidra",
+      GHIDRA_INSTALL_DIR: "/selected/ghidra",
     };
     const cli = createCli(environment);
-    environment.REA_ANALYSIS_PROVIDER = "changed-provider";
-    environment.HOPPER_LAUNCHER_PATH = "/changed/hopper";
-    const root = await createTestTempDirectory("rea-cli-selected-env-");
-    const target = join(root, "fixture.hop");
-    await writeFile(target, "fixture");
+    environment.REA_ANALYSIS_PROVIDER = "hopper";
+    environment.GHIDRA_INSTALL_DIR = "/changed/ghidra";
 
-    for (const command of [
-      ["decompile", target, "main"],
-      ["read-bytes", target, "0x1000"],
-    ]) {
-      const result = await serve(cli, command);
-      expect(result).toMatchObject({
-        code: "capability_unavailable",
-        details: { requested_provider_id: "selected-provider" },
-      });
-    }
     for (const command of ["providers", "capabilities"]) {
       const result = await serve(cli, [command]);
       expect(result).toMatchObject({
-        analysis_provider_candidates: expect.arrayContaining([
-          expect.objectContaining({
-            provider: expect.objectContaining({ id: "hopper" }),
-            availability: expect.objectContaining({
-              diagnostics: expect.objectContaining({
-                launcher_path: process.execPath,
-              }),
-            }),
-          }),
-        ]),
+        analysis_provider_candidates: [
+          {
+            provider: { id: "ghidra" },
+            availability: { status: "unavailable" },
+          },
+        ],
       });
+      expect(JSON.stringify(result)).toContain("/selected/ghidra");
+      expect(JSON.stringify(result)).not.toMatch(
+        /\/(ambient|changed)\/ghidra/u,
+      );
     }
   });
 

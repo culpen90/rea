@@ -38,10 +38,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA ek native binary inspect karte hue Hopper ke andar apna analysis bridge shuru kar raha hai" width="1200" />
-
-<br /><br />
-
 <table aria-label="REA community">
 <tr>
 <td align="center" width="360">
@@ -64,7 +60,7 @@ Kisi app mein aisa feature dekha jo aap apne product mein chahte hain? Apne agen
 
 REA aapke agent ko native binaries, JavaScript aur Electron apps, .NET assemblies aur websites inspect karne wale tools se jorta hai. Yehi tools terminal se bhi use kar sakte hain. Analysis local machine par hota hai, aur har natije ke saath uske saboot aur limitations bhi milti hain.
 
-Setup REA ko aapke agent ke saath register karta hai aur uske mutabiq workflow instructions install karta hai. Native analysis ke liye pehle se installed Hopper, Ghidra, IDA ya Kuna use ho sakta hai; aapki approval par setup Hopper bhi install kar sakta hai. Static JavaScript analysis ke liye native analysis engine ki zaroorat nahi.
+Setup REA ko aapke agent ke saath register karta hai aur uske mutabiq workflow instructions install karta hai. Native analysis pehle se installed Ghidra use karta hai. Static JavaScript analysis ke liye native analysis engine ki zaroorat nahi.
 
 > Setup instructions, tasveeron ke saath guides aur asli case studies ke liye **[REA ki website dekhein](https://rea.tools/)**.
 
@@ -193,7 +189,7 @@ Mazeed tools aur host support target par depend karte hain:
 | Target                  | REA kya wapas deta hai                                                                            | Zarooriyat aur guide                                                                                                                                             |
 | ----------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Desktop installations   | Runtime candidates, supporting files, component markers aur agle probes                           | Built-in bounded directory/header inspection; [desktop applications](../desktop-applications.md)                                                                 |
-| Native binaries         | Pseudocode, assembly, strings, symbols, calls aur references                                      | Hopper, Ghidra, IDA ya Kuna; [native analysis](../guides/native/native-investigation.md)                                                                         |
+| Native binaries         | Pseudocode, assembly, strings, symbols, calls aur references                                      | Ghidra; [native analysis](../guides/native/native-investigation.md)                                                                                              |
 | Offline ELF layout      | Sections, segments, original symbols/relocations aur static mitigation candidates                 | Linux x64 par aapka diya hua pwntools; [binary diagnostics](../guides/native/binary-diagnostics.md)                                                              |
 | Go binaries             | Embedded compiler version, modules, replacements aur build settings                               | Built-in static ELF/PE/thin Mach-O inspection; Go install karna zaroori nahi                                                                                     |
 | GPU code objects        | CUDA/HIP targets, selected kernel parameters aur resources, retained PTX text                     | Built-in static ELF/PE/fatbin/CUBIN/PTX inspection; [GPU code objects](../gpu-code-objects.md)                                                                   |
@@ -243,14 +239,12 @@ dekhein. REA in dono providers ko install ya update nahi karta.
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
+[Ghidra par muntaqil hon](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
+
 Native formats aur host support har provider ke liye alag ho sakte hain.
-[Hopper aur Ghidra setup](../getting-started/installation.md#hopper),
-[IDA guide](../providers/ida-provider.md) (optional native MCP bridge samet),
-[Kuna decompiler guide](../kuna-provider.md) aur
-[experimental Windows Ghidra support](../providers/windows-ghidra-p0.md) dekhein.
+[Ghidra](../getting-started/installation.md#ghidra), [experimental Windows Ghidra support](../providers/windows-ghidra-p0.md) dekhein.
 Ghidra [16-bit DOS analysis](../providers/ghidra-dos.md) bhi support karta hai.
-Badi binaries ke liye `REA_GHIDRA_STARTUP_TIMEOUT_MS` ya
-`REA_HOPPER_STARTUP_TIMEOUT_MS` se provider ki startup deadline barhayein.
+Badi binaries ke liye `REA_GHIDRA_STARTUP_TIMEOUT_MS` se provider ki startup deadline barhayein.
 Provider select karne ke liye [CLI guide](../getting-started/cli.md#choose-a-provider) dekhein.
 Latest npm release ke baad add hone wale features ki
 [release availability](../getting-started/installation.md#released-package-and-main) check karein.
@@ -357,25 +351,11 @@ use kar sakte hain.
 </details>
 
 <details>
-<summary><strong>Kya mujhe Hopper, Ghidra, IDA ya Kuna chahiye?</strong></summary>
+<summary><strong>Kya mujhe Ghidra chahiye?</strong></summary>
 
-Deep native analysis in mein se ek use karta hai. Static JavaScript aur .NET
-inspection native analysis engine ke baghair kaam karti hai. Approval ke baad
-setup Hopper install kar sakta hai; Ghidra, IDA aur Kuna ke liye aapki existing
-installations use hoti hain. [Provider setup](../getting-started/installation.md#hopper) dekhein.
-
-</details>
-
-<details>
-<summary><strong>Kya pehle Hopper shuru karna hoga?</strong></summary>
-
-Jab kisi operation ko Hopper chahiye hota hai to REA use shuru karta hai.
-macOS par pehli dafa khulne wala dialog demo mode select karne ya license
-activate karne ko keh sakta hai. Pehle CLI/MCP operation ya unattended job se
-pehle usi user session mein yeh prompt complete karein. Zaroorat ho to Hopper
-manually kholein.
-[Hopper startup aur troubleshooting](../getting-started/installation.md#launcher-paths-and-troubleshooting)
-dekhein.
+Native analysis pehle se installed Ghidra use karta hai. Static JavaScript aur .NET
+inspection native analysis engine ke baghair kaam karti hai.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -491,7 +471,7 @@ ke apne licenses aur copyright notices barqarar rehte hain. Dependency
 inventory, preserved license texts aur external tools ki terms ke liye
 [Third-party notices](../../THIRD_PARTY_NOTICES.md) dekhein.
 
-IDA Pro / Hex-Rays decompilers, Hopper aur JEB samet **commercial tools qanooni
+JEB samet **commercial tools qanooni
 tareeqe se hasil karna aur unke applicable licenses ke mutabiq use karne ki
 ijazat rakhna zaroori hai**. REA koi tool license, key ya activation ka haq
 nahi deta. Trials aur demos vendor ki terms ke tehat rehte hain, jin mein user,

@@ -19,7 +19,6 @@ import { readConfigurationFile } from "../../../src/application/ClientConfigurat
 import {
   configureClientConfiguration,
   inspectClientConfiguration,
-  clientConfigurationAligned,
 } from "../../../src/application/SetupClientConfiguration.js";
 import { resolveWindowsClaudeDesktopLocation } from "../../../src/application/ClaudeDesktopConfigLocation.js";
 import {
@@ -56,9 +55,7 @@ it.skipIf(process.platform === "win32")(
       format: "json",
       configPath,
     } as const;
-    expect(await clientConfigurationAligned(client, {}, [real, "mcp"])).toBe(
-      true,
-    );
+
     expect(await inspectClientConfiguration(client, {}, [real, "mcp"])).toEqual(
       { status: "already_current" },
     );
@@ -440,10 +437,10 @@ describe("JSON client configuration migration and provider paths", () => {
     expect(await readFile(`${configPath}.rea.backup`, "utf8")).toBe(original);
   });
 
-  it("persists a custom Hopper launcher and remains idempotent", async () => {
+  it("persists a custom Ghidra installation and remains idempotent", async () => {
     const directory = await createTestTempDirectory("rea-setup-");
     const configPath = join(directory, "mcp.json");
-    const hopperPath = "/Applications/Hopper v6.app/Contents/MacOS/hopper";
+    const ghidraPath = "/Applications/Ghidra";
     const client = {
       name: "cursor",
       registrationProfile: supportedClientRegistrationProfile("cursor"),
@@ -454,7 +451,7 @@ describe("JSON client configuration migration and provider paths", () => {
     await writeFile(configPath, original);
     expect(
       await configureClientConfiguration(client, {
-        HOPPER_LAUNCHER_PATH: hopperPath,
+        GHIDRA_INSTALL_DIR: ghidraPath,
       }),
     ).toMatchObject({
       status: "configured",
@@ -464,20 +461,20 @@ describe("JSON client configuration migration and provider paths", () => {
         rea: {
           command: registrationCommand[0],
           args: registrationCommand.slice(1),
-          env: { HOPPER_LAUNCHER_PATH: hopperPath },
+          env: { GHIDRA_INSTALL_DIR: ghidraPath },
         },
       },
     });
     expect(
       await configureClientConfiguration(client, {
-        HOPPER_LAUNCHER_PATH: hopperPath,
+        GHIDRA_INSTALL_DIR: ghidraPath,
       }),
     ).toEqual({
       status: "unchanged",
     });
     expect(
       await configureClientConfiguration(client, {
-        HOPPER_LAUNCHER_PATH: "/opt/hopper/bin/Hopper",
+        GHIDRA_INSTALL_DIR: "/opt/ghidra",
       }),
     ).toMatchObject({ status: "configured" });
     expect(await readFile(`${configPath}.rea.backup`, "utf8")).toBe(original);

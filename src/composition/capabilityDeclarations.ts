@@ -71,22 +71,10 @@ import {
 } from "../ghidra/GhidraProviderMetadata.js";
 import { GO_BINARY_PROVIDER_IDENTITY } from "../go/GoBinaryProviderIdentity.js";
 import { GPU_CODE_OBJECTS_PROVIDER_IDENTITY } from "../gpu/GpuCodeObjectsProviderIdentity.js";
-import {
-  HOPPER_OPERATIONS,
-  HOPPER_PROVIDER_IDENTITY,
-} from "../hopper/HopperProviderMetadata.js";
-import {
-  IDA_OPERATIONS,
-  IDA_PROVIDER_IDENTITY,
-} from "../ida/IdaProviderMetadata.js";
 import { IL2CPP_METADATA_PROVIDER_IDENTITY } from "../il2cpp/Il2CppMetadataProviderIdentity.js";
 import { V8_INSPECTOR_PROVIDER_IDENTITY } from "../inspector/providerIdentity.js";
 import { WAKARU_PROVIDER_IDENTITY } from "../javascript/recovery/WakaruProviderIdentity.js";
 import { JEB_PROVIDER_IDENTITY } from "../jeb/JebProviderIdentity.js";
-import {
-  KUNA_OPERATIONS,
-  KUNA_PROVIDER_IDENTITY,
-} from "../kuna/KunaProviderMetadata.js";
 import { MODEL_ARTIFACT_PROVIDER_IDENTITY } from "../model/ModelArtifactProviderIdentity.js";
 import { NATIVE_MACOS_PROVIDER_IDENTITY } from "../native/NativeMacosProviderIdentity.js";
 import { PWNTOOLS_PROVIDER_IDENTITY } from "../native/pwntools/PwntoolsProviderIdentity.js";
@@ -339,12 +327,6 @@ export const CAPABILITY_DECLARATIONS = {
       ]),
     ],
   },
-  hopper: {
-    providers: [providerBinding(HOPPER_PROVIDER_IDENTITY, HOPPER_OPERATIONS)],
-  },
-  ida: {
-    providers: [providerBinding(IDA_PROVIDER_IDENTITY, IDA_OPERATIONS)],
-  },
   il2cppMetadata: {
     providers: [
       providerBinding(IL2CPP_METADATA_PROVIDER_IDENTITY, {
@@ -396,9 +378,6 @@ export const CAPABILITY_DECLARATIONS = {
     providers: [
       providerBinding(KERNEL_MODULE_PROVIDER, ["inspect_kernel_module"]),
     ],
-  },
-  kuna: {
-    providers: [providerBinding(KUNA_PROVIDER_IDENTITY, KUNA_OPERATIONS)],
   },
   managedStatic: {
     providers: [

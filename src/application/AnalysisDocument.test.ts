@@ -18,13 +18,6 @@ const provider = {
   name: "Controlled document provider",
   version: "1",
 };
-const unsupported = () =>
-  new AnalysisCapabilityUnavailableError(
-    "controlled",
-    "current_document",
-    "No current UI selection",
-  );
-
 it.each([
   null,
   "caller stopped",
@@ -61,12 +54,12 @@ it.each([
 });
 
 it.each([false, true])(
-  "does not fall back from an unavailable selection with incomplete cleanup (cancelled: %s)",
+  "preserves unavailable selection with incomplete cleanup (cancelled: %s)",
   async (aborted) => {
     const controller = new AbortController();
     const failure = new AnalysisCapabilityUnavailableError(
       "controlled",
-      "current_document",
+      "list_documents",
       "Unavailable while cleanup is pending",
       {
         cleanup: {
@@ -80,7 +73,7 @@ it.each([false, true])(
       execute: async (operation) => {
         calls.push(operation);
         if (aborted) controller.abort(null);
-        return operation === "current_document"
+        return operation === "list_documents"
           ? err(failure)
           : ok(createAnalysisExecution(["selected"], provider));
       },
@@ -91,42 +84,18 @@ it.each([false, true])(
       controller.signal,
     );
     expect(result).toEqual(err(failure));
-    expect(calls).toEqual(["current_document"]);
+    expect(calls).toEqual(["list_documents"]);
     expect(failure.cleanupIncomplete).toBe(true);
   },
 );
 
-it("does not start fallback after a clean unavailable selection completes under cancellation", async () => {
-  const controller = new AbortController();
-  const reason = { request: "cancel before fallback" };
-  const calls: string[] = [];
-  const result = await resolveAnalysisDocument(
-    {
-      execute: async (operation) => {
-        calls.push(operation);
-        controller.abort(reason);
-        return operation === "current_document"
-          ? err(unsupported())
-          : ok(createAnalysisExecution(["selected"], provider));
-      },
-    },
-    undefined,
-    controller.signal,
-  );
-  if (result.ok) throw new Error("expected cancelled fallback admission");
-  expect(result.error).toBeInstanceOf(AnalysisCancelledError);
-  expect(result.error.cause).toBe(reason);
-  expect(calls).toEqual(["current_document"]);
-});
-
-it.each(["current_document", "list_documents"] as const)(
+it.each(["list_documents"] as const)(
   "retains validated %s observations and their profile on late cancellation",
   async (completedOperation) => {
     const controller = new AbortController();
     const reason = { request: "late selection" };
     const profile = createAnalysisProfile(provider, { fixture: true });
-    const resultValue =
-      completedOperation === "current_document" ? "selected" : ["selected"];
+    const resultValue = ["selected"];
     const subject = {
       path: "/selected/image",
       sha256: "a".repeat(64),
@@ -146,7 +115,7 @@ it.each(["current_document", "list_documents"] as const)(
     const result = await resolveAnalysisDocument(
       {
         execute: async (operation) => {
-          if (operation !== completedOperation) return err(unsupported());
+          expect(operation).toBe(completedOperation);
           controller.abort(reason);
           return ok(execution);
         },
@@ -163,8 +132,7 @@ it.each(["current_document", "list_documents"] as const)(
       parameters: {},
       provider,
       confidence: "observed",
-      normalized_result:
-        completedOperation === "current_document" ? "selected" : ["selected"],
+      normalized_result: ["selected"],
       raw_result: { selected_source: "controlled" },
       limitations: ["controlled provider only"],
       subject: { local_path: "/selected/image" },
@@ -193,7 +161,7 @@ it("keeps analysis_profile null when a completed execution has no profile", asyn
     {
       execute: async () => {
         controller.abort({ request: "late selection" });
-        return ok(createAnalysisExecution("selected", provider));
+        return ok(createAnalysisExecution(["selected"], provider));
       },
     },
     undefined,
@@ -205,14 +173,14 @@ it("keeps analysis_profile null when a completed execution has no profile", asyn
   );
 });
 
-it.each(["current_document", "list_documents"] as const)(
+it.each(["list_documents"] as const)(
   "validates malformed %s before late cancellation",
   async (completedOperation) => {
     const controller = new AbortController();
     const result = await resolveAnalysisDocument(
       {
         execute: async (operation) => {
-          if (operation !== completedOperation) return err(unsupported());
+          expect(operation).toBe(completedOperation);
           controller.abort(null);
           return ok(createAnalysisExecution(null, provider));
         },

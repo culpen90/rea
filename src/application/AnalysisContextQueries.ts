@@ -8,7 +8,6 @@ import {
   AnalysisCancelledError,
   AnalysisCapabilityUnavailableError,
   AnalysisInputError,
-  AnalysisOutputError,
   AnalysisResourceConstraintError,
 } from "../domain/analysisErrorCore.js";
 import {
@@ -21,9 +20,7 @@ import { analysisErrorWithCleanupFailure } from "../domain/analysisErrorCleanup.
 import { analysisErrorWithCancellation } from "../domain/analysisErrorCancellation.js";
 import { EvidenceIntegrityError } from "../domain/evidenceErrors.js";
 import type { JsonValue } from "../domain/jsonValue.js";
-import { analysisBookmarkSchema } from "../domain/native/nativeInventory.js";
 import { parseContainingProcedureResolution } from "../domain/native/nativeObservation.js";
-import { nativeAddressCoordinateInputSchema } from "../domain/native/nativeAddress.js";
 import { resolveAnalysisDocument } from "./AnalysisDocument.js";
 import { estimateJsonStorage } from "./JsonAuthenticationHeadroom.js";
 import { err, ok, type Result } from "../domain/result.js";
@@ -42,18 +39,12 @@ type AddressContext = {
   readonly document: string;
   readonly name: Facet;
   readonly procedure: Facet;
-  readonly comment: Facet;
-  readonly inline_comment: Facet;
-  readonly bookmarks: Facet;
 };
 
 /** Facets inspected after an explicit or provider-resolved document is known. */
 export const ADDRESS_CONTEXT_FACET_OPERATIONS = [
   "address_name",
   "resolve_containing_procedure",
-  "comment",
-  "inline_comment",
-  "list_bookmarks",
 ] as const satisfies readonly AnalysisOperation[];
 
 const parameters = (
@@ -69,75 +60,6 @@ const executionOptions = (
 ): { readonly signal?: AbortSignal } =>
   signal === undefined ? {} : { signal };
 
-/** Compose the provider's volatile selection state into one coherent query. */
-export const getNavigationContext = async (
-  analysis: AnalysisOperationPort,
-  input: { readonly document?: string | undefined },
-  signal?: AbortSignal,
-): Promise<Result<JsonValue, AnalysisError>> => {
-  if (signal?.aborted)
-    return err(
-      new AnalysisCancelledError("get_navigation_context", {
-        cause: signal.reason,
-      }),
-    );
-  const document =
-    input.document ??
-    (await analysis.execute("current_document", {}, executionOptions(signal)));
-  if (typeof document !== "string" && !document.ok) return document;
-  const documentName =
-    typeof document === "string" ? document : document.value.result;
-  if (typeof documentName !== "string")
-    return err(
-      new AnalysisOutputError(
-        "current_document",
-        "expected a document identity string",
-      ),
-    );
-  if (signal?.aborted)
-    return err(
-      new AnalysisCancelledError("get_navigation_context", {
-        cause: signal.reason,
-      }),
-    );
-  const documentArgs = parameters(documentName);
-  const address = await analysis.execute(
-    "current_address",
-    documentArgs,
-    executionOptions(signal),
-  );
-  if (!address.ok) return address;
-  if (typeof address.value.result !== "string")
-    return err(
-      new AnalysisOutputError("current_address", "expected an address string"),
-    );
-  if (signal?.aborted)
-    return err(
-      new AnalysisCancelledError("get_navigation_context", {
-        cause: signal.reason,
-      }),
-    );
-  const procedure = await analysis.execute(
-    "resolve_containing_procedure",
-    parameters(documentName, address.value.result),
-    executionOptions(signal),
-  );
-  if (!procedure.ok) return procedure;
-  const resolution = parseContainingProcedureResolution(procedure.value.result);
-  if (!resolution.ok) return resolution;
-  if (signal?.aborted)
-    return err(
-      new AnalysisCancelledError("get_navigation_context", {
-        cause: signal.reason,
-      }),
-    );
-  return ok({
-    document: documentName,
-    address: address.value.result,
-    procedure: resolution.value.found ? resolution.value.procedure.name : null,
-  });
-};
-
 /** Preserve other facets and smaller partials if unretained Evidence cannot fit. */
 export function* omitContextEvidenceForDelivery(
   context: AddressContext,
@@ -147,13 +69,7 @@ export function* omitContextEvidenceForDelivery(
   },
   budgetBytes: number,
 ): Generator<AddressContext> {
-  const names = [
-    "name",
-    "procedure",
-    "comment",
-    "inline_comment",
-    "bookmarks",
-  ] as const;
+  const names = ["name", "procedure"] as const;
   const candidates = names.flatMap((name) => {
     const facet = context[name];
     if (facet.state !== "unavailable" || facet.error === undefined) return [];
@@ -223,7 +139,7 @@ export const inspectAddressContext = async (
       operations.map(async (operation) => {
         const result = await analysis.execute(
           operation,
-          operation === "list_bookmarks" ? parameters(document.value) : args,
+          args,
           executionOptions(signal),
         );
         completed.push(result);
@@ -243,50 +159,12 @@ export const inspectAddressContext = async (
   const procedure: Facet = resolution?.ok
     ? { state: "available", value: resolution.value }
     : unavailableFacet(resolution?.error, operations[1]);
-  const entry =
-    resolution?.ok && resolution.value.found
-      ? resolution.value.procedure.address
-      : undefined;
-  const comment = commentFacet(results[2], operations[2], entry);
-  const inlineComment = commentFacet(results[3], operations[3], entry);
-  const bookmarks = facet(results[4], operations[4]);
   return ok({
     address: input.address,
     document: document.value,
     name,
     procedure,
-    comment,
-    inline_comment: inlineComment,
-    bookmarks:
-      bookmarks.state === "available"
-        ? matchingBookmarks(
-            bookmarks.value,
-            resolution?.ok ? resolution.value.query_address : input.address,
-          )
-        : bookmarks,
   });
-};
-
-const commentFacet = (
-  result: Result<AnalysisExecution, AnalysisError> | undefined,
-  operation: "comment" | "inline_comment",
-  entry: string | undefined,
-): Facet => {
-  if (
-    result?.ok === false &&
-    result.error instanceof AnalysisCapabilityUnavailableError &&
-    !result.error.retryable &&
-    result.error.remediationAction === undefined &&
-    result.error.continuingCallerGuidance?.remediationAction === undefined &&
-    entry !== undefined
-  ) {
-    return {
-      state: "unavailable",
-      reason: result.error.message,
-      remediation: `If analyze_function is available for this same document, call it with ${JSON.stringify({ procedure: entry })}; use its summary's parent_evidence_id with inspect_analysis_view's native comments facet. Check facet availability, pagination, and the exact requested address; an omitted comment does not establish absence.`,
-    };
-  }
-  return facet(result, operation);
 };
 
 const facet = (
@@ -312,7 +190,7 @@ const unavailableFacet = (
         error.fallbackRemediationAction !== undefined ||
         error.continuingCallerGuidance?.remediationAction !== undefined
           ? projected.remediation.action
-          : "Review provider availability in binary_session with detail complete and select another supported provider if appropriate. After switching, if a name is known and search_procedures is available, use it to find candidates and verify their identity and coordinates.",
+          : "Review provider availability in binary_session with detail complete. If a name is known and search_procedures is available, use it to find candidates and verify their identity and coordinates.",
     };
   }
   if (
@@ -402,53 +280,4 @@ const contextFailure = (
     }
   }
   return combined;
-};
-
-const matchingBookmarks = (value: JsonValue, address: string): Facet => {
-  if (!Array.isArray(value))
-    return {
-      state: "unavailable",
-      reason: "list_bookmarks returned malformed output; expected an array.",
-      remediation:
-        "Retry list_bookmarks directly and report the provider output shape if it remains malformed.",
-    };
-  const parsed = analysisBookmarkSchema.array().safeParse(value);
-  if (!parsed.success)
-    return {
-      state: "unavailable",
-      reason:
-        "list_bookmarks returned malformed entries; expected an address string and a string or null name.",
-      remediation:
-        "Retry list_bookmarks directly and report the provider output shape if it remains malformed.",
-    };
-  const target = nativeAddressCoordinateInputSchema.safeParse(address);
-  const matching = [];
-  for (const bookmark of parsed.data) {
-    if (bookmark.address === address) {
-      matching.push(bookmark);
-      continue;
-    }
-    const candidate = nativeAddressCoordinateInputSchema.safeParse(
-      bookmark.address,
-    );
-    if (
-      !target.success ||
-      !candidate.success ||
-      (target.data.offset === candidate.data.offset &&
-        target.data.space !== candidate.data.space)
-    )
-      return {
-        state: "unavailable",
-        reason:
-          "Bookmark address identity could not be compared with the selected address.",
-        remediation:
-          "Call list_bookmarks directly to inspect the provider addresses.",
-      };
-    if (
-      target.data.offset === candidate.data.offset &&
-      target.data.space === candidate.data.space
-    )
-      matching.push(bookmark);
-  }
-  return { state: "available", value: matching };
 };

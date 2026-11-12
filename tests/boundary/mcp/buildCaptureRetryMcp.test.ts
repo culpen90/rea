@@ -240,28 +240,43 @@ it("cancels a capture's start when the computer closes while it waits for the op
   expect(parseMcpToolError(await started).error.code).toBe("cancelled");
 }, 60_000);
 
-it("returns the bundle an export saved when the computer closes while it commits", async () => {
+it("reports the published bundle when the computer closes during export commit", async () => {
   const { client } = await fakes();
   const id = await startBuildComputer(client, BUILD_REQUEST);
   await captureSeedAndEnd(client, id);
   await callOk(client, "stop_build_capture", { computer_id: id });
   const directory = join(await createTestTempDirectory("build-out-"), "bundle");
-  let closed: Promise<unknown> = Promise.resolve();
+  let closed: ReturnType<typeof call> | undefined;
   cancelDuringCommit(() => {
     closed = call(client, "close_build_computer", { computer_id: id });
+    void closed.catch(() => undefined);
   });
   const exported = await call(client, "export_build_environment", {
     computer_id: id,
     tasks: [{ task: BUILD_TASK }],
     directory,
   });
-  expect(exported.isError, JSON.stringify(exported)).not.toBe(true);
-  expect(exported.structuredContent).toMatchObject({
-    computer_id: id,
-    directory,
+  expect(await closed).toMatchObject({
+    structuredContent: { computer_id: id, teardown: "agentenv" },
   });
-  expect((await readdir(directory)).length).toBeGreaterThan(0);
-  await closed;
+  const files = (
+    await readdir(directory, { recursive: true, withFileTypes: true })
+  ).filter((entry) => entry.isFile());
+  expect(files.length).toBeGreaterThan(0);
+  expect(parseMcpToolError(exported).error).toMatchObject({
+    code: "cancelled",
+    details: {
+      operation: "export_build_environment",
+      cleanup: "complete",
+      diagnostics: {
+        published_bundle: {
+          directory,
+          files: files.length,
+          withheld_files: [],
+        },
+      },
+    },
+  });
 }, 60_000);
 
 /** Capture and export an app the request installs with `install`; the start's result, the bundle's folder and the stand-in's argv for a command. */

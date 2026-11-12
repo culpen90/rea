@@ -28,13 +28,10 @@ import { isDeepStrictEqual } from "node:util";
 import { homeDirectoryFromEnvironment } from "../config/homeDirectory.js";
 import { basename, dirname } from "node:path";
 import {
-  defaultKunaCacheDirectory,
   hasParentTraversal,
-  sameLexicalDirectory,
   withinLexicalDirectory,
-} from "../config/kunaCacheDirectory.js";
+} from "../filesystem/lexicalDirectory.js";
 import { defaultDarwinHelperCacheDirectory } from "../process/DarwinHelperCache.js";
-import { linuxHopperReleaseCacheDirectory } from "./LinuxHopperCacheDirectory.js";
 
 import { ClientConfigurationPublication } from "./ClientConfigurationPublication.js";
 import {
@@ -221,7 +218,8 @@ export const runUninstall = async (
     items.push({
       name: "analysis_engine",
       status: "retained",
-      detail: "Hopper is not owned by REA uninstall.",
+      detail:
+        "REA uninstall retains your separately installed analysis providers.",
     });
     const reported = collapseUninstallItems(
       projectSharedRegistrations(items, clients),
@@ -1205,36 +1203,18 @@ const purgeSelectedData = async (
 ): Promise<readonly UninstallItem[]> => {
   const items: UninstallItem[] = [];
   const directories: string[] = [];
-  let custom: string | undefined;
-  if (platform === "darwin" || platform === "linux") {
-    const defaultCache = defaultKunaCacheDirectory(home, environment, platform);
-    directories.push(defaultCache);
-    custom = environment.REA_KUNA_CACHE_DIR;
-    // Lexical spellings identify the default namespace for reporting.
-    // Removal still uses the owned-path checks below. Other selections
-    // remain separately reported without resolving symbolic links.
-    if (
-      custom !== undefined &&
-      custom !== defaultCache &&
-      !sameLexicalDirectory(custom, defaultCache, platform)
-    )
-      items.push(
-        item(
-          "kuna-custom-cache",
-          "retained",
-          `Caller-selected Kuna cache ${custom} was retained because purge does not establish ownership of that entire directory.`,
-        ),
-      );
-    else custom = undefined;
-  }
+  const custom = environment.REA_KUNA_CACHE_DIR;
+  if (custom !== undefined)
+    items.push(
+      item(
+        "kuna-custom-cache",
+        "retained",
+        `Caller-selected Kuna cache ${custom} was retained as legacy provider data.`,
+      ),
+    );
   // The ownership helper cache has no caller-selected location to retain.
   if (platform === "darwin")
     directories.push(defaultDarwinHelperCacheDirectory(home));
-  if (platform === "linux") {
-    const hopper = linuxHopperReleaseCacheDirectory(environment, home);
-    if (hopper.ok) directories.push(hopper.value);
-    else items.push(item("hopper-releases", "failed", hopper.error.message));
-  }
   // Resolve selections before a managed namespace removal can delete cwd.
   // A namespace that contains the caller-selected cache is kept whole, so
   // the retained report is true.

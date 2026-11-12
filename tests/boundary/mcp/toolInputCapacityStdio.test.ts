@@ -17,7 +17,6 @@ it("applies the selected input allowance through the public deferred stdio entry
       XDG_CONFIG_HOME: join(root, "config"),
       XDG_CACHE_HOME: join(root, "cache"),
       XDG_DATA_HOME: join(root, "data"),
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
       NODE_OPTIONS: "--max-old-space-size=3072",
       REA_LOG_LEVEL: "silent",
       REA_MCP_MAX_INPUT_ELEMENTS: "8192",

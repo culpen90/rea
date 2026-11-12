@@ -261,7 +261,7 @@ const ENHANCED_REQUIREMENTS: ReadonlyMap<string, ProviderComposition> = new Map(
     find_xrefs_to_name: ["list_names", "xrefs"],
     binary_overview: [
       { optional: "read_binary_inventory_summary" },
-      ["current_document", "list_documents"],
+      "list_documents",
       {
         parallel: [
           { optional: "list_segments" },
@@ -291,21 +291,6 @@ const MACHO_TARGET_OPERATIONS: ReadonlySet<string> = new Set([
   "capture_native_ui_scenario",
 ]);
 
-const NAVIGATION_CONTEXT_MODES = [
-  {
-    name: "current_selection",
-    requirements: [
-      "current_document",
-      "current_address",
-      "resolve_containing_procedure",
-    ],
-  },
-  {
-    name: "explicit_document",
-    requirements: ["current_address", "resolve_containing_procedure"],
-  },
-] as const;
-
 const ADDRESS_CONTEXT_EFFECT_COMPOSITION: ModeComposition = {
   modes: [
     {
@@ -314,10 +299,7 @@ const ADDRESS_CONTEXT_EFFECT_COMPOSITION: ModeComposition = {
     },
     {
       name: "provider_document",
-      requirements: [
-        ["current_document", "list_documents"],
-        ADDRESS_CONTEXT_FACET_OPERATIONS,
-      ],
+      requirements: ["list_documents", ADDRESS_CONTEXT_FACET_OPERATIONS],
     },
   ],
 };
@@ -497,27 +479,6 @@ const availabilityFor = (context: AvailabilityContext): Availability => {
     context.name === "inspect_web_event_listeners"
   )
     return { reason: "available", remediation: null };
-  if (context.name === "get_navigation_context") {
-    const target = targetAvailability(context);
-    if (target !== null) {
-      return {
-        ...target,
-        defaultModeAvailable: false,
-        modes: NAVIGATION_CONTEXT_MODES.map((mode) => ({
-          name: mode.name,
-          available: false,
-          missing_operations: [...mode.requirements],
-          remediation: target.remediation,
-        })),
-      };
-    }
-    const modes = availabilityForModes(
-      NAVIGATION_CONTEXT_MODES,
-      "current_selection",
-      context.descriptors,
-    );
-    return modes;
-  }
   const javascriptApplication = javascriptApplicationAvailability(context);
   if (javascriptApplication !== null) return javascriptApplication;
   const failure = optionalProviderFailureFor(context);
@@ -931,7 +892,6 @@ const targetAvailability = ({
     targetKind !== "database" &&
     (kind === "official-proxy" ||
       kind === "enhanced" ||
-      name === "get_navigation_context" ||
       name === "inspect_address_context")
   )
     return {
@@ -1241,11 +1201,9 @@ const composedEffects = (
   descriptors: readonly ProviderDescriptor[],
 ): ToolEffects => {
   const composition: ProviderComposition | undefined =
-    name === "get_navigation_context"
-      ? { modes: NAVIGATION_CONTEXT_MODES }
-      : name === "inspect_address_context"
-        ? ADDRESS_CONTEXT_EFFECT_COMPOSITION
-        : ENHANCED_REQUIREMENTS.get(name);
+    name === "inspect_address_context"
+      ? ADDRESS_CONTEXT_EFFECT_COMPOSITION
+      : ENHANCED_REQUIREMENTS.get(name);
   const byOperation = new Map(
     descriptors.map((descriptor) => [descriptor.operation, descriptor]),
   );

@@ -1,17 +1,9 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import type { CallToolResult } from "@modelcontextprotocol/server";
-import { afterAll, expect, it, onTestFinished } from "vitest";
+import { afterAll, expect, it } from "vitest";
 
-import { AnalysisProviderRegistry } from "../../../src/application/binary/AnalysisProviderRegistry.js";
-import { composeBinarySession } from "../../../src/application/binary/BinarySessionComposition.js";
-import { parseConfig } from "../../../src/config/parseConfig.js";
 import { toolContract } from "../../../src/contracts/toolContracts.js";
-import { elf } from "../../../src/domain/binaryTarget.fixture.js";
-import { IdaProvider } from "../../../src/ida/IdaProvider.js";
-import { silentLogger } from "../../../src/logger.js";
-import { createServer } from "../../../src/server/createServer.js";
 import {
   expandToolAvailability,
   toolAvailabilityInventory,
@@ -137,62 +129,6 @@ it.skipIf(process.platform === "win32").each([
       }
   },
 );
-
-it("returns an unready IDA registration's repair from an explicit open_binary selection", async () => {
-  const root = await createTestTempDirectory("rea-selection-remediation-");
-  const target = join(root, "target.elf");
-  await writeFile(target, elf(2, 1, 62));
-  const config = parseConfig({
-    REA_IDA_MCP_CONFIG: join(root, "missing.json"),
-  });
-  if (!config.ok) throw config.error;
-  const ida = new IdaProvider(config.value, {}, () => {
-    throw new Error("Selection must not connect to IDA");
-  });
-  // The readiness owner is the oracle for the repair the caller receives.
-  const owner = await ida.inspectAvailability();
-  if (owner.status !== "unavailable")
-    throw new Error("A missing registration must be unavailable");
-  const session = composeBinarySession(new AnalysisProviderRegistry([ida]));
-  const server = createServer(
-    { kind: "session", session },
-    { logger: silentLogger },
-  );
-  const client = new Client({ name: "selection-remediation", version: "1" });
-  const [clientTransport, serverTransport] =
-    InMemoryTransport.createLinkedPair();
-  onTestFinished(async () => {
-    await client.close();
-    await server.close();
-    const closed = await session.close();
-    if (!closed.ok) throw closed.error;
-    const released = await ida.closeOwnedResources();
-    if (!released.ok) throw released.error;
-  });
-  await server.connect(serverTransport);
-  await client.connect(clientTransport);
-
-  const { error } = parseMcpToolError(
-    (await client.callTool({
-      name: "open_binary",
-      arguments: { path: target, provider_id: "ida" },
-    })) as CallToolResult,
-  );
-  expect(error.remediation.action).toBe(owner.remediation);
-  expect(error.remediation.action).toContain("REA_IDA_MCP_CONFIG");
-  expect(error.details).toMatchObject({
-    selection_reason: "provider_unavailable",
-    requested_provider_id: "ida",
-    rejections: [
-      {
-        provider_id: "ida",
-        origin: "availability",
-        reason: owner.reason,
-        remediation: owner.remediation,
-      },
-    ],
-  });
-});
 
 it.skipIf(process.platform === "win32")(
   "marks inspect_with_objdump unavailable in binary_session after launch failure and restores it after repair",

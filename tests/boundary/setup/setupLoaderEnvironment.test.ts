@@ -2,29 +2,43 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 import { createCli } from "../../../src/cli.js";
-import { parseConfig } from "../../../src/config/parseConfig.js";
 import { createTestTempDirectory } from "../../fixtures/temporaryDirectory.js";
 
-it("setup carries explicit Hopper loader selections into Cursor without persisting target or unrelated settings", async () => {
-  const home = await createTestTempDirectory("rea-setup-loader-environment-");
+it("applies an approved Ghidra migration to the selected registration with a backup", async () => {
+  const home = await createTestTempDirectory("rea-setup-provider-migration-");
   const path = join(home, ".cursor/mcp.json");
+  const initial = {
+    theme: "dark",
+    mcpServers: {
+      rea: {
+        command: "rea",
+        args: ["mcp"],
+        env: {
+          REA_ANALYSIS_PROVIDER: "hopper",
+          HOPPER_LAUNCHER_PATH: "/legacy/launcher",
+          CALLER_SETTING: "preserve",
+        },
+      },
+      other: { command: "other-server" },
+    },
+  };
+  const original = JSON.stringify(initial);
   await mkdir(join(home, ".cursor"));
-  await writeFile(path, '{"caller":"retain"}\n');
+  await writeFile(path, original);
   const environment = {
     HOME: home,
     USERPROFILE: home,
-    HOPPER_LAUNCHER_PATH: join(home, "missing-hopper"),
-    GHIDRA_INSTALL_DIR: join(home, "missing-ghidra"),
-    JAVA_HOME: join(home, "missing-java"),
-    HOPPER_LOADER_ARGS_JSON: '["", "--loader", "Mach-O"]',
-    HOPPER_TARGET_PATH: join(home, "per-target"),
-    HOPPER_TARGET_KIND: "executable",
-    CALLER_UNRELATED_SETTING: "do not persist",
+    REA_ANALYSIS_PROVIDER: "ghidra",
+    GHIDRA_INSTALL_DIR: join(home, "ghidra"),
+    JAVA_HOME: join(home, "jdk"),
+    REA_TARGET_PATH: join(home, "target-specific"),
+    HOPPER_LOADER_ARGS_JSON: "legacy ambient value",
+    CALLER_UNRELATED_SETTING: "ambient value",
   };
-  const setup = async () => {
+  const setup = async (approval: "--yes" | "--dry-run") => {
     let stdout = "";
     await createCli(environment).serve(
-      ["setup", "--client", "cursor", "--skill=false", "--yes", "--json"],
+      ["setup", "--client", "cursor", "--skill=false", approval, "--json"],
       {
         env: environment,
         stdout: (chunk) => {
@@ -35,40 +49,47 @@ it("setup carries explicit Hopper loader selections into Cursor without persisti
     );
     return JSON.parse(stdout) as unknown;
   };
-  const loaderFromSavedRegistration = async () => {
-    const document = JSON.parse(await readFile(path, "utf8"));
-    expect(document.caller).toBe("retain");
-    const saved = document.mcpServers.rea.env;
-    expect(saved).not.toHaveProperty("CALLER_UNRELATED_SETTING");
-    expect(saved).not.toHaveProperty("HOPPER_TARGET_PATH");
-    expect(saved).not.toHaveProperty("HOPPER_TARGET_KIND");
-    const config = parseConfig(saved);
-    if (!config.ok) throw config.error;
-    return config.value.hopperLoaderArgs;
-  };
 
-  expect(await setup()).toMatchObject({ status: "ready" });
-  expect(await loaderFromSavedRegistration()).toEqual([
-    "",
-    "--loader",
-    "Mach-O",
-  ]);
-  const created = await readFile(path, "utf8");
-  expect(JSON.parse(created).mcpServers.rea.env.HOPPER_LOADER_ARGS_JSON).toBe(
-    environment.HOPPER_LOADER_ARGS_JSON,
-  );
-  environment.HOPPER_LOADER_ARGS_JSON = "[]";
-  expect(await setup()).toMatchObject({ status: "ready" });
-  expect(await loaderFromSavedRegistration()).toEqual([]);
+  expect(await setup("--dry-run")).toMatchObject({
+    status: "planned",
+    plannedActions: [
+      expect.objectContaining({
+        kind: "configure_client",
+        detail: expect.stringContaining("REA_ANALYSIS_PROVIDER=ghidra"),
+      }),
+    ],
+  });
+  await expect(readFile(path, "utf8")).resolves.toBe(original);
+
+  expect(await setup("--yes")).toMatchObject({ status: "ready" });
   const updated = await readFile(path, "utf8");
-  expect(JSON.parse(updated).mcpServers.rea.env.HOPPER_LOADER_ARGS_JSON).toBe(
-    "[]",
+  const saved = JSON.parse(updated);
+  expect(saved).toMatchObject({
+    theme: initial.theme,
+    mcpServers: {
+      other: initial.mcpServers.other,
+      rea: {
+        env: {
+          ...initial.mcpServers.rea.env,
+          REA_ANALYSIS_PROVIDER: "ghidra",
+          GHIDRA_INSTALL_DIR: environment.GHIDRA_INSTALL_DIR,
+          JAVA_HOME: environment.JAVA_HOME,
+        },
+      },
+    },
+  });
+  expect(saved.mcpServers.rea.env).not.toHaveProperty("REA_TARGET_PATH");
+  expect(saved.mcpServers.rea.env).not.toHaveProperty(
+    "HOPPER_LOADER_ARGS_JSON",
   );
-  environment.HOPPER_LOADER_ARGS_JSON = "{";
-  expect(await setup()).toMatchObject({
-    status: "needs_human",
+  expect(saved.mcpServers.rea.env).not.toHaveProperty(
+    "CALLER_UNRELATED_SETTING",
+  );
+  await expect(readFile(`${path}.rea.backup`, "utf8")).resolves.toBe(original);
+  expect(await setup("--yes")).toMatchObject({
+    status: "ready",
     plannedActions: [],
     appliedActions: [],
   });
-  expect(await readFile(path, "utf8")).toBe(updated);
-});
+  await expect(readFile(path, "utf8")).resolves.toBe(updated);
+}, 120_000);

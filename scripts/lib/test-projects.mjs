@@ -19,7 +19,7 @@ export const SOURCE_TEST_PROJECTS = [
     group: "source",
     include: [
       "src/*.test.ts",
-      "src/{android,apkSignature,apktool,jeb,adb,artifacts,browser,config,cutter,desktop,dotnet,electron,erlang,evm,firmware,flutter,frida,pcap,ghidra,go,gpu,hopper,ida,inspector,javascript,main,native,process,providers,python,reference,rust,server,sqlite,v8,wasm,windows}/**/*.test.ts",
+      "src/{android,apkSignature,apktool,jeb,adb,artifacts,browser,config,cutter,desktop,dotnet,electron,erlang,evm,firmware,flutter,frida,pcap,ghidra,go,gpu,inspector,javascript,main,native,process,providers,python,reference,rust,server,sqlite,v8,wasm,windows}/**/*.test.ts",
     ],
   },
   {
@@ -33,7 +33,6 @@ export const SOURCE_TEST_PROJECTS = [
     group: "source",
     isolate: false,
     include: ["tests/conformance/**/*.test.ts"],
-    exclude: ["tests/conformance/providers/hopper/realHopperSearch.test.ts"],
   },
   {
     name: "evaluation",
@@ -47,10 +46,7 @@ export const BUILT_TEST_PROJECTS = [
   {
     name: "boundary",
     group: "built",
-    include: [
-      "tests/boundary/**/*.test.ts",
-      "tests/conformance/providers/hopper/realHopperSearch.test.ts",
-    ],
+    include: ["tests/boundary/**/*.test.ts"],
     exclude: [
       "tests/boundary/cli/**/*.test.ts",
       "tests/boundary/mcp/**/*.test.ts",

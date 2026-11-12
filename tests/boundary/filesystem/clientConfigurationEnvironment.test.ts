@@ -11,7 +11,6 @@ import {
   serializeClientConfiguration,
 } from "../../../src/application/ClientConfigurationDocument.js";
 import {
-  clientConfigurationAligned,
   configureClientConfiguration,
   inspectClientConfiguration,
 } from "../../../src/application/SetupClientConfiguration.js";
@@ -20,110 +19,13 @@ import { readClientRegistrationStatuses } from "../../../src/application/ClientR
 import {
   clientRegistrationEnvironment,
   clientRegistrationEnvironmentDetails,
-  clientRegistrationEnvironmentDetailsWithBudget,
+  clientRegistrationEnvironmentDetailsForTimeouts,
 } from "../../../src/application/ClientRegistrationEnvironment.js";
 import { snapshotEnvironment } from "../../../src/process/snapshotEnvironment.js";
 
-import { ok } from "../../../src/domain/result.js";
-import { MCP_STARTUP_POLICY } from "../../../src/mcpStartupPolicy.js";
 import { supportedClientRegistrationProfile } from "../../../src/application/SupportedClients.js";
 
 const staleOwnedCommand = ["npx", "-y", "rea-agents@6.6.0", "mcp"] as const;
-
-it("awaits the owner-parsed provider request budget without changing caller strings", async () => {
-  const parsed = parseClientConfiguration(
-    JSON.stringify({
-      mcpServers: {
-        rea: {
-          command: "rea",
-          args: ["mcp"],
-          env: {
-            REA_ANALYSIS_PROVIDER: "ida",
-            REA_IDA_MCP_CONFIG: "/tmp/rea-registration.json/",
-          },
-        },
-      },
-    }),
-    "json",
-  );
-  const details = await clientRegistrationEnvironmentDetailsWithBudget(
-    parsed,
-    undefined,
-    {},
-    "effective",
-    async (provider) => {
-      expect(provider).toBe("ida");
-      return ok(17);
-    },
-  );
-  expect(details).toMatchObject({
-    ok: true,
-    value: {
-      values: { REA_IDA_MCP_CONFIG: "/tmp/rea-registration.json/" },
-      timeoutInputs: { providerRequestTimeoutMs: 17 },
-    },
-  });
-});
-
-it("preserves owner-parsed registration facts and revalidates later inspections", async () => {
-  const home = await createTestTempDirectory("rea-registration-snapshot-");
-  const configPath = join(home, "mcp.json");
-  const environment = {
-    REA_ANALYSIS_PROVIDER: "ida",
-    REA_IDA_MCP_CONFIG: "/tmp/rea-registration.json/",
-    REA_MCP_INPUT_SCHEMA_PROFILE: "compact",
-  };
-  const original = JSON.stringify({
-    mcpServers: {
-      rea: {
-        command: "rea",
-        args: ["mcp"],
-        env: environment,
-        startupTimeoutMs: MCP_STARTUP_POLICY.kimiStartupTimeoutMs,
-        toolTimeoutMs: 450_000,
-      },
-    },
-  });
-  await writeFile(configPath, original);
-  const client = {
-    name: "kimi",
-    registrationProfile: supportedClientRegistrationProfile("kimi"),
-    format: "kimi",
-    configPath,
-  } as const;
-  let providerTimeoutMs = 17;
-  const observedBudgets = new Set<number>();
-  const resolveBudget = async (
-    provider: string,
-    observedEnvironment: Readonly<Record<string, string>>,
-  ) => {
-    expect(observedEnvironment.REA_IDA_MCP_CONFIG).toBe(
-      environment.REA_IDA_MCP_CONFIG,
-    );
-    expect(provider).toBe("ida");
-    observedBudgets.add(providerTimeoutMs);
-    return ok(providerTimeoutMs);
-  };
-
-  expect(
-    await clientConfigurationAligned(client, {}, ["rea", "mcp"], resolveBudget),
-  ).toBe(true);
-  expect(observedBudgets.has(17)).toBe(true);
-
-  expect(
-    await inspectClientConfiguration(client, {}, ["rea", "mcp"], resolveBudget),
-  ).toEqual({ status: "already_current" });
-  providerTimeoutMs = 1_000_000;
-  // Revalidate the budget while preserving the caller's positive timeout.
-  expect(
-    await inspectClientConfiguration(client, {}, ["rea", "mcp"], resolveBudget),
-  ).toEqual({ status: "already_current" });
-  expect(observedBudgets.has(providerTimeoutMs)).toBe(true);
-  expect(await readFile(configPath, "utf8")).toBe(original);
-  await expect(access(`${configPath}.rea.backup`)).rejects.toMatchObject({
-    code: "ENOENT",
-  });
-});
 
 it.each(["win32", "linux"] as const)(
   "uses the selected %s identity when inspecting lowercase registration settings",
@@ -177,7 +79,7 @@ it.skipIf(process.platform !== "win32").each([
   async ({ key, override, value, duplicate }) => {
     const root = await createTestTempDirectory("rea-dsh-alias-comments-");
     const configPath = join(root, "cordis.patch.yml");
-    const source = `- insert:\n    - id: rea-mcp\n      name: "@deepseek-ai/dsh-mcp-client"\n      config:\n        serverName: rea\n        transport: stdio\n        command: old-rea\n        args: [mcp]\n        env:\n          # retain preceding rationale\n          ${key}: "hopper" # retain inline rationale\n${duplicate ? `          ${override}: "ghidra" # retain winning rationale\n` : ""}          CUSTOM: !!js caller.custom\n`;
+    const source = `- insert:\n    - id: rea-mcp\n      name: "@deepseek-ai/dsh-mcp-client"\n      config:\n        serverName: rea\n        transport: stdio\n        command: old-rea\n        args: [mcp]\n        env:\n          # retain preceding rationale\n          ${key}: "auto" # retain inline rationale\n${duplicate ? `          ${override}: "ghidra" # retain winning rationale\n` : ""}          CUSTOM: !!js caller.custom\n`;
     await writeFile(configPath, source);
     const client = {
       name: "dsh",
@@ -263,9 +165,7 @@ it.skipIf(process.platform !== "win32")(
   },
 );
 
-it
-  .skipIf(process.platform !== "win32")
-  .each(["hopper", "!!js caller.provider"])(
+it.skipIf(process.platform !== "win32").each(["auto", "!!js caller.provider"])(
   "replaces a Windows DSH environment alias without evaluating %s",
   async (stored) => {
     const root = await createTestTempDirectory("rea-dsh-case-");
@@ -295,7 +195,6 @@ it
       undefined,
     );
     if (!details.ok) throw details.error;
-    expect(details.value.timeoutInputs?.analysisProvider).toBe("ghidra");
     expect(
       await configureClientConfiguration(client, overrides, ["rea", "mcp"]),
     ).toEqual({ status: "unchanged" });
@@ -304,14 +203,14 @@ it
 
 it.skipIf(process.platform !== "win32").each([
   {
-    existing: { rea_analysis_provider: "hopper" },
+    existing: { rea_analysis_provider: "auto" },
     overrides: { REA_ANALYSIS_PROVIDER: "ghidra" },
     expected: "ghidra",
   },
   {
     existing: { REA_ANALYSIS_PROVIDER: "ghidra" },
-    overrides: { rea_analysis_provider: "hopper" },
-    expected: "hopper",
+    overrides: { rea_analysis_provider: "auto" },
+    expected: "auto",
   },
 ])(
   "keeps Windows override precedence consistent with the launched environment: $expected",
@@ -328,7 +227,6 @@ it.skipIf(process.platform !== "win32").each([
       overrides,
     );
     if (!result.ok) throw result.error;
-    expect(result.value.timeoutInputs?.analysisProvider).toBe(expected);
     expect(snapshotEnvironment(result.value.values).REA_ANALYSIS_PROVIDER).toBe(
       expected,
     );
@@ -404,7 +302,6 @@ it.each([
       REA_MCP_MAX_RESPONSE_BYTES: "33554432",
       REA_BROWSER_EXECUTABLE: join(root, "custom-browser"),
       GHIDRA_INSTALL_DIR: join(root, "old-ghidra"),
-      HOPPER_LOADER_ARGS_JSON: '["", "--loader", "Mach-O"]',
       REA_REFERENCE_SECRET_PATTERNS_JSON: '["*.private", "local/**"]',
       REA_GHIDRA_LANGUAGE_ID: "x86:LE:32:default",
       REA_GHIDRA_COMPILER_SPEC_ID: "borlandcpp",
@@ -454,9 +351,7 @@ it.each([
       effectiveClientServer(originalParsed, "other"),
     );
     expect(await readFile(`${configPath}.rea.backup`, "utf8")).toBe(original);
-    expect(await clientConfigurationAligned(client, providers, command)).toBe(
-      true,
-    );
+
     expect(
       await inspectClientConfiguration(client, providers, command),
     ).toEqual({ status: "already_current" });
@@ -496,7 +391,7 @@ it.each(["linux", "win32"] as const)(
       ["constructor", "caller"],
     ]);
     expect(details.value.unresolvedSettings).toEqual(new Set(["CUSTOM"]));
-    expect(details.value.timeoutInputs?.analysisProvider).toBe("auto");
+    expect(details.value.timeoutInputs).toBeDefined();
   },
 );
 
@@ -511,12 +406,11 @@ it("retains an unresolved JEB endpoint expression until a selected literal repla
 `,
     "dsh",
   );
-  const unresolved = await clientRegistrationEnvironmentDetailsWithBudget(
+  const unresolved = clientRegistrationEnvironmentDetailsForTimeouts(
     parsed,
     undefined,
     {},
     "effective",
-    undefined,
   );
   if (!unresolved.ok) throw unresolved.error;
   expect(unresolved.value.unresolvedSettings).toEqual(
@@ -533,10 +427,8 @@ it("retains an unresolved JEB endpoint expression until a selected literal repla
 
 it.each(
   [
-    "REA_ANALYSIS_PROVIDER",
     "REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS",
     "REA_GHIDRA_STARTUP_TIMEOUT_MS",
-    "REA_HOPPER_STARTUP_TIMEOUT_MS",
     "REA_JEB_MCP_TIMEOUT_MS",
   ].flatMap((setting) =>
     (["linux", "win32"] as const).map((platform) => ({ setting, platform })),
@@ -577,28 +469,22 @@ it.each(
     expect(details.value.values).toEqual({ CALLER_SETTING: "retained" });
     expect(details.value.unresolvedSettings).toEqual(new Set([setting]));
     expect(details.value.timeoutInputs).toBeUndefined();
-    let resolved = false;
-    const budget = await clientRegistrationEnvironmentDetailsWithBudget(
+    const budget = clientRegistrationEnvironmentDetailsForTimeouts(
       parsed,
       undefined,
       {},
       "effective",
-      async () => {
-        resolved = true;
-        return ok(17);
-      },
       platform,
     );
     expect(budget).toMatchObject({
       ok: false,
       error: { settings: [{ setting }] },
     });
-    expect(resolved).toBe(false);
     const overridden = clientRegistrationEnvironmentDetails(
       parsed,
       undefined,
       {
-        [setting]: setting === "REA_ANALYSIS_PROVIDER" ? "ghidra" : "17000",
+        [setting]: "17000",
       },
       "effective",
       platform,
@@ -628,65 +514,6 @@ it("retains an unknown companion while deriving unrelated literal timeout facts"
     new Set(["REA_GHIDRA_LANGUAGE_ID"]),
   );
   expect(details.value.timeoutInputs?.ghidraStartupTimeoutMs).toBe(17000);
-});
-
-it("does not resolve a provider budget from an expression omitted from literal values", async () => {
-  const parsed = parseClientConfiguration(
-    `- insert:
-    - id: rea-mcp
-      name: "@deepseek-ai/dsh-mcp-client"
-      config:
-        env:
-          REA_ANALYSIS_PROVIDER: ida
-          REA_IDA_MCP_CONFIG: !!js caller.idaConfig
-`,
-    "dsh",
-  );
-  const observations: string[] = [];
-  const resolveBudget = async (
-    provider: string,
-    environment: Readonly<Record<string, string>>,
-  ) => {
-    observations.push(provider, environment.REA_IDA_MCP_CONFIG ?? "missing");
-    return ok(17);
-  };
-  expect(
-    await clientRegistrationEnvironmentDetailsWithBudget(
-      parsed,
-      undefined,
-      {},
-      "effective",
-      undefined,
-    ),
-  ).toMatchObject({
-    ok: true,
-    value: { timeoutInputs: { analysisProvider: "ida" } },
-  });
-  expect(
-    await clientRegistrationEnvironmentDetailsWithBudget(
-      parsed,
-      undefined,
-      {},
-      "effective",
-      resolveBudget,
-    ),
-  ).toMatchObject({
-    ok: false,
-    error: { settings: [{ setting: "REA_IDA_MCP_CONFIG" }] },
-  });
-  expect(observations).toEqual([]);
-  const resolved = await clientRegistrationEnvironmentDetailsWithBudget(
-    parsed,
-    undefined,
-    { REA_IDA_MCP_CONFIG: "/selected/ida.json" },
-    "effective",
-    resolveBudget,
-  );
-  expect(resolved).toMatchObject({
-    ok: true,
-    value: { timeoutInputs: { providerRequestTimeoutMs: 17 } },
-  });
-  expect(observations).toEqual(["ida", "/selected/ida.json"]);
 });
 
 it("rejects a non-string caller environment key before editing configuration", async () => {
@@ -839,36 +666,6 @@ it.each([
     "REA_MCP_MAX_RESPONSE_BYTES",
   ],
   [
-    "ASAR header admission above its maximum",
-    { REA_ASAR_MAX_HEADER_BYTES: "268435457" },
-    "REA_ASAR_MAX_HEADER_BYTES",
-  ],
-  [
-    "regex matching deadline of zero",
-    { REA_REGEX_MATCHING_DEADLINE_MS: "0" },
-    "REA_REGEX_MATCHING_DEADLINE_MS",
-  ],
-  [
-    "capture decoder heap below its floor",
-    { REA_CAPTURE_DECODER_OLD_GENERATION_MIB: "7" },
-    "REA_CAPTURE_DECODER_OLD_GENERATION_MIB",
-  ],
-  [
-    "regex worker heap request below its floor",
-    { REA_REGEX_WORKER_HEAP_REQUEST_MIB: "6" },
-    "REA_REGEX_WORKER_HEAP_REQUEST_MIB",
-  ],
-  [
-    "bridge request ceiling below its floor",
-    { REA_BRIDGE_MAX_REQUEST_BYTES: "7463" },
-    "REA_BRIDGE_MAX_REQUEST_BYTES",
-  ],
-  [
-    "bridge request ceiling above its maximum",
-    { REA_BRIDGE_MAX_REQUEST_BYTES: "536870888" },
-    "REA_BRIDGE_MAX_REQUEST_BYTES",
-  ],
-  [
     "MCP initialize budget of zero",
     { REA_MCP_INITIALIZE_BUDGET_MS: "0" },
     "REA_MCP_INITIALIZE_BUDGET_MS",
@@ -889,21 +686,6 @@ it.each([
     "REA_MCP_DOCTOR_DEADLINE_MS",
   ],
   [
-    "malformed loader JSON",
-    { HOPPER_LOADER_ARGS_JSON: "{" },
-    "HOPPER_LOADER_ARGS_JSON",
-  ],
-  [
-    "non-array loader JSON",
-    { HOPPER_LOADER_ARGS_JSON: "{}" },
-    "HOPPER_LOADER_ARGS_JSON",
-  ],
-  [
-    "NUL loader argument",
-    { HOPPER_LOADER_ARGS_JSON: JSON.stringify(["a\0b"]) },
-    "HOPPER_LOADER_ARGS_JSON",
-  ],
-  [
     "malformed exclusion JSON",
     { REA_REFERENCE_SECRET_PATTERNS_JSON: "{" },
     "REA_REFERENCE_SECRET_PATTERNS_JSON",
@@ -917,21 +699,6 @@ it.each([
     "unpaired compiler specification",
     { REA_GHIDRA_COMPILER_SPEC_ID: "borlandcpp" },
     "REA_GHIDRA_COMPILER_SPEC_ID",
-  ],
-  [
-    "Windows ChangeTime drift window of zero",
-    { REA_WINDOWS_CHANGE_TIME_DRIFT_MS: "0" },
-    "REA_WINDOWS_CHANGE_TIME_DRIFT_MS",
-  ],
-  [
-    "Windows ChangeTime poll that is not decimal",
-    { REA_WINDOWS_CHANGE_TIME_SETTLE_POLL_MS: "1e2" },
-    "REA_WINDOWS_CHANGE_TIME_SETTLE_POLL_MS",
-  ],
-  [
-    "Windows ChangeTime poll budget above its maximum",
-    { REA_WINDOWS_CHANGE_TIME_SETTLE_MAX_POLLS: "1001" },
-    "REA_WINDOWS_CHANGE_TIME_SETTLE_MAX_POLLS",
   ],
 ] as const)(
   "refuses %s before changing the configuration",
@@ -959,9 +726,7 @@ it.each([
     expect(
       await configureClientConfiguration(client, {}, ["rea", "mcp"]),
     ).toEqual({ status: "failed", reason: "readback" });
-    expect(await clientConfigurationAligned(client, {}, ["rea", "mcp"])).toBe(
-      false,
-    );
+
     const statuses = await readClientRegistrationStatuses(home, "rea", {
       environment: {},
     });

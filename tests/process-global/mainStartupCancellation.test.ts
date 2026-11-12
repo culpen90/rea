@@ -98,7 +98,7 @@ it.each([
     const serve = vi.fn(() => ({ close: async () => {} }));
     const output: string[] = [];
     const pending = run({
-      env: { HOPPER_TARGET_PATH: target.path, REA_LOG_LEVEL: "silent" },
+      env: { REA_TARGET_PATH: target.path, REA_LOG_LEVEL: "silent" },
       stdin: input,
       serve,
       loadOptionalProviders: async () => ({}),
@@ -158,7 +158,7 @@ it.each(["optional", "late-handle"] as const)(
       return { close: closeHandle };
     });
     const pending = run({
-      env: { HOPPER_TARGET_PATH: target.path, REA_LOG_LEVEL: "silent" },
+      env: { REA_TARGET_PATH: target.path, REA_LOG_LEVEL: "silent" },
       stdin: input,
       serve,
       loadOptionalProviders: async () => {

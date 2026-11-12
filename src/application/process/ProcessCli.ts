@@ -37,7 +37,10 @@ import {
   artifactPrimaryCleanupLeases,
 } from "../../artifacts/ArtifactReader.js";
 import { AnalysisCleanupLease } from "../../artifacts/AnalysisCleanupLease.js";
-import { ArtifactResourceScope } from "../../artifacts/ArtifactResourceScope.js";
+import {
+  ArtifactResourceRetryFailure,
+  ArtifactResourceScope,
+} from "../../artifacts/ArtifactResourceScope.js";
 import { EvidenceFileError } from "../../domain/evidenceErrors.js";
 import type { Evidence } from "../../domain/evidence.js";
 import { completeProviderEvidence } from "../ProviderOperationExecution.js";
@@ -83,6 +86,20 @@ class RetainedProcessCaptureFailure extends ArtifactReaderFailure {
       },
       failure.details,
     );
+  }
+
+  /** Carry the capture report forward only if its lease is the sole failed owner. */
+  afterRetry(
+    failure: ArtifactReaderFailure,
+    retry: unknown,
+  ): ArtifactReaderFailure {
+    if (!(retry instanceof ArtifactResourceRetryFailure)) return failure;
+    const [owner, independentOwner] = retry.failedOwners;
+    return independentOwner === undefined &&
+      owner?.kind === "lease" &&
+      owner.lease === this.owner
+      ? new RetainedProcessCaptureFailure(failure, this.outcome, this.owner)
+      : failure;
   }
 }
 
@@ -392,6 +409,25 @@ const projectProcessCliError = (
   );
 };
 
+/** Deliver an unresolved capture's typed report to the one-shot CLI. */
+export const projectRetainedProcessCaptureFailure = (
+  cause: unknown,
+  signal: AbortSignal,
+): ProcessCliErrorOutput => {
+  if (
+    !(cause instanceof RetainedProcessCaptureFailure) ||
+    cause.outcome.ok ||
+    !(cause.outcome.error instanceof ProcessCaptureError) ||
+    !cause.outcome.error.cleanupIncomplete
+  )
+    throw cause;
+  return projectProcessCliError(
+    cause.outcome.error,
+    "capture_process_scenario",
+    signal,
+  );
+};
+
 /** Retain a reader failure's exact cleanup proof while recording later cancellation. */
 const artifactFailureWithCancellation = (
   failure: ArtifactReaderFailure,
@@ -482,22 +518,27 @@ const withProcessInputResources = async (
       outcome.ok ? outcome.value : undefined,
       leases,
     );
-    if (leases !== undefined || !(cause instanceof ArtifactReaderFailure))
-      throw failure;
-    // Preserve the independently owned local leases even when the primary's
-    // full retry authority is unknown. Do not claim they cover both failures.
-    throw new ArtifactReaderFailure(
-      failure.reason,
-      failure.message,
-      {
-        cause: new AggregateError(
-          [failure, cause],
-          "Process and input cleanup remain incomplete",
-        ),
-        ...artifactFailureFacts(failure),
-      },
-      failure.details,
-    );
+    // Keep independently owned local leases when the primary's full retry
+    // authority is unknown.
+    const finalFailure =
+      leases !== undefined || !(cause instanceof ArtifactReaderFailure)
+        ? failure
+        : new ArtifactReaderFailure(
+            failure.reason,
+            failure.message,
+            {
+              cause: new AggregateError(
+                [failure, cause],
+                "Process and input cleanup remain incomplete",
+              ),
+              ...artifactFailureFacts(failure),
+            },
+            failure.details,
+          );
+    const capture = !outcome.ok ? outcome.error : undefined;
+    throw capture instanceof RetainedProcessCaptureFailure
+      ? capture.afterRetry(finalFailure, cause)
+      : finalFailure;
   }
   if (
     !outcome.ok &&

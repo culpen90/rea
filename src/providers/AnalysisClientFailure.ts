@@ -1,9 +1,4 @@
 import {
-  HopperRemoteError,
-  HopperTimeoutError,
-  HopperProcessError,
-} from "../domain/hopperErrors.js";
-import {
   AnalysisError,
   type AnalysisErrorOptions,
 } from "../domain/analysisErrorBase.js";
@@ -29,39 +24,6 @@ export const analysisClientFailureContext = (
   providerId: string,
   operation: string,
 ): AnalysisErrorOptions => {
-  const providerRequest =
-    cause instanceof HopperRemoteError ||
-    cause instanceof HopperTimeoutError ||
-    cause instanceof HopperProcessError
-      ? {
-          ...(cause.operation === undefined
-            ? {}
-            : { operation: cause.operation }),
-          ...(cause.requestId === undefined
-            ? {}
-            : { request_id: cause.requestId }),
-          ...(cause instanceof HopperRemoteError
-            ? {
-                provider_code: cause.code,
-                diagnostic_type: cause.diagnosticType,
-              }
-            : {}),
-        }
-      : undefined;
-  const attribute = (
-    recorded: Readonly<Record<string, JsonValue>> | undefined,
-  ): Readonly<Record<string, JsonValue>> | undefined =>
-    providerRequest === undefined
-      ? recorded
-      : {
-          provider_request: providerRequest,
-          ...(recorded === undefined ? {} : { provider_diagnostics: recorded }),
-        };
-  const diagnostics = attribute(cause.diagnostics);
-  const invocationDiagnostics =
-    cause.invocationDiagnostics === undefined
-      ? undefined
-      : attribute(cause.invocationDiagnostics);
   return {
     cause,
     ...(cause.limit === undefined ? {} : { limit: cause.limit }),
@@ -83,8 +45,12 @@ export const analysisClientFailureContext = (
     ...(cause.capturedOutput === undefined
       ? {}
       : { capturedOutput: cause.capturedOutput }),
-    ...(diagnostics === undefined ? {} : { diagnostics }),
-    ...(invocationDiagnostics === undefined ? {} : { invocationDiagnostics }),
+    ...(cause.diagnostics === undefined
+      ? {}
+      : { diagnostics: cause.diagnostics }),
+    ...(cause.invocationDiagnostics === undefined
+      ? {}
+      : { invocationDiagnostics: cause.invocationDiagnostics }),
     ...(cause.cleanupIncomplete
       ? {
           cleanup: {
@@ -117,9 +83,6 @@ export const analysisClientFailureForOperation = (
     return failure;
   }
   if (
-    !(cause instanceof HopperRemoteError) &&
-    !(cause instanceof HopperTimeoutError) &&
-    !(cause instanceof HopperProcessError) &&
     !(cause instanceof AnalysisCancelledError) &&
     !(cause instanceof ProviderAdapterError) &&
     !(cause instanceof AnalysisCapabilityUnavailableError) &&
@@ -144,38 +107,7 @@ export const analysisClientFailureForOperation = (
         }),
   };
   let result: AnalysisError;
-  if (cause instanceof HopperRemoteError)
-    result = new HopperRemoteError(cause.code, cause.safeMessage, {
-      ...context,
-      operation,
-      requestId: cause.requestId,
-      diagnosticType: cause.diagnosticType,
-    });
-  else if (cause instanceof HopperTimeoutError)
-    result = new HopperTimeoutError(
-      cause.timeoutMs,
-      operation,
-      cause.requestId,
-      cause.providerState,
-      cause.stage,
-      cause.launcherOutcome,
-      context,
-    );
-  else if (cause instanceof HopperProcessError)
-    result = new HopperProcessError(cause.exitCode, {
-      ...context,
-      operation,
-      requestId: cause.requestId,
-      providerState: cause.providerState,
-      stage: cause.stage,
-      ...(cause.diagnostic === undefined
-        ? {}
-        : { diagnostic: cause.diagnostic }),
-      ...(cause.launcherFailure === undefined
-        ? {}
-        : { launcherFailure: cause.launcherFailure }),
-    });
-  else if (cause instanceof ProviderCleanupError) {
+  if (cause instanceof ProviderCleanupError) {
     const { diagnostics, ...outcomeContext } = context;
     result = new ProviderCleanupError(
       cause.providerId,

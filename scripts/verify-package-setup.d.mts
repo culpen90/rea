@@ -24,6 +24,5 @@ export function verifyPackageSetup(input: {
   readonly codexTarget: string;
   readonly cursorTarget: string;
   readonly supportedSetupHost: boolean;
-  readonly hopperSetupSupported: boolean | undefined;
   readonly root: string;
 }): Promise<void>;

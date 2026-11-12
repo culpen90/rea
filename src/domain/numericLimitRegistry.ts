@@ -44,19 +44,6 @@ export const NUMERIC_LIMIT_REGISTRY = [
       "Caps how many debugger sessions the session manager created at startup will admit. Changing the pool size of a manager that already exists requires a new REA process.",
   },
   {
-    name: "REA_HOPPER_DEMO_DIALOG_TIMEOUT_MS",
-    update_mode: "restart",
-    policy: "restart-only",
-    read: "startup",
-    reason:
-      "The Linux private-display adapter reads this watch from the process environment when that helper starts. A running adapter does not observe a value stored only in the REA process.",
-    provenance: {
-      kind: "external-reader",
-      source: "scripts/hopper-demo-x11.py",
-      witness: "tests/boundary/providers/hopper/linuxPrivateDisplay.test.ts",
-    },
-  },
-  {
     name: "REA_JADX_ACTIVE_PROCESSOR_COUNT",
     update_mode: "restart",
     policy: "restart-only",
@@ -71,22 +58,6 @@ export const NUMERIC_LIMIT_REGISTRY = [
     read: "startup",
     reason:
       "Passed to the JVM as -Xmx when the JADX worker process starts. A running JVM does not adopt a new heap size.",
-  },
-  {
-    name: "REA_KUNA_CACHE_MAX_BYTES",
-    update_mode: "restart",
-    policy: "restart-only",
-    read: "startup",
-    reason:
-      "Sizes the Kuna project cache when that cache is constructed for the provider. An existing cache does not resize from a later value.",
-  },
-  {
-    name: "REA_KUNA_JOBS",
-    update_mode: "restart",
-    policy: "restart-only",
-    read: "startup",
-    reason:
-      "Selects the Kuna worker-pool width when the provider builds its run slots. The pool is not resized for a process that is already running.",
   },
   {
     name: "REA_MCP_DOCTOR_DEADLINE_MS",
@@ -135,21 +106,6 @@ export const NUMERIC_LIMIT_REGISTRY = [
     read: "startup",
     reason:
       "Bounds the MCP tools/list phase while the server is starting. It shapes server startup, not a later analysis call.",
-  },
-  {
-    name: "REA_RECONNECT_TIMEOUT_SECONDS",
-    update_mode: "restart",
-    policy: "restart-only",
-    read: "startup",
-    reason:
-      "Fixed 30-second value written into the Hopper bridge helper from HOPPER_SHUTDOWN_TIMEOUT_MS. It is not a caller-selected launch setting.",
-    provenance: {
-      kind: "generated-control",
-      source: "bridge/hopper_bridge.py",
-      generator: "src/hopper/BridgeLauncher.ts",
-      generatorWitness: "src/hopper/bridgeBootstrapLimit.test.ts",
-      witness: "tests/boundary/providers/hopper/hopperBridgeReconnect.test.ts",
-    },
   },
   {
     name: "REA_SWIFTC_COMPILE_TIMEOUT_MS",

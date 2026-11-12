@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA inicia sua ponte de análise dentro do Hopper enquanto inspeciona um binário nativo" width="1200" />
-
-<br /><br />
-
 <table aria-label="Comunidade REA">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@ Viu uma funcionalidade em um aplicativo que gostaria de ter no seu próprio prod
 
 O REA conecta seu agente a ferramentas para inspecionar binários nativos, aplicativos JavaScript e Electron, assemblies .NET e sites. Você também pode usar as mesmas ferramentas pelo terminal. A análise acontece localmente, e os resultados incluem as evidências e limitações por trás de cada conclusão.
 
-A configuração registra o REA no seu agente e instala as instruções de trabalho correspondentes. A análise nativa pode usar Hopper, Ghidra, IDA ou Kuna já instalados; o Hopper pode ser instalado após sua aprovação. A análise estática de JavaScript não precisa de um mecanismo de análise nativa.
+A configuração registra o REA no seu agente e instala as instruções de trabalho correspondentes. A análise nativa usa uma instalação existente do Ghidra. A análise estática de JavaScript não precisa de um mecanismo de análise nativa.
 
 > **[Visite o site do REA](https://rea.tools/pt-BR/)** para instruções de configuração, guias ilustrados e estudos de caso reais.
 
@@ -157,7 +153,7 @@ O REA requer Node.js 22.x (>=22.23.4), 24.x (>=24.22.1) ou 26+ (>=26.12.1), alé
 
 | Alvo                        | O que o REA retorna                                                                                                     | Requisitos e guia                                                                                                                                                |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Binários nativos            | Pseudocódigo, assembly, strings, símbolos, chamadas e referências                                                       | Hopper, Ghidra, IDA ou Kuna; [análise nativa](../guides/native/native-investigation.md)                                                                          |
+| Binários nativos            | Pseudocódigo, assembly, strings, símbolos, chamadas e referências                                                       | Ghidra; [análise nativa](../guides/native/native-investigation.md)                                                                                               |
 | Estrutura ELF sem execução  | Seções, segmentos, símbolos/relocações originais e possíveis mecanismos de mitigação identificados por análise estática | pwntools fornecido pelo chamador no Linux x64; [diagnóstico de binários](../guides/native/binary-diagnostics.md)                                                 |
 | PE certificates             | Authenticode WIN_CERTIFICATE entries and PKCS#7 signer/X.509 identity fields                                            | Built-in static PE inspection; [PE certificates](../pe-certificates.md)                                                                                          |
 | PE imports                  | Import and delay-load DLL names, ordinals, IAT RVAs and pefile import hash                                              | Built-in static PE inspection; [PE imports](../pe-imports.md)                                                                                                    |
@@ -203,9 +199,11 @@ Para inspecionar binários nativos offline, o REA também oferece suporte ao GNU
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Para binários grandes, aumente o prazo de inicialização com `REA_GHIDRA_STARTUP_TIMEOUT_MS` ou `REA_HOPPER_STARTUP_TIMEOUT_MS`.
+[Migrar para o Ghidra](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
 
-Os formatos nativos e os sistemas anfitriões compatíveis variam por provedor. Consulte [configuração do Hopper e Ghidra](../getting-started/installation.md#hopper), o [guia do IDA](../providers/ida-provider.md), [Kuna](../kuna-provider.md) e o [suporte experimental ao Ghidra no Windows](../providers/windows-ghidra-p0.md). O Ghidra também oferece [análise de DOS de 16 bits](../providers/ghidra-dos.md). Para selecionar um provedor, consulte o [guia da CLI](../getting-started/cli.md#choose-a-provider). Verifique a [disponibilidade nas versões](../getting-started/installation.md#released-package-and-main) das funcionalidades adicionadas após a versão mais recente no npm.
+Para binários grandes, aumente o prazo de inicialização com `REA_GHIDRA_STARTUP_TIMEOUT_MS`.
+
+Os formatos nativos e os sistemas anfitriões compatíveis variam por provedor. Consulte [Ghidra](../getting-started/installation.md#ghidra), [suporte experimental ao Ghidra no Windows](../providers/windows-ghidra-p0.md). O Ghidra também oferece [análise de DOS de 16 bits](../providers/ghidra-dos.md). Para selecionar um provedor, consulte o [guia da CLI](../getting-started/cli.md#choose-a-provider). Verifique a [disponibilidade nas versões](../getting-started/installation.md#released-package-and-main) das funcionalidades adicionadas após a versão mais recente no npm.
 
 ## Casos de uso
 
@@ -295,16 +293,10 @@ Qualquer agente que ofereça suporte a servidores MCP locais. A configuração p
 </details>
 
 <details>
-<summary><strong>Preciso do Hopper, Ghidra, IDA ou Kuna?</strong></summary>
+<summary><strong>Preciso do Ghidra?</strong></summary>
 
-A análise nativa aprofundada usa um desses motores. A inspeção estática de JavaScript e .NET funciona sem um motor de análise nativa. A configuração pode instalar o Hopper após aprovação; Ghidra, IDA e Kuna usam as instalações existentes. Consulte [configuração dos provedores](../getting-started/installation.md#hopper).
-
-</details>
-
-<details>
-<summary><strong>Preciso iniciar o Hopper antes?</strong></summary>
-
-O REA inicia o Hopper quando uma operação precisa dele. No macOS, um diálogo na primeira execução pode pedir que você escolha o modo de demonstração ou ative a licença. Consulte [inicialização do Hopper e solução de problemas](../getting-started/installation.md#launcher-paths-and-troubleshooting).
+A análise nativa usa uma instalação existente do Ghidra. A inspeção estática de JavaScript e .NET funciona sem um motor de análise nativa.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -402,7 +394,7 @@ licenses and copyright notices; see [Third-party notices](../../THIRD_PARTY_NOTI
 for the dependency inventory, preserved license texts, and external-tool terms.
 
 **You must legally obtain and be authorized to use commercial tools**, including
-IDA Pro / Hex-Rays decompilers, Hopper, and JEB, under their applicable licenses.
+JEB, under its applicable license.
 REA grants no tool license, key, or activation entitlement. Trials and demos
 remain subject to vendor terms, including user, feature, automation, and output
 sharing restrictions. Cracked copies, stolen keys, unauthorized key sharing,

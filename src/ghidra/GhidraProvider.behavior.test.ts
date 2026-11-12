@@ -295,8 +295,9 @@ it("states the fresh-session and pseudocode boundaries", () => {
     /original executable bytes (?:are unchanged|are never written|remain unmodified)/iu,
   );
   const pseudocodeNotes = limitationsFor("procedure_pseudo_code").join("\n");
-  expect(pseudocodeNotes).toMatch(/not original source/iu);
-  expect(pseudocodeNotes).toMatch(/not text.equivalent to Hopper/iu);
+  expect(pseudocodeNotes).toMatch(
+    /Ghidra decompiler output.*not original source/iu,
+  );
 });
 
 it("carries the inspected release identity into the production launcher", async () => {

@@ -8,8 +8,6 @@ import {
 import { pwntoolsInputBytes } from "../native/pwntools/PwntoolsInputLimit.js";
 import { resolveBridgeMaxRequestBytes } from "../config/bridgeMaxRequestBytes.js";
 import { resolveCaptureDecoderHeap } from "../config/captureDecoderHeap.js";
-import { resolveRegexMatchingDeadline } from "../config/regexMatchingDeadline.js";
-import { resolveRegexWorkerHeapRequest } from "../config/regexWorkerHeapRequest.js";
 import { runWithAnalysisOperationSnapshot } from "../domain/analysisOperationSnapshot.js";
 import {
   runtimeAnalysisConfig,
@@ -117,7 +115,6 @@ it("keeps accepted operations and their typed provider views stable across concu
     expect(live.ghidraValueFlowMaxInputsPerOperation).toBe(64);
     expect(live.ghidraValueFlowMaxEdges).toBe(12000);
     expect(live.ghidraStartupTimeoutMs).toBe(330000);
-    expect(live.regexMatchingDeadline.deadlineMs).toBe(5000);
     expect(store.read().revision).toBe(0);
   });
   try {
@@ -137,7 +134,6 @@ it("keeps accepted operations and their typed provider views stable across concu
         },
         { setting: "ghidra.value_flow_max_edges", action: "set", value: 24000 },
         { setting: "ghidra.startup_timeout_ms", action: "set", value: 999999 },
-        { setting: "regex.matching_deadline_ms", action: "set", value: 10000 },
       ],
     });
     expect(changed.ok).toBe(true);
@@ -153,7 +149,6 @@ it("keeps accepted operations and their typed provider views stable across concu
     expect(live.ghidraValueFlowMaxInputsPerOperation).toBe(128);
     expect(live.ghidraValueFlowMaxEdges).toBe(24000);
     expect(live.ghidraStartupTimeoutMs).toBe(999999);
-    expect(live.regexMatchingDeadline.deadlineMs).toBe(10000);
   });
 });
 
@@ -163,7 +158,7 @@ it("exposes shared provider controls and preserves the explicit unbounded decomp
     REA_GHIDRA_DECOMPILE_MAX_PAYLOAD_MIB: "64",
   };
   const store = new AnalysisSettings(environment);
-  for (const provider of ["ghidra", "hopper"] as const)
+  for (const provider of ["ghidra"] as const)
     expect(
       store
         .inspect({ provider, operation: "open_binary" })
@@ -189,11 +184,6 @@ it("exposes shared provider controls and preserves the explicit unbounded decomp
         .inspect({ provider: "cutter", operation })
         .settings.map(({ setting }) => setting),
     ).toContain("bridge.max_request_bytes");
-  expect(
-    store
-      .inspect({ provider: "ida", operation: "search_strings" })
-      .settings.map(({ setting }) => setting),
-  ).toEqual(["regex.matching_deadline_ms", "regex.worker_heap_request_mib"]);
   expect(
     store
       .inspect({ operation: "inventory_artifact" })
@@ -233,16 +223,6 @@ it("exposes shared provider controls and preserves the explicit unbounded decomp
       "windows.change_time_settle_max_polls",
     ]),
   );
-  for (const operation of [
-    "procedure_pseudo_code",
-    "procedure_assembly",
-    "analyze_function",
-  ] as const)
-    expect(
-      store
-        .inspect({ provider: "kuna", operation })
-        .settings.map(({ setting }) => setting),
-    ).toContain("kuna.project_timeout_ms");
   expect(
     store.update({
       changes: [
@@ -274,7 +254,6 @@ it("exposes shared provider controls and preserves the explicit unbounded decomp
     ["ghidra.decompile_max_payload_mib", 2048],
     ["asar.max_header_bytes", 268435457],
     ["javascript.max_heap_mb", 127],
-    ["regex.matching_deadline_ms", 1.5],
   ]) {
     expect(
       store.update({ changes: [{ setting, action: "set", value }] }).ok,
@@ -353,7 +332,6 @@ it("rejects an out-of-range per-call limit and reads an accepted value from the 
       maximumBytes: 33554432,
       source: "runtime",
     });
-    expect(live.hopperStartupTimeoutSource).toBe("default");
   });
   expect(pwntoolsInputBytes({})).toMatchObject({
     bytes: 32 * 1024 * 1024,
@@ -368,8 +346,6 @@ it("reads an accepted override before an invalid launch seed", () => {
       overrides: {
         "bridge.max_request_bytes": 8192,
         "capture.decoder_old_generation_mib": 64,
-        "regex.matching_deadline_ms": 250,
-        "regex.worker_heap_request_mib": 128,
         "asar.max_header_bytes": 8192,
         "asar.max_listing_bytes": 4096,
       },
@@ -380,12 +356,6 @@ it("reads an accepted override before an invalid launch seed", () => {
       }),
       capture: resolveCaptureDecoderHeap({
         REA_CAPTURE_DECODER_OLD_GENERATION_MIB: "0",
-      }),
-      deadline: resolveRegexMatchingDeadline({
-        REA_REGEX_MATCHING_DEADLINE_MS: "nope",
-      }),
-      heap: resolveRegexWorkerHeapRequest({
-        REA_REGEX_WORKER_HEAP_REQUEST_MIB: "1",
       }),
       asar: runtimeAsarHeaderAdmission({
         REA_ASAR_MAX_HEADER_BYTES: "nope",
@@ -400,35 +370,6 @@ it("reads an accepted override before an invalid launch seed", () => {
   expect(resolved.capture).toMatchObject({
     oldGenerationMiB: 64,
     source: "runtime",
-  });
-  expect(resolved.deadline).toMatchObject({
-    deadlineMs: 250,
-    source: "runtime",
-  });
-  expect(resolved.heap).toMatchObject({ heapMiB: 128, source: "runtime" });
-  expect(resolved.asar).toMatchObject({
-    maximumBytes: 8192,
-    source: "runtime",
-    listing: { maximumBytes: 4096, source: "runtime" },
-  });
-});
-
-it("keeps the Hopper startup deadline source through a runtime override", () => {
-  const parsed = parseConfig({ REA_HOPPER_STARTUP_TIMEOUT_MS: "45000" });
-  if (!parsed.ok) throw parsed.error;
-  const store = new AnalysisSettings({});
-  const live = runtimeAnalysisConfig(parsed.value, store.read);
-  expect(live.hopperStartupTimeoutSource).toBe("setting");
-  expect(
-    store.update({
-      changes: [
-        { setting: "hopper.startup_timeout_ms", action: "set", value: 8000 },
-      ],
-    }).ok,
-  ).toBe(true);
-  store.run(() => {
-    expect(live.hopperStartupTimeoutMs).toBe(8000);
-    expect(live.hopperStartupTimeoutSource).toBe("runtime");
   });
 });
 

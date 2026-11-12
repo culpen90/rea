@@ -6,7 +6,6 @@ import type { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.j
 import { workflowUnknownInput } from "../application/investigation/WorkflowUnknown.js";
 
 import {
-  getNavigationContext,
   inspectAddressContext,
   omitContextEvidenceForDelivery,
 } from "../application/AnalysisContextQueries.js";
@@ -296,27 +295,8 @@ const registerContextTools = (
   server: EvidenceMcpServer,
   session: BinarySessionPort,
 ): void => {
-  const navigationContract = toolContract("get_navigation_context");
   const addressContract = toolContract("inspect_address_context");
   const admission = withAdmittedAnalysis({ kind: "session", session });
-  server.registerTool(
-    navigationContract.name,
-    toolRegistrationOptions(navigationContract),
-    async (input, context) => {
-      const admitted = await admission(
-        navigationContract.name,
-        context.mcpReq.signal,
-        async (analysis) =>
-          server.delivery.toCallToolResult(
-            await getNavigationContext(analysis, input, context.mcpReq.signal),
-            navigationContract,
-          ),
-      );
-      return admitted.ok
-        ? admitted.value
-        : server.delivery.toCallToolResult(admitted, navigationContract);
-    },
-  );
   server.registerTool(
     addressContract.name,
     toolRegistrationOptions(addressContract),

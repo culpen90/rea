@@ -5,7 +5,6 @@ import type { CallToolResult } from "@modelcontextprotocol/server";
 import { afterEach, expect, it } from "vitest";
 
 import type { AnalysisOperationPort } from "../../../src/application/AnalysisProvider.js";
-import { HopperRemoteError } from "../../../src/domain/hopperErrors.js";
 import { err } from "../../../src/domain/result.js";
 import { observed as ok } from "../../fixtures/analysisExecution.js";
 import { createServer } from "../../../src/server/createServer.js";
@@ -39,6 +38,7 @@ import { GoBinaryService } from "../../../src/application/go/GoBinaryService.js"
 import { Il2cppMetadataService } from "../../../src/application/il2cpp/Il2cppMetadataService.js";
 import { WebNetworkCaptureService } from "../../../src/application/WebNetworkCaptureService.js";
 import { AnalysisUnsupportedTargetError } from "../../../src/domain/analysisErrorCore.js";
+import { ProviderAdapterError } from "../../../src/domain/providerAdapterError.js";
 import { ProviderCleanupError } from "../../../src/domain/providerCleanupError.js";
 import type { JavaScriptRuntimeObservationPort } from "../../../src/application/javascript/JavaScriptRuntimeObservationPort.js";
 
@@ -564,23 +564,36 @@ const structured = (result: CallToolResult): Record<string, unknown> => {
   return Object.fromEntries(Object.entries(result.structuredContent));
 };
 
-it("projects remote failures without provider or bridge details", async () => {
+it("projects a provider execution failure without exposing its bridge cause", async () => {
+  const operation = "list_documents";
+  const bridgeCause = new Error("fixture-only raw bridge failure");
   const client = await connect({
     execute: () =>
-      Promise.resolve(err(new HopperRemoteError(-32000, "bridge timeout"))),
+      Promise.resolve(
+        err(
+          new ProviderAdapterError("fixture-provider", operation, {
+            cause: bridgeCause,
+          }),
+        ),
+      ),
   });
 
   const result = await client.callTool({
-    name: "list_documents",
+    name: operation,
     arguments: {},
   });
   expect(result.isError).toBe(true);
-  expect(structured(result)).toMatchObject({
+  expect(result.structuredContent).toBeUndefined();
+  const projected = parseMcpToolError(result);
+  expect(projected).toMatchObject({
     error: {
       category: "execution_failure",
+      code: "execution_failure",
+      details: { provider_id: "fixture-provider", operation },
     },
   });
-  expect(text(result)).toBe(JSON.stringify(parseMcpToolError(result)));
+  expect(text(result)).toBe(JSON.stringify(projected));
+  expect(text(result)).not.toContain(bridgeCause.message);
 });
 
 it("lets the SDK validate a tool call before invoking its handler", async () => {

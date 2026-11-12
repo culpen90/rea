@@ -113,18 +113,17 @@ never a silent fallback; its validation boundary determines whether MCP can
 start (see [invalid launch configuration](#invalid-launch-configuration)). An
 invalid runtime write is `invalid_request` and changes nothing.
 
-For example, `regex.matching_deadline_ms` and its launch seed
-`REA_REGEX_MATCHING_DEADLINE_MS` share a 5000 ms default, 1 ms floor and
-2147483647 ms maximum. Node schedules a longer `setTimeout` delay as 1 ms.
-Changing the runtime setting affects the next accepted search; changing the
-launch environment affects the next REA process.
+For example, `ghidra.startup_timeout_ms` and its launch seed
+`REA_GHIDRA_STARTUP_TIMEOUT_MS` share a 330000 ms default, 1 ms floor and
+2147483647 ms maximum. Changing the runtime setting affects the next
+provider startup. Changing the launch environment affects the next REA
+process.
 
 [`REA_MCP_MAX_RESPONSE_BYTES`](https://github.com/morluto/rea/blob/main/src/config/mcpResponseBudget.ts)
 is the byte-budget shape: a decimal safe integer with a 10 MiB floor
 (`MINIMUM_RESPONSE_BYTES`), the same shared schema, and no silent fallback. A
 change needs a REA restart and a matching client receive buffer. It does not
-raise REA's reserved string limit or Node's string ceiling. Like the regex
-deadline, it is in `SELECTED_REGISTRATION_SETTINGS`, so setup forwards an
+raise REA's reserved string limit or Node's string ceiling. It is in `SELECTED_REGISTRATION_SETTINGS`, so setup forwards an
 explicit selection into the client registration.
 
 Windows ChangeTime admission waits out a fresh timestamp before recording a
@@ -180,12 +179,11 @@ cannot partially apply. Clients coordinating writes can supply
 | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `asar.max_header_bytes`                                                                                         | Next archive operation, including full JavaScript application analysis          |
 | `asar.max_listing_bytes`                                                                                        | Next expanded ASAR listing, independently of packed header bytes                |
-| `ghidra.startup_timeout_ms`, `hopper.startup_timeout_ms`                                                        | Next provider startup attempt                                                   |
+| `ghidra.startup_timeout_ms`                                                                                     | Next provider startup attempt                                                   |
 | `ghidra.decompile_timeout_seconds`                                                                              | Next operation on the existing Ghidra Program; `null` means unbounded           |
 | `ghidra.decompile_max_payload_mib`                                                                              | Next native decompile; `null` preserves the selected provider's payload default |
 | `ghidra.value_flow_max_operations`, `ghidra.value_flow_max_inputs_per_operation`, `ghidra.value_flow_max_edges` | Next function value-flow projection on the existing Program                     |
 | `jadx.operation_timeout_ms`                                                                                     | Next JADX operation                                                             |
-| `regex.matching_deadline_ms`, `regex.worker_heap_request_mib`                                                   | Next search / new regex worker                                                  |
 | `capture.decoder_old_generation_mib`                                                                            | Next owned capture decoder                                                      |
 | `javascript.analysis_timeout_ms`, `javascript.max_heap_mb`                                                      | Next source analysis / new JavaScript worker                                    |
 | `wasm.command_timeout_ms`                                                                                       | Next WABT operation                                                             |

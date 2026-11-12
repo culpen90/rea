@@ -53,8 +53,8 @@ only setup-owned registrations use the guide's
 [registration repair plan](references/connection-and-recovery.md#repair-registration-when-needed).
 A plugin-only doctor result of `missing` does not call for `rea setup`.
 
-REA setup never installs or upgrades Node.js, npm, Homebrew, Java, Ghidra, IDA,
-JADX, Kuna, Binwalk, or Unblob. Use existing prerequisites; do not install unrelated
+REA setup never installs or upgrades Node.js, npm, Homebrew, Java, Ghidra,
+JADX, Binwalk, or Unblob. Use existing prerequisites; do not install unrelated
 software to repair MCP registration. For an unsupported client, use manual stdio
 registration with an existing installation’s absolute runtime and entry script, or continue through the CLI.
 
@@ -402,40 +402,15 @@ explicit path or endpoint and do not need it.
   no active target or engine; opaque payloads retain file ranges and SHA-256.
 - PE export directories and ELF dynamic-symbol exports: `inspect_native_exports`
   with an explicit path; portable, no active target or engine.
-- Native executable, library, or analysis database: `open_binary`, then
+- Native executable or library: `open_binary`, then
   use focused analysis tools directly; call `binary_overview` when metadata or
-  inventory context is useful and available from the selected provider.
+  inventory context is useful.
 
-For an existing IDA MCP configuration, use `open_binary` with the original
-input binary and `provider_id: "ida"`; do not pass an `.idb` or `.i64` database.
-The legacy attached profile binds the already-open GUI input by SHA-256 and
-leaves its database open. The modern headless profile creates and closes an
-owned private database without saving. Installation and registration reuse
-[mrexodia/ida-pro-mcp](https://github.com/mrexodia/ida-pro-mcp); see the
-[IDA provider guide](https://github.com/morluto/rea/blob/main/docs/providers/ida-provider.md).
-For migration to the separate native IDA MCP plugin, follow the guide's
-[legacy attached migration](https://github.com/morluto/rea/blob/main/docs/providers/ida-provider.md#migrate-a-legacy-attached-registration).
-Replace the upstream registration explicitly; modern mrexodia tools are not the
-native profile. Native attachment preserves the database but does not provide
-direct callers; check session availability and the guide's verification limits.
-Proceed directly to `analyze_function`, pseudocode, or function/string searches
-after opening; IDA does not supply `binary_overview`. Consult session availability
-when composing broader workflows. Modern direct callers and unsupported dossier
-facets remain unknown; live IDA results are not replayed from snapshots.
-
-With `REA_KUNA_COMMAND` configured, `provider_id: "kuna"` answers procedure
-lists, lookups, pseudocode, assembly and `analyze_function` from Kuna's cached
-whole-program export. Callers/callees use a separate body-free graph shared by
-the session; `xrefs` returns exact-address incoming sites and filters forwarding
-aliases. These queries and inventory lookups do not trigger a C export. Indirect
-targets remain unknown and can make relationship coverage partial. Reference
-caches expire on close; a fresh CLI process repeats the native reference walk.
-Typed references, CFG, raw-memory tools and annotations remain unsupported. A cold first
-answer can come from a single-function run (its limitations say so); assembly
-waits for the export. For pseudocode and assembly, `raw_result.source` names the
-cached `.c`/`.asm` file and byte span, which you may search directly instead of
-calling per function. See the
-[Kuna provider guide](https://github.com/morluto/rea/blob/main/docs/kuna-provider.md).
+Ghidra is REA's deep native analysis provider. Open the original executable or
+library. For a universal Mach-O, inspect the container and select an extracted
+slice for Ghidra, retaining the parent digest and slice offset. Open a fresh
+session for new observations. Imported Evidence from retired providers keeps
+its original provenance.
 
 If the user says only "my app" without a name, path, or target already selected
 for this task, ask which app before searching for artifacts. Paths in unrelated
@@ -547,8 +522,8 @@ For requests that span multiple features or subsystems, use a staged workflow:
 1. Turn the request into a checklist of questions and the evidence each answer
    needs. Resolve target identity and constraints from the conversation and
    workspace before asking for information again.
-2. Inspect the current REA session, artifact identity, saved analysis database,
-   bookmarks, and prior evidence. Reuse matching state; do not open duplicate
+2. Inspect the current REA session, artifact identity, saved Ghidra project,
+   and prior evidence. Reuse matching state; do not open duplicate
    sessions or repeat identical analysis.
 3. Start with the smallest useful overview or inventory. Follow each question
    from its entry point through relevant data and state changes to its result.

@@ -70,8 +70,8 @@ usage() {
   cat <<'EOF'
 Usage: install.sh [--version VERSION] [--dry-run] [--no-setup] [--no-prompt] [--verbose]
 
-Installs the REA CLI, then starts `rea setup` interactively to configure Hopper
-and agents when a terminal is available. Pass --no-setup (or --no-prompt) to
+Installs the REA CLI, then starts `rea setup` interactively to configure agents
+when a terminal is available. Pass --no-setup (or --no-prompt) to
 skip setup and run `rea setup` later.
 EOF
 }
@@ -178,7 +178,7 @@ main() {
     printf 'Starting REA setup...\n'
     "$install_bin" setup </dev/tty >/dev/tty
   else
-    printf 'Run %s setup to configure Hopper and agents.\n' "$install_bin"
+    printf 'Run %s setup to configure agents.\n' "$install_bin"
   fi
 }
 

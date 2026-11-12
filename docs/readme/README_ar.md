@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA يشغّل جسر التحليل داخل Hopper لفحص ملف ثنائي للشيفرة الأصلية" width="1200" />
-
-<br /><br />
-
 <table aria-label="مجتمع REA">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@
 
 يربط REA وكيلك بأدوات لفحص الملفات الثنائية للشيفرة الأصلية، وتطبيقات JavaScript وElectron، وتجميعات .NET، والمواقع. يمكنك أيضًا استخدام الأدوات نفسها من الطرفية. يجري التحليل محليًا، وتتضمن النتائج الأدلة والقيود التي تستند إليها كل خلاصة.
 
-يسجّل الإعداد REA لدى وكيلك ويثبّت تعليمات العمل المطابقة. يمكن للتحليل الأصلي استخدام Hopper أو Ghidra أو IDA أو Kuna المثبّت مسبقًا؛ ويمكن تثبيت Hopper بعد موافقتك. لا يحتاج التحليل الثابت لـ JavaScript إلى محرك تحليل أصلي.
+يسجّل الإعداد REA لدى وكيلك ويثبّت تعليمات العمل المطابقة. يستخدم التحليل الأصلي تثبيت Ghidra الموجود لديك. لا يحتاج التحليل الثابت لـ JavaScript إلى محرك تحليل أصلي.
 
 > **[زر موقع REA](https://rea.tools/ar/)** للاطلاع على تعليمات الإعداد والأدلة المصوّرة ودراسات الحالة الفعلية.
 
@@ -157,7 +153,7 @@ npx rea-agents@latest setup
 
 | الهدف                           | ما يعيده REA                                                                                               | المتطلبات والدليل                                                                                                                                            |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| الملفات الثنائية للشيفرة الأصلية | شيفرة شبه برمجية، وتعليمات تجميع، وسلاسل نصية، ورموز، واستدعاءات، ومراجع                                    | Hopper أو Ghidra أو IDA أو Kuna؛ [تحليل الشيفرة الأصلية](../guides/native/native-investigation.md)                                                            |
+| الملفات الثنائية للشيفرة الأصلية | شيفرة شبه برمجية، وتعليمات تجميع، وسلاسل نصية، ورموز، واستدعاءات، ومراجع                                    | Ghidra؛ [تحليل الشيفرة الأصلية](../guides/native/native-investigation.md)                                                                                     |
 | بنية ELF دون تشغيل              | الأقسام والمقاطع والرموز ومعلومات إعادة التموضع الأصلية، وآليات الحماية المحتملة المستدلّ عليها بالفحص الثابت | pwntools يوفّره المستدعي على Linux x64؛ [تشخيص الملفات الثنائية](../guides/native/binary-diagnostics.md)                                                      |
 | PE certificates                 | Authenticode WIN_CERTIFICATE entries and PKCS#7 signer/X.509 identity fields                               | Built-in static PE inspection; [PE certificates](../pe-certificates.md)                                                                                      |
 | PE imports                      | Import and delay-load DLL names, ordinals, IAT RVAs and pefile import hash                                 | Built-in static PE inspection; [PE imports](../pe-imports.md)                                                                                                |
@@ -201,9 +197,11 @@ npx rea-agents@latest setup
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-للملفات الثنائية الكبيرة، ارفع مهلة بدء الموفّر باستخدام `REA_GHIDRA_STARTUP_TIMEOUT_MS` أو `REA_HOPPER_STARTUP_TIMEOUT_MS`.
+[الانتقال إلى Ghidra](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
 
-تختلف صيغ ملفات الشيفرة الأصلية والأنظمة المضيفة المدعومة باختلاف الموفّر. راجع [إعداد Hopper وGhidra](../getting-started/installation.md#hopper)، و[دليل IDA](../providers/ida-provider.md)، [Kuna](../kuna-provider.md)، و[دعم Ghidra التجريبي على Windows](../providers/windows-ghidra-p0.md). يدعم Ghidra أيضًا [تحليل DOS ذي 16 بت](../providers/ghidra-dos.md). لاختيار الموفّر، راجع [دليل CLI](../getting-started/cli.md#choose-a-provider). تحقّق من [توفر الميزات في الإصدارات](../getting-started/installation.md#released-package-and-main) للميزات المضافة بعد أحدث إصدار على npm.
+للملفات الثنائية الكبيرة، ارفع مهلة بدء الموفّر باستخدام `REA_GHIDRA_STARTUP_TIMEOUT_MS`.
+
+تختلف صيغ ملفات الشيفرة الأصلية والأنظمة المضيفة المدعومة باختلاف الموفّر. راجع [Ghidra](../getting-started/installation.md#ghidra), [دعم Ghidra التجريبي على Windows](../providers/windows-ghidra-p0.md). يدعم Ghidra أيضًا [تحليل DOS ذي 16 بت](../providers/ghidra-dos.md). لاختيار الموفّر، راجع [دليل CLI](../getting-started/cli.md#choose-a-provider). تحقّق من [توفر الميزات في الإصدارات](../getting-started/installation.md#released-package-and-main) للميزات المضافة بعد أحدث إصدار على npm.
 
 ## دراسات الحالة
 
@@ -295,16 +293,10 @@ agent-env run ./my-env
 </details>
 
 <details>
-<summary><strong>هل أحتاج إلى Hopper أو Ghidra أو IDA أو Kuna؟</strong></summary>
+<summary><strong>هل أحتاج إلى Ghidra؟</strong></summary>
 
-يستخدم تحليل الشيفرة الأصلية المتعمق أحدها. يعمل الفحص الثابت لـ JavaScript و.NET دون محرك لتحليل الشيفرة الأصلية. يستطيع الإعداد تثبيت Hopper بعد الموافقة؛ أما Ghidra وIDA وKuna فتستخدم تثبيتاتك الموجودة. راجع [إعداد الموفّرين](../getting-started/installation.md#hopper).
-
-</details>
-
-<details>
-<summary><strong>هل أحتاج إلى تشغيل Hopper أولًا؟</strong></summary>
-
-يشغّل REA برنامج Hopper عندما تحتاج العملية إليه. على macOS، قد تظهر عند التشغيل الأول نافذة تطلب اختيار وضع العرض التجريبي أو تفعيل الترخيص. راجع [تشغيل Hopper واستكشاف الأخطاء](../getting-started/installation.md#launcher-paths-and-troubleshooting).
+يستخدم التحليل الأصلي تثبيت Ghidra الموجود لديك. يعمل الفحص الثابت لـ JavaScript و.NET دون محرك لتحليل الشيفرة الأصلية.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -402,7 +394,7 @@ licenses and copyright notices; see [Third-party notices](../../THIRD_PARTY_NOTI
 for the dependency inventory, preserved license texts, and external-tool terms.
 
 **You must legally obtain and be authorized to use commercial tools**, including
-IDA Pro / Hex-Rays decompilers, Hopper, and JEB, under their applicable licenses.
+JEB, under its applicable license.
 REA grants no tool license, key, or activation entitlement. Trials and demos
 remain subject to vendor terms, including user, feature, automation, and output
 sharing restrictions. Cracked copies, stolen keys, unauthorized key sharing,

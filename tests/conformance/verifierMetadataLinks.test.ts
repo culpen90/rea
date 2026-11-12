@@ -220,7 +220,7 @@ it("links verifier metadata exports through static, namespace and packaged dynam
 });
 
 it.each([
-  'import { HOPPER_PROVIDER_IDENTITY } from "../dist/hopper/HopperProviderCapabilities.js";',
+  'import { GHIDRA_OPERATIONS } from "../dist/ghidra/GhidraProviderCapabilities.js";',
   'const { GHIDRA_OPERATIONS } = await import(pathToFileURL(join(packageRoot, "dist/ghidra/GhidraProviderCapabilities.js")));',
   'const metadata = await import("../dist/ghidra/GhidraProviderCapabilities.js"); metadata.GHIDRA_OPERATIONS;',
 ])(
@@ -232,8 +232,6 @@ it.each([
       await metadataSymbols(),
     );
     expect(result.failures).toHaveLength(1);
-    expect(result.failures[0]).toMatch(
-      / has no (?:HOPPER_PROVIDER_IDENTITY|GHIDRA_OPERATIONS) export$/u,
-    );
+    expect(result.failures[0]).toMatch(/ has no GHIDRA_OPERATIONS export$/u);
   },
 );

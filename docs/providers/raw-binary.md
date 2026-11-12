@@ -81,7 +81,7 @@ It also requires the source-backed block to be initialized, loaded, and
 non-overlay in the bound language's default address space. Contradictory mapping
 observations are retained with `mismatch`, even when the source hashes agree.
 
-Hopper and IDA refuse raw-binary targets. Windows Ghidra P0 admits native PE
+Windows Ghidra P0 admits native PE
 applications/DLLs and explicitly selected raw 6502 images. Other raw CPU families
 remain outside the Windows boundary. Native path admission, private DACLs, Job
 Object ownership, immutable snapshots, and the no-mutation policy still apply.

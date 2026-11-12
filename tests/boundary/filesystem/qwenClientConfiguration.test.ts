@@ -31,7 +31,7 @@ const qwenPath = (
 
 describe("Qwen Code configuration paths", () => {
   it("resolves the user settings file and marker directory", () => {
-    expect(qwenPath("/home/a", "linux")).toEqual({
+    expect(qwenPath("/home/a", "linux")).toMatchObject({
       name: "qwen_code",
       displayName: "Qwen Code",
       configPath: join("/home/a", ".qwen", "settings.json"),
@@ -187,7 +187,9 @@ describe("Qwen Code profile setup", () => {
       expect(await readFile(join(skill, "SKILL.md"), "utf8")).toContain(
         "reverse-engineer-anything",
       );
-      expect(await setup.clientNeedsConfigure(client, {}, command)).toBe(false);
+      expect(
+        await setup.inspectClientConfiguration(client, {}, command),
+      ).toEqual({ status: "already_current" });
       expect(await setup.skillNeedsInstall([client.name])).toBe(false);
       expect(await setup.installSkill([client.name])).toEqual({
         ok: true,

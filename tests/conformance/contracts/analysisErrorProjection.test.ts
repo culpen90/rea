@@ -8,7 +8,6 @@ import {
 } from "../../../src/contracts/errorSchemas.js";
 import { ArtifactOperationError } from "../../../src/domain/artifactOperationError.js";
 import { EvidenceFileError } from "../../../src/domain/evidenceErrors.js";
-import { HopperRemoteError } from "../../../src/domain/hopperErrors.js";
 import { UnknownRegistryError } from "../../../src/domain/unknownRegistryError.js";
 import { projectAnalysisError } from "../../../src/domain/analysisErrorProjection.js";
 import { BrowserObservationError } from "../../../src/domain/browserObservationError.js";
@@ -165,17 +164,6 @@ describe("analysis error projection contract", () => {
           new ProcessCaptureError("API_TOKEN=selected capture diagnostic", {
             reason,
           }),
-      ),
-      ...(
-        [
-          "remote",
-          "authorization",
-          "invalid_request",
-          "bridge_exception",
-        ] as const
-      ).map(
-        (diagnostic) =>
-          new HopperRemoteError(9, "safe", { diagnosticType: diagnostic }),
       ),
     ];
 

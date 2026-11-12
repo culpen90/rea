@@ -32,7 +32,6 @@ const environment = () => ({
     : { NODE_OPTIONS: process.env.NODE_OPTIONS }),
   REA_LOG_LEVEL: "silent",
   REA_ANALYSIS_PROVIDER: "ghidra",
-  HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
   ...(process.env.GHIDRA_INSTALL_DIR === undefined
     ? {}
     : { GHIDRA_INSTALL_DIR: process.env.GHIDRA_INSTALL_DIR }),

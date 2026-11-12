@@ -36,7 +36,6 @@ it.each([
       ...options(true),
       clientIds: ["cursor"],
       installSkill: false,
-      proposeHopper: false,
       readinessScope: { clients: [], providers: [], skill: false },
       ...(toolFamilies === undefined ? {} : { toolFamilies }),
     };

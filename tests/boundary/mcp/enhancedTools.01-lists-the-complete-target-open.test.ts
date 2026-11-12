@@ -198,8 +198,6 @@ const fixturePort = (): AnalysisOperationPort => ({
             },
           ]),
         );
-      case "current_document":
-        return Promise.resolve(ok("fixture"));
       case "list_documents":
         return Promise.resolve(ok(["fixture"]));
       case "list_strings":

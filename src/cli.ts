@@ -104,7 +104,7 @@ export const closeCliResources = async (): Promise<void> => {
 };
 
 /**
- * Build the one-shot Incur CLI without starting Hopper at import time.
+ * Build the one-shot Incur CLI without starting an analysis provider at import time.
  * Analysis commands acquire and close their own sessions; bare `mcp` and
  * `--mcp` are intercepted by the executable dispatcher before this module loads.
  */

@@ -134,3 +134,12 @@ jobs:
             > "${probe_root}/output.log" 2>&1 || { cat "${probe_root}/output.log"; exit 1; }
           cat "${probe_root}/output.log"
           grep -F 'REA_COMPUTED_CALL_COVERAGE_OK slot=observed-complete-discovery-unknown register=partial direct=complete callers=discovery-unknown' "${probe_root}/output.log"
+      - name: Install dependencies for real Ghidra workflows
+        if: github.event_name == 'workflow_dispatch'
+        run: npm ci
+      - name: Verify real Ghidra analysis through CLI and MCP
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          java_home_variable="JAVA_HOME_${GHIDRA_JAVA_MAJOR}_X64"
+          JAVA_HOME="${!java_home_variable}" npm run verify:ghidra

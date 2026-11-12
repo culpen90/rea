@@ -30,13 +30,12 @@ import {
 
 const exec = promisify(execFile);
 const packedFiles = [
-  "package/bridge/hopper_bridge.py",
   "package/bridge/cutter/rea_bridge.py",
   ...Object.values(GHIDRA_BRIDGE_SOURCES).map(
     (name) => `package/bridge/ghidra/${name}`,
   ),
 ];
-const hopper = packedFiles[0]!;
+const pythonBridge = packedFiles[0]!;
 const validSource =
   '# Unicode source: 雨\nraise RuntimeError("Packed source must never execute")\n';
 
@@ -53,7 +52,7 @@ const expectedPythonCommandFailure = (diagnostic: string | RegExp) => ({
   },
 });
 
-async function fixture(source: string = validSource, omitHopper = false) {
+async function fixture(source: string = validSource, omitPython = false) {
   const scratch = await createTestWorkspace("rea-packed-bridge-");
   const directory = scratch.root;
   let commands: PackageVerifierCommands | undefined;
@@ -67,10 +66,10 @@ async function fixture(source: string = validSource, omitHopper = false) {
   const workspace = join(directory, "workspace");
   await mkdir(workspace);
   for (const member of packedFiles) {
-    if (omitHopper && member === hopper) continue;
+    if (omitPython && member === pythonBridge) continue;
     const path = join(staging, member);
     await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, member === hopper ? source : "fixture\n");
+    await writeFile(path, member === pythonBridge ? source : "fixture\n");
   }
   const tarball = join(directory, "packed bridges.tgz");
   await exec("tar", ["-czf", tarball, "-C", staging, "package"]);
@@ -184,7 +183,7 @@ it.each(packedFiles)(
 it("rejects a missing actual Python member even when the listing advertises it", async () => {
   const input = await fixture(validSource, true);
   await expect(verifyPackedBridge(input)).rejects.toMatchObject(
-    expectedPythonCommandFailure(hopper),
+    expectedPythonCommandFailure(pythonBridge),
   );
   expect(await readdir(input.workspace)).toEqual([]);
 });
@@ -192,7 +191,7 @@ it("rejects a missing actual Python member even when the listing advertises it",
 it("reports invalid packed Python syntax with the member filename", async () => {
   const input = await fixture("def broken(:\n");
   await expect(verifyPackedBridge(input)).rejects.toMatchObject(
-    expectedPythonCommandFailure(/hopper_bridge\.py[\s\S]*SyntaxError/u),
+    expectedPythonCommandFailure(/rea_bridge\.py[\s\S]*SyntaxError/u),
   );
   expect(await readdir(input.workspace)).toEqual([]);
 });
@@ -249,11 +248,11 @@ it.each(["symlink", "hardlink", "directory"])(
         "    archive.addfile(member)",
       ].join("\n"),
       input.tarball,
-      hopper,
+      pythonBridge,
       kind,
     ]);
     await expect(verifyPackedBridge(input)).rejects.toMatchObject(
-      expectedPythonCommandFailure(`${hopper} is not a regular file`),
+      expectedPythonCommandFailure(`${pythonBridge} is not a regular file`),
     );
     expect(await readdir(input.workspace)).toEqual([]);
   },

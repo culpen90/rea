@@ -35,7 +35,7 @@ const client = new Client({ name: "qlog-producer-verifier", version: "1" });
 const environment = {
   PATH: process.env.PATH ?? "/usr/bin:/bin",
   REA_LOG_LEVEL: "silent",
-  HOPPER_LAUNCHER_PATH: "/rea-unconfigured-deep-provider/hopper",
+  GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
 };
 const transport = new StdioClientTransport({
   command: process.execPath,

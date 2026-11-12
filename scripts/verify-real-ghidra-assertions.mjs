@@ -176,7 +176,7 @@ function assertDossierProcedure(dossier, address) {
     typeof dossier.pseudocode !== "string" ||
     dossier.pseudocode.trim().length === 0 ||
     !dossier.limitations.some((value) => /indirect|computed/u.test(value)) ||
-    !dossier.limitations.some((value) => /Ghidra|Hopper|provider/u.test(value))
+    !dossier.limitations.some((value) => /Ghidra|provider/u.test(value))
   )
     throw new Error(
       `Ghidra dossier truthfulness drifted: ${JSON.stringify(dossier)}`,

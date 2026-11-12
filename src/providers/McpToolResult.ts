@@ -9,7 +9,7 @@ const structuredContentSchema = z.custom<Record<string, unknown>>((value) => {
   return prototype === Object.prototype || prototype === null;
 });
 
-/** IDA/JEB's object-structured envelope; each adapter owns selection and error policy. */
+/** JEB's object-structured envelope; each adapter owns selection and error policy. */
 export const mcpToolResultSchema = z.object({
   isError: z.boolean().optional(),
   structuredContent: structuredContentSchema.optional(),

@@ -214,7 +214,7 @@ export const PROMPT_CONTRACTS = [
           "For archive/package member inventory, open_binary with the supplied path, then inspect_artifact against that active target; inspect_artifact takes no path.",
       },
       {
-        tools: ["current_document"],
+        tools: ["list_documents"],
         instruction:
           "Native analysis stays bound to the active target's provider document. Use open_binary to switch targets; document names never select another artifact. Target-free inspection receives its explicit path directly, and resource tools use the bundle-resource session.",
       },

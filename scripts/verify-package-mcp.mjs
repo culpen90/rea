@@ -14,6 +14,7 @@ import { PRODUCT_IDENTITY } from "../dist/identity.js";
 import { resolveMcpStartupBudgets } from "../dist/config/mcpStartupBudgets.js";
 import { parseEvidence } from "../dist/domain/evidence.js";
 import * as prompts from "./verify-package-prompts.mjs";
+import { assertUnconfiguredGhidra } from "./verify-package-platform.mjs";
 import { verifyCompleteToolCatalog } from "./lib/verify-package-core.mjs";
 import { withVerifierCleanup } from "./lib/verifier-cleanup.mjs";
 
@@ -29,13 +30,10 @@ const verifyMcpTargetFree = async (client, mcpOptions) => {
     mcpOptions,
   );
   const status = requireMcpLifecycleResult(result, "binary_session");
-  const currentDocument = status.tool_availability.find(
-    ({ name }) => name === "current_document",
+  const decompile = status.tool_availability.find(
+    ({ name }) => name === "procedure_pseudo_code",
   );
-  if (
-    currentDocument?.available !== false ||
-    currentDocument.reason !== "target_required"
-  )
+  if (decompile?.available !== false || decompile.reason !== "target_required")
     throw new Error(
       "packaged target-free MCP omitted target-bound availability metadata",
     );
@@ -60,85 +58,16 @@ const verifyMcpUnknownProvider = async (client, mcpOptions) => {
     throw new Error("packaged MCP accepted an unknown analysis provider");
 };
 
-const verifyMcpOpenAndBind = async (client, mcpOptions) => {
+const verifyMcpUnavailableGhidra = async (client, mcpOptions) => {
   const opened = await client.callTool(
     {
       name: "open_binary",
-      arguments: { path: process.execPath, provider_id: "hopper" },
+      arguments: { path: process.execPath, provider_id: "ghidra" },
     },
     mcpOptions,
   );
-  if (opened.isError === true)
-    throw new Error("packaged MCP could not open a binary");
-  const providerStatus = requireMcpLifecycleResult(
-    await client.callTool(
-      { name: "binary_session", arguments: {} },
-      mcpOptions,
-    ),
-    "binary_session",
-  );
-  if (
-    providerStatus.analysis_provider_binding?.provider?.id !== "hopper" ||
-    providerStatus.analysis_provider_binding?.selection_source !== "request"
-  )
-    throw new Error("packaged MCP omitted its explicit Hopper binding");
-};
-
-const verifyMcpLinuxToolAvailability = async (client, mcpOptions) => {
-  const current = await client.callTool(
-    { name: "current_document", arguments: {} },
-    mcpOptions,
-  );
-  if (current.isError !== true)
-    throw new Error("packaged Linux MCP executed an unavailable Hopper tool");
-};
-
-const verifyMcpNonLinuxCurrentDocument = async (
-  client,
-  mcpOptions,
-  current,
-) => {
-  if (JSON.parse(prompts.mcpText(current)).normalized_result !== "fixture")
-    throw new Error("packaged MCP bridge call failed");
-  const batch = await client.callTool(
-    {
-      name: "batch_decompile",
-      arguments: { addresses: ["0x1000"] },
-    },
-    mcpOptions,
-  );
-  const batchResult = JSON.parse(prompts.mcpText(batch)).normalized_result;
-  if (
-    batch.isError === true ||
-    batchResult?.total !== 1 ||
-    batchResult?.succeeded !== 1 ||
-    batchResult?.failed !== 0 ||
-    batchResult?.items?.[0]?.status !== "ok" ||
-    batchResult?.items?.[0]?.pseudocode !== "return 0;"
-  )
-    throw new Error("packaged MCP structured batch result failed");
-};
-
-const verifyMcpBinaryLifecycle = async (client, mcpOptions) => {
-  await verifyMcpOpenAndBind(client, mcpOptions);
-  // Completion never starts a provider; only an ordinary operation readies it.
-  await prompts.verifyPromptCompletion(client, mcpOptions, []);
-  if (process.platform === "linux") {
-    await verifyMcpLinuxToolAvailability(client, mcpOptions);
-  } else {
-    const current = await client.callTool(
-      { name: "current_document", arguments: {} },
-      mcpOptions,
-    );
-    await verifyMcpNonLinuxCurrentDocument(client, mcpOptions, current);
-    await prompts.verifyPromptCompletion(client, mcpOptions, ["fixture"]);
-  }
-  const closed = await client.callTool(
-    { name: "close_binary", arguments: {} },
-    mcpOptions,
-  );
-  if (closed.isError === true)
-    throw new Error("packaged MCP could not close its binary");
+  assertUnconfiguredGhidra(requireMcpToolError(opened), "ghidra");
+  await verifyMcpTargetFree(client, mcpOptions);
   await prompts.verifyPromptCompletion(client, mcpOptions, []);
 };
 
@@ -271,6 +200,8 @@ export async function verifyPackageMcp({
     ],
     env: {
       ...environment,
+      REA_ANALYSIS_PROVIDER: undefined,
+      GHIDRA_INSTALL_DIR: undefined,
     },
     stderr: "pipe",
   });
@@ -286,7 +217,7 @@ export async function verifyPackageMcp({
       await verifyMcpToolsAndPrompts(client, mcpOptions);
       await verifyMcpTargetFree(client, mcpOptions);
       await verifyMcpUnknownProvider(client, mcpOptions);
-      await verifyMcpBinaryLifecycle(client, mcpOptions);
+      await verifyMcpUnavailableGhidra(client, mcpOptions);
       await verifyMcpInlineArtifactEvidence(
         client,
         mcpOptions,

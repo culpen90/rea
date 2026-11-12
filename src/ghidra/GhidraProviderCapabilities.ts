@@ -148,7 +148,7 @@ export const limitationsFor = (
     case "list_documents":
       return [
         ...common,
-        "A headless Ghidra session contains exactly one imported Program, unlike Hopper's multi-document GUI session.",
+        "A headless Ghidra session contains exactly one imported Program.",
       ];
     case "list_names":
       return [
@@ -184,20 +184,17 @@ export const limitationsFor = (
     case "procedure_pseudo_code":
       return [
         ...common,
-        "Pseudocode is Ghidra decompiler output, not original source and not text-equivalent to Hopper output.",
+        "Pseudocode is Ghidra decompiler output and is not original source.",
         "External functions and functions without an analyzable body return null; other decompiler failures remain explicit.",
       ];
     case "read_function_instructions":
       return [
         ...common,
         "This fast path reads only the requested function and does not invoke the decompiler or whole-program string/name inventories.",
-        "Instruction text is Ghidra-specific and does not claim textual equivalence with Hopper output.",
+        "Instruction text is produced by Ghidra.",
       ];
     case "procedure_assembly":
-      return [
-        ...common,
-        "Assembly is Ghidra Listing text and does not claim textual equivalence with Hopper output.",
-      ];
+      return [...common, "Assembly is produced by Ghidra Listing."];
     case "procedure_callers":
     case "procedure_callees":
       return common;

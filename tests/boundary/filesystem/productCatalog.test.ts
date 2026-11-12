@@ -13,10 +13,6 @@ import { createCli } from "../../../src/cli.js";
 import { FRIDA_PROVIDER_IDENTITY } from "../../../src/frida/FridaProviderIdentity.js";
 import { TOOL_CONTRACTS } from "../../../src/contracts/toolContracts.js";
 import {
-  HOPPER_OPERATIONS,
-  HOPPER_PROVIDER_IDENTITY,
-} from "../../../src/hopper/HopperProviderMetadata.js";
-import {
   GHIDRA_PROVIDER_IDENTITY,
   GHIDRA_OPERATIONS,
 } from "../../../src/ghidra/GhidraProviderMetadata.js";
@@ -86,10 +82,6 @@ describe("canonical product catalog", () => {
         ].map(({ id }) => id),
       ),
     );
-    expect(
-      catalog.providers.find(({ id }) => id === HOPPER_PROVIDER_IDENTITY.id)
-        ?.capabilities,
-    ).toEqual([...HOPPER_OPERATIONS].sort());
     expect(
       catalog.providers.find(({ id }) => id === GHIDRA_PROVIDER_IDENTITY.id)
         ?.capabilities,

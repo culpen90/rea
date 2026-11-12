@@ -1,17 +1,18 @@
-import { afterEach, expect, it } from "vitest";
-import { Ajv2020 } from "ajv/dist/2020.js";
-import type { AnySchemaObject } from "ajv";
+import { afterAll, afterEach, expect, it } from "vitest";
 import {
   closeEnhancedToolResources,
   connect,
   jsonResult,
 } from "./enhancedToolsHarness.js";
 import { observed as ok } from "../../fixtures/analysisExecution.js";
+import { createMcpSchemaValidation } from "../../fixtures/mcpSchemaValidation.js";
 import { err } from "../../../src/domain/result.js";
 import { AnalysisCapabilityUnavailableError } from "../../../src/domain/analysisErrorCore.js";
 import type { SegmentSummary } from "../../../src/domain/native/nativeSegments.js";
 
+const validation = createMcpSchemaValidation();
 afterEach(closeEnhancedToolResources);
+afterAll(() => validation.clear());
 
 const segment = {
   name: ".text",
@@ -24,48 +25,53 @@ const segment = {
   address_space: "ram",
 };
 const overviewClient = (segments: SegmentSummary[]) =>
-  connect({
-    execute: (name) => {
-      switch (name) {
-        case "read_binary_inventory_summary":
-          return Promise.resolve(
-            err(
-              new AnalysisCapabilityUnavailableError(
-                "fixture",
-                name,
-                "No native overview",
+  connect(
+    {
+      execute: (name) => {
+        switch (name) {
+          case "read_binary_inventory_summary":
+            return Promise.resolve(
+              err(
+                new AnalysisCapabilityUnavailableError(
+                  "fixture",
+                  name,
+                  "No native overview",
+                ),
               ),
-            ),
-          );
-        case "current_document":
-          return Promise.resolve(ok("fixture"));
-        case "list_documents":
-          return Promise.resolve(ok(["fixture"]));
-        case "list_segments":
-          return Promise.resolve(ok(segments));
-        case "list_procedures":
-          return Promise.resolve(ok([{ address: "0x101013", value: "entry" }]));
-        case "list_strings":
-          return Promise.resolve(ok([]));
-        default:
-          throw new Error(`Unexpected operation: ${name}`);
-      }
+            );
+          case "list_documents":
+            return Promise.resolve(ok(["fixture"]));
+          case "list_segments":
+            return Promise.resolve(ok(segments));
+          case "list_procedures":
+            return Promise.resolve(
+              ok([{ address: "0x101013", value: "entry" }]),
+            );
+          case "list_strings":
+            return Promise.resolve(ok([]));
+          default:
+            throw new Error(`Unexpected operation: ${name}`);
+        }
+      },
     },
-  });
+    { ...process.env, REA_MCP_TOOL_FAMILIES: "enhanced" },
+    { jsonSchemaValidator: validation },
+  );
 
 it("preserves observed coordinates and main's optional-string output contract after SDK conversion", async () => {
   const client = await overviewClient([segment]);
-  const schema = (await client.listTools()).tools.find(
+  const toolDefinition = (await client.listTools()).tools.find(
     ({ name }) => name === "binary_overview",
-  )?.outputSchema;
-  if (schema === undefined) throw new Error("Missing overview output schema");
-  const validate = new Ajv2020({ strict: false }).compile(
-    schema as AnySchemaObject,
   );
-  const response = await client.callTool({
-    name: "binary_overview",
-    arguments: {},
-  });
+  if (toolDefinition?.outputSchema === undefined)
+    throw new Error("Missing overview output schema");
+  const schema = toolDefinition.outputSchema;
+  const validate = (result: unknown) =>
+    validation.assertions.validate(schema, result);
+  const response = await client.callTool(
+    { name: "binary_overview", arguments: {} },
+    { toolDefinition },
+  );
   expect(validate(response.structuredContent)).toBe(true);
   expect(jsonResult(response)).toMatchObject({
     image_base: "0x100000",

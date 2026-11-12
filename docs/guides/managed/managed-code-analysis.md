@@ -603,7 +603,7 @@ Tokens are always remapped through observed structure. A caller cannot carry
 
 NativeAOT removes the ordinary CIL method bodies, so a CIL decompiler cannot
 reconstruct those bodies as C# source. The executable remains a native target
-for Hopper or Ghidra, where decompilation produces pseudocode and analyst
+for Ghidra, where decompilation produces pseudocode and analyst
 inference. This is a different route from ordinary managed member inspection.
 
 NativeAOT is not limited to Windows `.exe` files. The native image can be PE,
@@ -871,7 +871,7 @@ do not establish that the REA managed analysis workflow has been verified on a
 Windows host. The [experimental Windows Ghidra boundary](../../providers/windows-ghidra-p0.md)
 has its own host and provider verification scope. Native
 ReadyToRun, C++/CLI, NativeAOT, or IL2CPP coverage is additionally constrained
-by the selected Hopper/Ghidra host and format matrix.
+by the Ghidra host and format matrix.
 
 ## Conformance verification
 

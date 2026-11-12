@@ -100,7 +100,7 @@ export const NATIVE_TOOL_CONTRACTS = [
   ),
   native(
     "inspect_macho",
-    "Inspect Mach-O slices, load commands, linkage, build metadata, segments/sections and permissions without launching Hopper. Returns command provenance and explicit coverage. detail summary retains complete Evidence for inspect_analysis_view kind macho rather than delivering large symbol lists inline. native_command_timeout_ms bounds each Xcode command, independently of output admission.",
+    "Inspect Mach-O slices, load commands, linkage, build metadata, segments/sections and permissions without starting a deep analysis session. Returns command provenance and explicit coverage. detail summary retains complete Evidence for inspect_analysis_view kind macho rather than delivering large symbol lists inline. native_command_timeout_ms bounds each Xcode command, independently of output admission.",
     z.object({
       detail: analysisDetailSchema
         .unwrap()
@@ -140,7 +140,7 @@ export const NATIVE_TOOL_CONTRACTS = [
   ),
   native(
     "demangle_swift",
-    "Demangle an ordered list of single-line Swift symbols without Hopper. Returns demangled, unchanged or invalid for every input; invalid entries do not discard valid companions. native_command_timeout_ms bounds swift-demangle, independently of output admission.",
+    "Demangle an ordered list of single-line Swift symbols without a deep analysis provider. Returns demangled, unchanged or invalid for every input; invalid entries do not discard valid companions. native_command_timeout_ms bounds swift-demangle, independently of output admission.",
     z.object({
       symbols: swiftSymbolsSchema,
       native_command_timeout_ms: nativeCommandTimeoutField,

@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="اجرای پل تحلیل REA در Hopper هنگام بررسی یک فایل باینری بومی" width="1200" />
-
-<br /><br />
-
 <table aria-label="انجمن REA"><tr><td align="center" width="360"><a href="https://discord.gg/GkcryMnJDM"><img    src="../assets/discord.svg" height="42" alt="Discord" /><br /><strong>به انجمن مهندسی معکوس بپیوندید</strong></a><br /><sub>دیسکورد · پرسش و پاسخ · نمایش دستاوردها</sub></td></tr></table>
 
 <br />
@@ -54,7 +50,7 @@
 
 REA ایجنت شما را به ابزارهایی برای بررسی باینری‌های بومی، برنامه‌های JavaScript و Electron، اسمبلی‌های .NET و وب‌سایت‌ها متصل می‌کند. همین ابزارها از ترمینال نیز قابل استفاده‌اند. تحلیل به‌صورت محلی انجام می‌شود و نتایج شامل شواهد و محدودیت‌های پشت هر نتیجه‌گیری هستند.
 
-راه‌اندازی، REA را در ایجنت ثبت و دستورالعمل‌های متناظر را نصب می‌کند. تحلیل بومی می‌تواند از Hopper، Ghidra، IDA یا Kuna موجود استفاده کند؛ نصب Hopper پس از تأیید شما ممکن است. تحلیل ایستای JavaScript به موتور تحلیل بومی نیاز ندارد.
+راه‌اندازی، REA را در ایجنت ثبت و دستورالعمل‌های متناظر را نصب می‌کند. تحلیل بومی از نصب موجود Ghidra استفاده می‌کند. تحلیل ایستای JavaScript به موتور تحلیل بومی نیاز ندارد.
 
 > برای دستورالعمل‌های راه‌اندازی، راهنماهای تصویری و مطالعات موردی واقعی، **[به وب‌سایت REA مراجعه کنید](https://rea.tools/fa/)**.
 
@@ -149,7 +145,7 @@ REA به Node.js 22.x (>=22.23.4)، 24.x (>=24.22.1) یا 26+ (>=26.12.1)، به
 
 | هدف                    | خروجی REA                                                                           | پیش‌نیازها و راهنما                                                                                                                                         |
 | ---------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| باینری‌های بومی         | شبه‌کد، اسمبلی، رشته‌ها، نمادها، فراخوانی‌ها و ارجاعات                                 | Hopper، Ghidra، IDA یا Kuna؛ [تحلیل بومی](../guides/native/native-investigation.md)                                                                        |
+| باینری‌های بومی         | شبه‌کد، اسمبلی، رشته‌ها، نمادها، فراخوانی‌ها و ارجاعات                                 | Ghidra؛ [تحلیل بومی](../guides/native/native-investigation.md)                                                                                             |
 | ساختار ELF آفلاین       | بخش‌ها، سگمنت‌ها، نمادها و relocationهای اصلی و گزینه‌های احتمالی کاهش آسیب‌پذیری ایستا | pwntools تأمین‌شده توسط فراخواننده روی Linux x64؛ [تشخیص باینری](../guides/native/binary-diagnostics.md)                                                    |
 | PE certificates        | Authenticode WIN_CERTIFICATE entries and PKCS#7 signer/X.509 identity fields        | Built-in static PE inspection; [PE certificates](../pe-certificates.md)                                                                                    |
 | PE imports             | Import and delay-load DLL names, ordinals, IAT RVAs and pefile import hash          | Built-in static PE inspection; [PE imports](../pe-imports.md)                                                                                              |
@@ -195,9 +191,11 @@ REA به Node.js 22.x (>=22.23.4)، 24.x (>=24.22.1) یا 26+ (>=26.12.1)، به
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-برای باینری‌های بزرگ، مهلت شروع را با `REA_GHIDRA_STARTUP_TIMEOUT_MS` یا `REA_HOPPER_STARTUP_TIMEOUT_MS` افزایش دهید.
+[مهاجرت به Ghidra](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
 
-فرمت‌های بومی و پشتیبانی سیستم میزبان بر اساس ارائه‌دهنده متفاوت‌اند. [راه‌اندازی Hopper و Ghidra](../getting-started/installation.md#hopper)، [راهنمای IDA](../providers/ida-provider.md)، [Kuna](../kuna-provider.md) و [پشتیبانی آزمایشی Ghidra در ویندوز](../providers/windows-ghidra-p0.md) را ببینید. Ghidra همچنین از [تحلیل DOS شانزده‌بیتی](../providers/ghidra-dos.md) پشتیبانی می‌کند. برای انتخاب ارائه‌دهنده، به [راهنمای CLI](../getting-started/cli.md#choose-a-provider) مراجعه کنید. برای قابلیت‌هایی که پس از آخرین انتشار npm اضافه شده‌اند، [وضعیت انتشار](../getting-started/installation.md#released-package-and-main) را بررسی کنید.
+برای باینری‌های بزرگ، مهلت شروع را با `REA_GHIDRA_STARTUP_TIMEOUT_MS` افزایش دهید.
+
+فرمت‌های بومی و پشتیبانی سیستم میزبان بر اساس ارائه‌دهنده متفاوت‌اند. [Ghidra](../getting-started/installation.md#ghidra), [پشتیبانی آزمایشی Ghidra در ویندوز](../providers/windows-ghidra-p0.md) را ببینید. Ghidra همچنین از [تحلیل DOS شانزده‌بیتی](../providers/ghidra-dos.md) پشتیبانی می‌کند. برای انتخاب ارائه‌دهنده، به [راهنمای CLI](../getting-started/cli.md#choose-a-provider) مراجعه کنید. برای قابلیت‌هایی که پس از آخرین انتشار npm اضافه شده‌اند، [وضعیت انتشار](../getting-started/installation.md#released-package-and-main) را بررسی کنید.
 
 ## نمونه‌های عملی
 
@@ -285,15 +283,11 @@ REA می‌تواند برای یک برنامهٔ دسکتاپ Linux هم مح�
 
 </details>
 
-<details><summary><strong>آیا به Hopper، Ghidra، IDA یا Kuna نیاز دارم؟</strong></summary>
+<details>
+<summary><strong>آیا به Ghidra نیاز دارم؟</strong></summary>
 
-تحلیل عمیق بومی به یکی از آن‌ها نیاز دارد. بررسی ایستای JavaScript و .NET بدون موتور تحلیل بومی کار می‌کند. setup می‌تواند با تأیید شما Hopper را نصب کند؛ Ghidra، IDA و Kuna از نصب‌های موجود شما استفاده می‌کنند. [راه‌اندازی ارائه‌دهنده](../getting-started/installation.md#hopper) را ببینید.
-
-</details>
-
-<details><summary><strong>آیا باید ابتدا Hopper را اجرا کنم؟</strong></summary>
-
-REA زمانی که عملیاتی به Hopper نیاز داشته باشد آن را اجرا می‌کند. در macOS، ممکن است هنگام نخستین اجرا پنجره‌ای برای انتخاب حالت آزمایشی یا فعال‌سازی مجوز نمایش داده شود. [راه‌اندازی Hopper و رفع اشکال](../getting-started/installation.md#launcher-paths-and-troubleshooting) را ببینید.
+تحلیل بومی از نصب موجود Ghidra استفاده می‌کند. بررسی ایستای JavaScript و .NET بدون موتور تحلیل بومی کار می‌کند.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -381,7 +375,7 @@ licenses and copyright notices; see [Third-party notices](../../THIRD_PARTY_NOTI
 for the dependency inventory, preserved license texts, and external-tool terms.
 
 **You must legally obtain and be authorized to use commercial tools**, including
-IDA Pro / Hex-Rays decompilers, Hopper, and JEB, under their applicable licenses.
+JEB, under its applicable license.
 REA grants no tool license, key, or activation entitlement. Trials and demos
 remain subject to vendor terms, including user, feature, automation, and output
 sharing restrictions. Cracked copies, stolen keys, unauthorized key sharing,

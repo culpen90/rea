@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -13,6 +12,7 @@ import {
   developmentTestPlan,
   parseDevelopmentTestRequest,
 } from "../../../scripts/lib/development-tests.mjs";
+import { workingTreeTestPaths } from "../../../scripts/lib/test-discovery.mjs";
 
 import {
   execFileOutput,
@@ -65,14 +65,8 @@ const runOxlint = async (
 };
 
 describe("canonical test-project ownership", () => {
-  it("assigns every tracked test file exactly once to source or built", () => {
-    const files = execFileSync("git", ["ls-files", "*.test.ts"], {
-      cwd: repository,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+  it("assigns every test file in the working tree exactly once to source or built", async () => {
+    const files = await workingTreeTestPaths(repository);
     const grouped = new Map<string, string[]>();
     for (const file of files) {
       const project = projectForTest(file);
@@ -97,20 +91,6 @@ describe("canonical test-project ownership", () => {
     expect(() => projectForTest("tests/unowned/example.test.ts")).toThrow(
       "No test project owns",
     );
-  });
-
-  it("owns the Hopper real-provider conformance test as built and requires preparation", () => {
-    const testPath =
-      "tests/conformance/providers/hopper/realHopperSearch.test.ts";
-    expect(projectForTest(testPath)).toMatchObject({
-      name: "boundary",
-      group: "built",
-    });
-    expect(() => parseDevelopmentTestRequest("local", [testPath])).toThrow(
-      `Use test:focused for built test projects: ${testPath}`,
-    );
-    const request = parseDevelopmentTestRequest("focused", [testPath]);
-    expect(developmentTestPlan(request)).toMatchObject({ needsBuild: true });
   });
 });
 
@@ -239,13 +219,7 @@ describe("test module isolation", () => {
   });
 
   it("uses one isolation policy for Vitest and binding-aware mock lint", async () => {
-    const files = execFileSync("git", ["ls-files", "*.test.ts"], {
-      cwd: repository,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    const files = await workingTreeTestPaths(repository);
     const root = await createTestTempDirectory("rea-vitest-project-policy-");
     const script = join(root, "project-isolation.mjs");
     await writeFile(

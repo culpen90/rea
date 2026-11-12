@@ -81,9 +81,7 @@ it("reports local Ghidra admission through SDK MCP without dispatching or losing
     expect(projected.error.remediation?.action).toContain(
       "only the REA client applies",
     );
-    expect(
-      projected.error.remediation?.action.includes("Restart Hopper or Cutter"),
-    ).toBe(false);
+    expect(projected.error.remediation?.action).not.toContain("Restart Cutter");
     expect(raw?.isReady()).toBe(true);
     const after = await harness.client.callTool({
       name: "list_strings",

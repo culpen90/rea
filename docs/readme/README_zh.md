@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA 在 Hopper 中启动分析桥，检查原生二进制文件" width="1200" />
-
-<br /><br />
-
 <table aria-label="REA 社区">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@
 
 REA 将智能体连接到分析工具，用于检查原生二进制文件、JavaScript 和 Electron 应用、.NET 程序集以及网站。你也可以在终端中使用同样的工具。分析在本机运行，结果包含支撑各项结论的证据和相关限制。
 
-设置流程会向智能体注册 REA，并安装匹配的工作流指引。原生分析可以使用已有的 Hopper、Ghidra、IDA 或 Kuna；设置流程也可以在你批准后安装 Hopper。静态 JavaScript 分析不需要原生分析引擎。
+设置流程会向智能体注册 REA，并安装匹配的工作流指引。原生分析使用已安装的 Ghidra。静态 JavaScript 分析不需要原生分析引擎。
 
 > **[访问 REA 网站](https://rea.tools/zh-CN/)**，查看设置说明、图解指南和真实案例。
 
@@ -155,7 +151,7 @@ REA 需要 Node.js 22.x（>=22.23.4）、24.x（>=24.22.1）或 26+ (>=26.12.1)�
 
 | 目标                  | REA 返回的内容                                                               | 要求与指南                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 原生二进制文件        | 伪代码、汇编、字符串、符号、调用和引用                                       | Hopper、Ghidra、IDA 或 Kuna；[原生分析](../guides/native/native-investigation.md)                                                                 |
+| 原生二进制文件        | 伪代码、汇编、字符串、符号、调用和引用                                       | Ghidra；[原生分析](../guides/native/native-investigation.md)                                                                                      |
 | 离线 ELF 布局         | 节、段、原始符号/重定位信息及静态防护机制候选项                              | Linux x64 上由调用方提供的 pwntools；[二进制诊断](../guides/native/binary-diagnostics.md)                                                         |
 | Go 二进制文件         | 内嵌编译器版本、模块、替换项和构建设置                                       | 内置静态 ELF/PE/thin Mach-O 检查；无需安装 Go                                                                                                     |
 | WASM 工件             | 验证、节、精确的导入/导出 WAT 形式及解码后的 WAT                             | 调用方提供的 WABT 1.0.42；`inspect_wasm_artifact`                                                                                                 |
@@ -199,9 +195,11 @@ REA 需要 Node.js 22.x（>=22.23.4）、24.x（>=24.22.1）或 26+ (>=26.12.1)�
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-大型二进制文件可通过 `REA_GHIDRA_STARTUP_TIMEOUT_MS` 或 `REA_HOPPER_STARTUP_TIMEOUT_MS` 延长提供方启动期限。
+[迁移到 Ghidra](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
 
-不同提供方支持的原生格式和主机系统有所不同。请参阅 [Hopper 与 Ghidra 设置](../getting-started/installation.md#hopper)、[IDA 指南](../providers/ida-provider.md)、[Kuna](../kuna-provider.md)和[实验性 Windows Ghidra 支持](../providers/windows-ghidra-p0.md)。Ghidra 也支持 [16 位 DOS 分析](../providers/ghidra-dos.md)。提供方选择见 [CLI 指南](../getting-started/cli.md#choose-a-provider)。对于最新 npm 版本发布后新增的功能，请查看[发布可用性](../getting-started/installation.md#released-package-and-main)。
+大型二进制文件可通过 `REA_GHIDRA_STARTUP_TIMEOUT_MS` 延长提供方启动期限。
+
+不同提供方支持的原生格式和主机系统有所不同。请参阅 [Ghidra](../getting-started/installation.md#ghidra), [实验性 Windows Ghidra 支持](../providers/windows-ghidra-p0.md)。Ghidra 也支持 [16 位 DOS 分析](../providers/ghidra-dos.md)。提供方选择见 [CLI 指南](../getting-started/cli.md#choose-a-provider)。对于最新 npm 版本发布后新增的功能，请查看[发布可用性](../getting-started/installation.md#released-package-and-main)。
 
 ## 案例
 
@@ -293,16 +291,10 @@ REA 也能为 Linux 桌面应用构建环境，智能体通过截图、鼠标和
 </details>
 
 <details>
-<summary><strong>需要 Hopper、Ghidra、IDA 或 Kuna 吗？</strong></summary>
+<summary><strong>需要 Ghidra 吗？</strong></summary>
 
-深入的原生分析需要其中一个引擎。静态 JavaScript 和 .NET 检查不需要原生分析引擎。设置流程可以在你批准后安装 Hopper；Ghidra、IDA 和 Kuna 则使用已有安装。见[提供方设置](../getting-started/installation.md#hopper)。
-
-</details>
-
-<details>
-<summary><strong>需要先启动 Hopper 吗？</strong></summary>
-
-REA 会在操作需要时启动 Hopper。在 macOS 上，首次运行时可能会出现对话框，让你选择演示模式或激活许可证。见 [Hopper 启动与故障排查](../getting-started/installation.md#launcher-paths-and-troubleshooting)。
+原生分析使用已安装的 Ghidra。 静态 JavaScript 和 .NET 检查不需要原生分析引擎。
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -397,7 +389,6 @@ REA 用于合法的研究、教育、互操作性、软件保存，以及分析�
 REA 自行编写的代码采用 MIT 许可；第三方内容保留各自的许可和著作权声明。
 依赖清单、许可原文及外部工具条款见[第三方声明](../../THIRD_PARTY_NOTICES.md)。
 
-**用户须自行合法取得商用工具及所需使用权**，包括 IDA Pro / Hex-Rays 反编译器、
-Hopper 和 JEB，并遵守各自许可。REA 不提供工具许可、密钥或激活权利；试用版和
+**用户须自行合法取得商用工具及所需使用权**，包括 JEB，并遵守各自许可。REA 不提供工具许可、密钥或激活权利；试用版和
 演示版也须遵守厂商对用户、功能、自动化及输出分享的限制。不得使用破解副本、
 窃取或违规共用密钥，也不得绕过许可限制。本指引不变更 MIT 或第三方许可。

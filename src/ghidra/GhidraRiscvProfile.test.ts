@@ -10,9 +10,6 @@ import type {
 import { ok } from "../domain/result.js";
 import { riscvIsaDeclaration } from "../domain/riscvIsaDeclaration.js";
 import { silentLogger } from "../logger.js";
-import { HopperProvider } from "../hopper/HopperProvider.js";
-import { hopperLoaderArgsForTarget } from "../hopper/HopperAnalysisProfile.js";
-import { IdaProvider } from "../ida/IdaProvider.js";
 import { GhidraProvider } from "./GhidraProvider.js";
 import {
   GHIDRA_RISCV32_DECODED_EXTENSIONS,
@@ -333,27 +330,6 @@ const registerRiscvAdmissionAndCapabilityCases = () => {
         availableArchitectures: ["x86_64"],
       }),
     ).toEqual([]);
-  });
-
-  it("keeps RISC-V out of unverified Hopper and IDA adapter lanes", () => {
-    const hopper = new HopperProvider(
-      configOf("/hopper"),
-      silentLogger,
-      {},
-      "linux",
-    );
-    expect(hopper.inspectTargetSupport(target()).status).toBe("unsupported");
-    expect(hopperLoaderArgsForTarget(target()).ok).toBe(false);
-    expect(hopperLoaderArgsForTarget(target())).toEqual(
-      expect.objectContaining({
-        ok: false,
-        error: expect.objectContaining({
-          message: expect.stringContaining("riscv"),
-        }),
-      }),
-    );
-    const ida = new IdaProvider(configOf("/ida"), {});
-    expect(ida.inspectTargetSupport(target()).status).toBe("unsupported");
   });
 };
 

@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const NATIVE_PROVIDER_MIGRATION =
+  "Ghidra is the only supported deep native analysis provider. Select ghidra and open the original binary; other providers' analysis databases cannot be imported.";
+
+/** Production supports Ghidra; auto is retained for existing configurations. */
+export const nativeAnalysisProviderSelectorSchema = z.enum(["ghidra", "auto"], {
+  error: NATIVE_PROVIDER_MIGRATION,
+});
+
 /** Stable provider identifier accepted at CLI, MCP, and environment boundaries. */
 export const analysisProviderIdSchema = z
   .string()

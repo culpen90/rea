@@ -4,30 +4,30 @@
  *
  * Usage:
  *   node scripts/print-mcp-config.mjs /path/to/binary
- *   node scripts/print-mcp-config.mjs /path/to/binary --kind database
- *   node scripts/print-mcp-config.mjs /path/to/binary --loader-args '["-l","Mach-O","--aarch64"]'
+ *   node scripts/print-mcp-config.mjs /path/to/binary --ghidra-install-dir /path/to/ghidra
  */
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
+import { parseArgs } from "node:util";
 
-const targetPath = process.argv[2];
-if (!targetPath) {
+const { positionals, values } = parseArgs({
+  allowPositionals: true,
+  options: { "ghidra-install-dir": { type: "string" } },
+});
+const [targetPath] = positionals;
+if (!targetPath || positionals.length !== 1) {
   process.stderr.write(
-    "Usage: node scripts/print-mcp-config.mjs <target-path> [--kind executable|database] [--loader-args JSON]\n",
+    "Usage: node scripts/print-mcp-config.mjs <target-path> [--ghidra-install-dir PATH]\n",
   );
   process.exit(1);
 }
 
-const flags = process.argv.slice(3);
-const kind = readFlag(flags, "--kind") ?? "executable";
-const loaderArgs = readFlag(flags, "--loader-args");
-
-const env = {
-  HOPPER_TARGET_PATH: resolve(targetPath),
-  HOPPER_TARGET_KIND: kind,
-};
-if (loaderArgs) env.HOPPER_LOADER_ARGS_JSON = loaderArgs;
+const installDir =
+  values["ghidra-install-dir"] ?? process.env.GHIDRA_INSTALL_DIR;
+const env = { REA_TARGET_PATH: resolve(targetPath) };
+if (installDir) env.GHIDRA_INSTALL_DIR = resolve(installDir);
+if (process.env.JAVA_HOME) env.JAVA_HOME = resolve(process.env.JAVA_HOME);
 
 const config = {
   mcpServers: {
@@ -54,8 +54,3 @@ const config = {
 };
 
 process.stdout.write(`${JSON.stringify(config, null, 2)}\n`);
-
-function readFlag(args, name) {
-  const i = args.indexOf(name);
-  return i !== -1 ? args[i + 1] : undefined;
-}

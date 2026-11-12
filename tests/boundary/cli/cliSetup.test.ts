@@ -81,15 +81,6 @@ const actions = [
     external: false,
     operation: "install",
   },
-  {
-    id: "install_hopper",
-    kind: "install_hopper",
-    label: "Hopper deep-analysis provider",
-    target: "/isolated/Applications/Hopper Disassembler.app",
-    detail: "Install the verified Hopper package.",
-    external: true,
-    operation: "install",
-  },
 ] as const;
 
 const clientStates = [
@@ -116,8 +107,6 @@ const clientStates = [
     status: "missing",
   },
 ] as const;
-
-const agentActions = actions.filter(({ kind }) => kind !== "install_hopper");
 
 cliTest.for([
   "--dry-run=abc",
@@ -515,22 +504,6 @@ describe("interactive setup journey", () => {
     expect(result.decision.approved).toBe(true);
   });
 
-  it("offers Hopper separately and defaults against installing it", async () => {
-    const result = await runJourney(
-      [
-        step("Which agents should use REA?", " \r"),
-        step("Install Hopper for deep binary analysis?", "\r"),
-        step("Apply these 2 changes?", "\r"),
-      ],
-      false,
-      actions,
-    );
-    expect(result.decision.selectedActionIds).toEqual([
-      "configure_client:codex",
-      "install_skill",
-    ]);
-  });
-
   it("uses sequential prompts without auto-selecting detected agents in accessible mode", async () => {
     const result = await runJourney(
       [
@@ -553,7 +526,7 @@ describe("interactive setup journey", () => {
         step("Apply these 2 changes?", "\r"),
       ],
       false,
-      agentActions,
+      actions,
       ["codex"],
     );
     expect(result.decision.selectedActionIds).toEqual([
@@ -593,8 +566,7 @@ describe("interactive setup completion", () => {
             '  clients: { codex: { status: "configured" } },',
             "  doctor: {",
             "    healthy: true,",
-            '    availableProviders: ["hopper", "ghidra"],',
-            '    hopperPath: "/Applications/Hopper",',
+            '    availableProviders: ["ghidra"],',
             "    checks: [],",
             '    providerInspections: [{ id: "ghidra", available: true }],',
             '    identity: { skill: { state: "aligned" }, registrations: [{ client: "codex", state: "aligned" }] },',
@@ -621,7 +593,7 @@ describe("interactive setup completion", () => {
       );
 
       expect(stderr).toContain("What you can do now");
-      expect(stderr).toContain("Deep analysis: Hopper and Ghidra");
+      expect(stderr).toContain("Available analysis providers: Ghidra");
       expect(stderr).toContain("Agent access: Codex");
       expect(stderr).toContain(
         "Guided reverse-engineering workflows: installed",
@@ -633,7 +605,7 @@ describe("interactive setup completion", () => {
     },
   );
 
-  it("prints IDA and JADX with their product spellings", async () => {
+  it("prints JADX with its product spelling", async () => {
     const { stderr } = await execute(
       process.execPath,
       [
@@ -648,7 +620,7 @@ describe("interactive setup completion", () => {
           "  clients: {},",
           "  doctor: {",
           "    healthy: true,",
-          '    availableProviders: ["hopper", "ghidra", "ida", "jadx", "kuna"],',
+          '    availableProviders: ["ghidra", "jadx"],',
           "    checks: [],",
           "  },",
           "}, {});",
@@ -657,10 +629,8 @@ describe("interactive setup completion", () => {
       { cwd: process.cwd(), env: { ...process.env, NO_COLOR: "1" } },
     );
 
-    expect(stderr).toContain(
-      "Deep analysis: Hopper, Ghidra, IDA, JADX, and Kuna",
-    );
-    expect(stderr).not.toContain("Ida");
+    expect(stderr).toContain("Available analysis providers: Ghidra and JADX");
+    expect(stderr).not.toContain("Jadx");
     expect(stderr).not.toContain("Jadx");
   });
 
@@ -721,7 +691,7 @@ const step = (prompt: string, input: string): JourneyStep => ({
 const runJourney = async (
   steps: readonly JourneyStep[],
   accessible = false,
-  journeyActions: readonly object[] = agentActions,
+  journeyActions: readonly object[] = actions,
   initialClientIds: readonly string[] = [],
 ): Promise<JourneyResult> => {
   const isolatedHome = await createTestTempDirectory("rea-cli-setup-test-");

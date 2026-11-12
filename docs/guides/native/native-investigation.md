@@ -21,7 +21,9 @@ breakpoint names.
 
 ## Start with a function
 
-Choose an installed provider from [setup](../../getting-started/installation.md#hopper). For Ghidra:
+Configure [Ghidra](../../getting-started/installation.md#ghidra). For a universal
+Mach-O, select a separately extracted slice and retain the original container
+identity and slice offset alongside its Evidence.
 
 ```bash
 rea inspect /absolute/path/to/program --provider ghidra --json
@@ -60,9 +62,9 @@ retaining session and does not reduce the work or memory of decompilation.
 `xrefs` accepts `--address=<name-or-address>`. `search` accepts `--pattern=<text>`
 and `trace` accepts `--query=<text>`. These alternatives preserve names and text
 that begin with a dash, including Objective-C names such as
-`rea function ./app '--procedure=-[REAWidget delegate]' --provider hopper --format json`.
+`rea function ./app '--procedure=-[REAWidget delegate]' --provider ghidra --format json`.
 Use the equals form when the value resembles a CLI flag, for example
-`rea trace ./app --query=--help --provider hopper --format json`.
+`rea trace ./app --query=--help --provider ghidra --format json`.
 The existing positional forms remain available. Missing selectors and conflicting
 positional/named values fail before analysis starts; identical selections agree.
 
@@ -127,8 +129,7 @@ rea procedure-references /absolute/path/to/program my_function --provider ghidra
 ```
 
 Use `rea inspect-analysis-view` with that bundle as an `evidence-file` source to
-page it without reopening the target. This command requires a provider supporting
-`procedure_references`; Kuna currently reports that capability unavailable.
+page it without reopening the target.
 
 Ghidra regex searches use Java Pattern semantics. If compiling or matching a
 pattern exhausts the engine's stack, REA returns a resource constraint and
@@ -146,14 +147,6 @@ therefore rejects the snapshot save and leaves the edited session open.
 After metadata edits, snapshot saves and imports remain unavailable in that
 session. Use `export_evidence_bundle` to retain the observations, close without
 `snapshot_path`, and reopen the target before importing or saving a snapshot.
-
-Hopper executable opens use an owned private image verified against the digest
-selected by `open_binary`. The ordinary ELF/PE path and configured loader overrides
-copy the whole source; default Mach-O opens retain their selected-image checks.
-A changed source fails before the launcher reads it. The bridge binds its Hopper document to that private
-loaded path, while Evidence retains the selected original artifact identity. Hopper
-database opens retain their separate database semantics. Real Hopper conformance for ordinary
-copies and loader overrides remains unverified by the source regression tests.
 
 Ghidra checks its private import copy against the artifact digest selected by
 `open_binary`. If the source changes before that copy is acquired, the query
@@ -244,7 +237,7 @@ being mistaken for the function entry. Identity failures are reported as
 Neither failure discards usable pseudocode, and names are not parsed from it.
 A provider answer without pseudocode is an error item that keeps that
 observation's own `limitations`, so a reason the provider reported for that
-entry, such as a Kuna export failure or a missing body, stays with the item.
+entry, such as a missing function body, stays with the item.
 Null pseudocode is `capability_unavailable`; empty or non-text pseudocode is
 `unreadable_output`. Provider failures keep their typed error. Successful items
 do not repeat limitations; the batch Evidence aggregates every observation's
@@ -350,39 +343,7 @@ Check `total_fields` and `truncated` before treating the returned layout as
 complete. These fields describe omissions from the response, independently of
 whether Ghidra recovered the original source layout.
 
-### Hopper analysis behavior
-
-Cursor navigation returns the observed object start when Hopper snaps an interior
-address; adjacent-object navigation rejects unmapped inputs and document ends.
-Native API text rejects NUL characters and unpaired Unicode surrogates before
-annotation changes. Renames preserve unselected label owners; use a batch with
-all affected addresses to move or swap existing labels explicitly. Every rename
-destination must be mapped, and native symbol names must fit Hopper's 1024 UTF-16
-code-unit limit. Oversized names fail before any batch edits; bookmarks and
-literal string results are not subject to that symbol-name limit. Rename success
-requires exact final readback. New bookmarks must point into mapped memory;
-existing legacy bookmarks outside it can still be removed.
-String results read each native typed object's complete bytes, retain the original
-provider display in `provider_value`, and report its encoding, byte length, and
-termination. `encoding_status: inferred` distinguishes REA's decoding from an
-observed source encoding. Hopper can split long literals into adjacent
-unterminated objects; search matches each object's decoded bytes independently.
-Undecodable objects retain native display text with `decoding.available: false`
-and a reason, so one uncertain object does not block unrelated inspections.
-Function dossiers and `trace_feature` string matches retain this same string
-evidence, including decoding uncertainty; procedure matches keep their own
-named observation fields without invented string qualifications. Tracing keeps
-same-address search alternatives, including different string encodings, in their
-original search order and shares one reference read per target address within
-the call. Reference rows are emitted once per target address, preserving any
-duplicates in the provider's observation. Native call edges retain
-Hopper's partial `CallReference` classification and exact endpoints; detailed
-reference flags remain unavailable rather than being invented. Caller and callee
-procedure inventories come from independent Hopper APIs; REA retains observed
-relationships but reports their completeness as unknown. In particular, a resolved
-tail call observed in one direction does not prove that the reverse inventory is
-complete. An empty Hopper inventory cannot establish that no such call exists.
-No whole-binary reverse scan is performed.
+### Trace and search limits
 
 For large native traces, `trace_feature` accepts `detail: "summary"`. It retains
 the complete trace and returns counts and its parent Evidence ID. Use
@@ -397,86 +358,8 @@ stores the trace and its linked source Evidence for later
 `inspect-analysis-view` calls. This bundle does not include the CLI session's
 Unknown registry; its original question texts remain available in the trace's
 `unknowns` pages.
-Regex searches use ECMAScript Unicode syntax in a cancellable worker with a
-matching deadline and a worker old-generation heap. Deadline or cancellation
-stops matching while leaving the Hopper API available. The deadline is
-`REA_REGEX_MATCHING_DEADLINE_MS`, a positive decimal integer from 1 to
-2147483647 ms. Unset uses 5000 ms. A larger value is refused because Node
-schedules a delay past that signed 32-bit bound as 1 ms. Invalid values are
-configuration errors and do not fall back to the default. The setting is read
-from the environment that starts REA; changing that environment needs a restart.
-In MCP, `regex.matching_deadline_ms` overrides the deadline for newly accepted
-searches without restarting REA. A deadline failure names the effective
-milliseconds, known source, default, and maximum. The worker old-generation heap
-does not raise it. IDA and Kuna use these same regex controls; Ghidra's Java
-matcher does not. The worker
-heap request is `REA_REGEX_WORKER_HEAP_REQUEST_MIB`, a decimal integer from
-7 to 16384 MiB. Unset uses 128 MiB. A request below 7 MiB aborts the worker
-during startup, and a larger value is refused. Invalid values are
-configuration errors and do not fall back to 128. The setting is read from
-the environment that starts REA, while MCP `regex.worker_heap_request_mib`
-can override it for workers belonging to newly accepted searches. Use
-`update_analysis_settings` for either runtime control; accepted work keeps its
-budget. See the [settings design](../../design/limits-and-recovery.md).
-A heap failure names the effective request, known source, default, floor, and
-maximum. A positive Node.js
-`--max-old-space-size` on the process that starts
-REA, including `NODE_OPTIONS`, overrides that request and sets the effective
-heap. `--max-old-space-size-percentage` takes precedence over that flag in
-either order. REA does not turn the percentage into a MiB, so the effective
-heap stays unestablished instead of the worker heap request or the absolute flag.
-The reported `NODE_OPTIONS` value is the process initial environment when that
-block can be read. A later edit to the environment is not the value Node
-applied, and an unreadable initial value leaves the effective heap
-unestablished. The launch Node options are the initial command line on Linux
-when that buffer still has a program entry, not a later edit to
-`process.execArgv`. A preload can clear that array after V8 has applied the
-flags. Setting `process.title` or `--title` overwrites the command line, so a
-buffer without a program entry leaves the effective heap unestablished.
-`--env-file` or `--env-file-if-exists` can supply `NODE_OPTIONS`
-when the initial environment has none. That file is not part of the initial
-environment block, so the effective heap stays unestablished instead of the
-worker heap request. An initial `NODE_OPTIONS` is still used, because Node does
-not let the file replace it. A positive `--max-heap-size`, including the
-underscore form and launch `NODE_OPTIONS` on Node versions that allow it,
-sets the total heap rather than the old generation and can be lower than the
-worker heap request. The effective old generation stays unestablished while that
-value is in effect. A zero or empty value clears it.
-`--experimental-config-file` or `--experimental-default-config-file` can set
-`nodeOptions`, including a heap percentage, from a file that is not read
-back. The effective heap stays unestablished when either flag is present,
-including when an absolute `--max-old-space-size` is also on the command
-line or in the recovered `NODE_OPTIONS`. Node accepts the config path as
-`=` or the next argument.
-Literal mode retains Python Unicode full case folding, which can expand a
-character into a sequence: for example, `ss` matches `ß`. This differs from
-REA's Unicode simple case folding used by other native search providers and
-Hopper regex mode.
 
 ## Bounded static traces
-
-Hopper caller queries, incoming procedure references and function dossiers
-reconcile reported reverse relationships with forward call observations. Each
-standalone query or composed workflow scans the current document in pages of at
-most 64 procedures and retains at most 4 MiB of encoded scan results. A composed
-workflow reuses its own index and clears it when the workflow finishes. The
-default cooperative scan budget is
-2,000 ms; set `REA_HOPPER_CALLER_SCAN_BUDGET_MS` to a positive integer number of
-milliseconds before starting REA to change the launch value, or use
-`update_analysis_settings` with `hopper.caller_scan_budget_ms` for newly accepted
-operations. The default limits additional
-work on the serial Hopper bridge; larger documents may need a higher setting.
-Results report the examined procedure count and any budget interruption.
-An individual page, native caller list, and target instruction list each have
-a 512 KiB encoded allowance. Hitting one reports the incomplete observation.
-Cancellation is checked between pages, but cannot interrupt a Hopper API call
-already executing; Hopper's native API itself materializes its reference arrays
-before REA can bound their copies. Hopper exposes no document revision token, so scans are not
-reused across workflows and coverage and consistency during a live scan remain
-unknown even when every procedure was examined.
-Hopper observations are re-observed rather than replayed from snapshots because
-the provider has no document revision token. Safe observations may still be
-retained as Evidence.
 
 `trace_native_ui_action` / `rea trace-native-ui-action <target> <seed>` accepts
 one authored selector/object ID, native symbol or exact function address. It
@@ -497,9 +380,8 @@ provider call references. A `provider_call` with `observed` resolution retains
 the provider-reported call site and endpoint without claiming generic direct,
 indirect or Objective-C dispatch semantics. Its `call_reference` evidence
 preserves the original endpoints, classification, raw provider type and
-provenance, even when the target node is a containing procedure. Hopper's
-`none`, `unknown`, `direct` and `objective_c` labels stay provider-scoped;
-unknown numeric types remain available in the raw type field. Target-only
+provenance, even when the target node is a containing procedure. Labels and
+unknown numeric types from imported Evidence retain their original provider scope. Target-only
 callee fallback uses `provider_call` with `inferred` resolution.
 
 Callee fallback adds inferred targets while each retained route keeps its
@@ -575,8 +457,7 @@ admitted before the stop is retained as partial Evidence with a located unknown
 at the stopping read. A successful seed without a native def-use
 model still returns its procedure and an explicit coverage unknown. An unrecorded
 facet stays unknown; when the provider explicitly reports unavailability, the trace
-retains its reason. REA's Kuna provider explicitly reports that it does not supply
-native def-use observations. A new trace can retry failed selectors.
+retains its reason. A new trace can retry failed selectors.
 
 Paging and traversal completeness are separate facts. `page_truncated` means the
 page omits retained nodes, and the edges they source, before `offset` or after
@@ -807,20 +688,10 @@ the session target before and after the native tools run, or the call reports
 or changing target, fails the call instead of reporting tool facts without an
 encryption status.
 
-Hopper's `address_to_file_offset` combines the native image-relative mapping with
-original-file coordinates only after checking the source against the session's
-SHA-256. FAT tables and embedded Mach-O headers come from that same hashing pass.
-A changed or nonregular source reports `artifact_changed`; an unreadable or
-missing source reports its access or filesystem failure. Those errors retain the native offset,
-loaded header and provider source path in `details.partial_observation`, with the
-original-file coordinate explicitly unavailable. Restore the original bytes or
-reopen the changed executable to obtain verified coordinates. Snapshot replay
-remains historical evidence for its recorded artifact identity.
-
-A selected Hopper database's digest identifies the database rather than its
-original executable. Original-file mapping is unavailable for that selection;
-native mapping facts remain in partial evidence, and `read_bytes` still reads
-the loaded database. Open the original executable to verify source coordinates.
+For source coordinates in a Ghidra session, use the
+[provider's measured file mappings](../../providers/ghidra-provider.md#loaded-addresses-and-file-offsets).
+Older Evidence keeps the provider and original artifact coordinates recorded
+at capture time.
 
 Native Xcode command execution uses shared process supervision with a 60-second
 deadline and a 64 MiB aggregate stdout/stderr budget. Timeout, cancellation,
@@ -1352,8 +1223,8 @@ the containing function; the name and comments are changed at its entry, not
 at the selected instruction. Annotation text must contain no NUL or
 unpaired Unicode surrogate; a rejection identifies the field and UTF-16 index
 and leaves every annotation unchanged. CRLF, supplementary Unicode characters,
-and combining characters are preserved. Windows P0 remains read-only. Ghidra has no
-GUI authority, and REA never falls back automatically to Hopper.
+and combining characters are preserved. Ghidra runs headlessly, and Windows P0
+remains read-only.
 For a before-and-after `compare_functions` in MCP, call `analyze_function`
 before and after the edit while the session remains open; the annotation Evidence
 itself is not an `analyze_function` input. If comparing after close, export the
@@ -1395,8 +1266,8 @@ current investigation, before retrying; resending the inline comparison alone
 does not restore its closure. Aggregating static differences does not establish
 observed runtime change.
 
-`set_address_name` and `set_addresses_names` give Ghidra sessions the same
-compact naming results as Hopper: a local function entry renames that function,
+`set_address_name` and `set_addresses_names` return compact naming
+results in Ghidra sessions: a local function entry renames that function,
 and any other mapped address, such as a global, receives a new or renamed primary
 label. A batch decides every address from the names held before it: addresses
 that request the same name in one namespace, or a name another selected address
@@ -1606,16 +1477,12 @@ Exact-name xref lookup reports distinct candidate addresses as an input ambiguit
 inventory order cannot select one silently. Duplicate rows at one address remain
 a singular match, and a missing name remains an unresolved observation.
 
-Hopper procedure names must identify a procedure entry. A non-entry symbol returns
-an input diagnostic with its coordinate and containing procedure; an explicit
-numeric address still selects its containing procedure. Use
-`resolve_containing_procedure` to request containment directly. IDA and Hopper
-reject reserved `file-offset:` selectors before name lookup; source-file offset
-selection belongs to the Ghidra import mapping.
+Use `resolve_containing_procedure` to select the function containing a mapped
+address. The `file-offset:` selector is specific to Ghidra import mappings.
 
 Native function names carry observed symbol metadata where available. Ghidra uses
-its function symbol's source and dynamic flags; Hopper and IDA leave origin
-unknown because this adapter has no verified origin API. Comparison and matching
+its function symbol's source and dynamic flags. Older imported Evidence may leave
+the origin unknown. Comparison and matching
 cannot use unknown labels as cross-artifact identity, even when their spelling
 looks meaningful. Original labels remain in Evidence. This qualification does not
 change address equality in a known common native coordinate context.

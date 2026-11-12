@@ -1,4 +1,3 @@
-import { deepStrictEqual } from "node:assert";
 import {
   lstat,
   mkdir,
@@ -12,9 +11,7 @@ import {
 import { dirname, isAbsolute, join } from "node:path";
 import { parse as parseToml } from "smol-toml";
 
-import { clientRegistrationCommandText } from "../dist/cli/clientRegistrationCommandText.js";
 import { TOOL_CONTRACTS } from "../dist/contracts/toolContracts.js";
-import { PRODUCT_IDENTITY } from "../dist/identity.js";
 import { pathExists } from "./lib/verify-package-core.mjs";
 import { parse as parseJsonc } from "jsonc-parser";
 import { skillReferenceIssues } from "./lib/docs-facts.mjs";
@@ -53,28 +50,36 @@ const isDirectRegistration = async (command, cli) =>
   (await realpath(command[1])) === (await realpath(cli));
 
 const verifyMcpAdd = async ({ commands, cli, environment, npxLog, home }) => {
-  await commands.run(cli, ["mcp", "add"], environment);
-  const settings = JSON.parse(
-    await readFile(join(home, ".config", "amp", "settings.json"), "utf8"),
+  const configPath = join(home, ".config", "amp", "settings.json");
+  const report = JSON.parse(
+    await commands.run(
+      cli,
+      ["mcp", "add", "--agent", "amp", "--json"],
+      environment,
+    ),
   );
+  const settings = JSON.parse(await readFile(configPath, "utf8"));
   const registration = settings?.["amp.mcpServers"]?.rea;
-  if (!Array.isArray(registration?.args))
-    throw new Error("Incur mcp add did not write the native Amp registration");
+  if (
+    report.ok !== true ||
+    report.clients?.length !== 1 ||
+    report.clients[0]?.client !== "amp" ||
+    report.clients[0]?.status !== "configured" ||
+    report.clients[0]?.config_path !== configPath ||
+    !Array.isArray(registration?.args)
+  )
+    throw new Error(
+      `Packaged REA did not write the native Amp registration: ${JSON.stringify(report)}`,
+    );
   const command = [registration.command, ...registration.args];
   if (!(await isDirectRegistration(command, cli)))
     throw new Error(
-      "Incur mcp add did not register the selected absolute runtime and REA script",
+      "Packaged REA did not register the selected absolute runtime and REA script",
     );
-  // Amp consumes the same command through Incur's parser. Check the delegated
-  // helper receives that command as one argument, without flattening its argv.
-  deepStrictEqual(JSON.parse(await readFile(npxLog, "utf8")), [
-    "add-mcp",
-    clientRegistrationCommandText(command),
-    "--name",
-    "rea",
-    "-y",
-    "-g",
-  ]);
+  if (await pathExists(npxLog))
+    throw new Error(
+      "Packaged REA invoked npx while writing the Amp registration.",
+    );
 };
 
 const verifySetupPlan = async ({
@@ -241,11 +246,8 @@ const verifySetupApply = async ({
   cli,
   environment,
   supportedSetupHost,
-  hopperSetupSupported,
 }) => {
   const status = "ready";
-  const hopperStatus =
-    hopperSetupSupported === true ? "needs_confirmation" : "needs_human";
   const firstExecution = await commands.runWithStatus(
     cli,
     ["setup", "--yes", "--all-detected", "--json"],
@@ -258,46 +260,22 @@ const verifySetupApply = async ({
     environment,
   );
   const aligned = JSON.parse(alignedExecution.stdout);
-  const secondExecution = await commands.runWithStatus(
-    cli,
-    [
-      "setup",
-      "--client",
-      "claude_desktop",
-      "--client",
-      "codex",
-      "--client",
-      "cursor",
-      "--install-hopper",
-      "--json",
-    ],
-    environment,
-  );
-  const second = JSON.parse(secondExecution.stdout);
   if (supportedSetupHost) {
     if (
       first.status !== status ||
-      second.status !== hopperStatus ||
-      firstExecution.status !== (status === "ready" ? 0 : 1) ||
-      secondExecution.status !== 1 ||
+      firstExecution.status !== 0 ||
       aligned.status !== status ||
-      alignedExecution.status !== (status === "ready" ? 0 : 1) ||
+      alignedExecution.status !== 0 ||
       aligned.plannedActions.length !== 0 ||
-      aligned.appliedActions.length !== 0 ||
-      !second.plannedActions.some(({ kind }) => kind === "install_hopper") ||
-      second.appliedActions.length !== 0
+      aligned.appliedActions.length !== 0
     )
       throw new Error(
-        `packaged setup did not preserve idempotent agent configuration and explicit Hopper reinstall behavior: ${JSON.stringify({ first, aligned, second })}`,
+        `packaged setup did not preserve idempotent agent configuration: ${JSON.stringify({ first, aligned })}`,
       );
   }
   return {
     first,
     aligned,
-    second,
-    firstExecution,
-    alignedExecution,
-    secondExecution,
     status,
   };
 };
@@ -604,7 +582,6 @@ export async function verifyPackageSetup({
   codexTarget,
   cursorTarget,
   supportedSetupHost,
-  hopperSetupSupported,
   root,
 }) {
   await verifyMcpAdd({ commands, cli, environment, npxLog, home });
@@ -667,7 +644,6 @@ export async function verifyPackageSetup({
     cli,
     environment,
     supportedSetupHost,
-    hopperSetupSupported,
   });
   if (supportedSetupHost) {
     await verifyAbsentOpenCodeSetup({ commands, cli, environment, home });
@@ -709,8 +685,7 @@ export async function verifyPackageSetup({
     });
   } else if (
     apply.first.status !== "needs_human" ||
-    apply.aligned.status !== "needs_human" ||
-    apply.second.status !== "needs_human"
+    apply.aligned.status !== "needs_human"
   ) {
     throw new Error("packaged setup did not reject an unsupported host");
   }

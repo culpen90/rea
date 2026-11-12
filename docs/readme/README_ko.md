@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA가 Hopper 안에서 분석 브리지를 실행해 네이티브 바이너리를 검사하는 모습" width="1200" />
-
-<br /><br />
-
 <table aria-label="REA 커뮤니티">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@
 
 REA는 에이전트를 분석 도구에 연결해 네이티브 바이너리, JavaScript와 Electron 앱, .NET 어셈블리, 웹사이트를 검사할 수 있게 합니다. 터미널에서도 같은 도구를 사용할 수 있습니다. 분석은 로컬에서 실행되며, 결과에는 각 결론의 근거와 한계가 포함됩니다.
 
-설정 과정은 에이전트에 REA를 등록하고 해당 버전에 맞는 워크플로 지침을 설치합니다. 네이티브 분석에는 기존 Hopper, Ghidra, IDA 또는 Kuna 설치를 사용할 수 있습니다. 승인하면 설정 과정에서 Hopper를 설치할 수도 있습니다. 정적 JavaScript 분석에는 네이티브 분석 엔진이 필요하지 않습니다.
+설정 과정은 에이전트에 REA를 등록하고 해당 버전에 맞는 워크플로 지침을 설치합니다. 네이티브 분석에는 기존 Ghidra 설치를 사용합니다. 정적 JavaScript 분석에는 네이티브 분석 엔진이 필요하지 않습니다.
 
 > <strong>[REA 웹사이트](https://rea.tools/ko/)</strong>에서 설정 방법, 그림으로 설명한 가이드, 실제 사례를 확인하세요.
 
@@ -157,7 +153,7 @@ REA에는 Node.js 22.x(>=22.23.4), 24.x(>=24.22.1) 또는 26+ (>=26.12.1)와 npm
 
 | 대상                   | REA가 반환하는 내용                                                           | 요구 사항 및 가이드                                                                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 네이티브 바이너리      | 의사 코드, 어셈블리, 문자열, 심볼, 호출, 참조                                 | Hopper, Ghidra, IDA 또는 Kuna; [네이티브 분석](../guides/native/native-investigation.md)                                                                         |
+| 네이티브 바이너리      | 의사 코드, 어셈블리, 문자열, 심볼, 호출, 참조                                 | Ghidra; [네이티브 분석](../guides/native/native-investigation.md)                                                                                                |
 | 오프라인 ELF 레이아웃  | 섹션, 세그먼트, 원본 심볼/재배치 정보, 정적 분석으로 얻은 보안 완화 기법 후보 | Linux x64에서 호출자가 제공하는 pwntools; [바이너리 진단](../guides/native/binary-diagnostics.md)                                                                |
 | Go 바이너리            | 내장된 컴파일러 버전, 모듈, `replace` 지시어, 빌드 설정                       | REA 내장 ELF/PE/thin Mach-O 정적 검사; Go 설치 불필요                                                                                                            |
 | Rust 바이너리          | cargo-auditable이 내장한 크레이트 이름, 버전, 소스, 의존성 관계               | REA 내장 ELF/PE/thin Mach-O 정적 검사; [Rust 바이너리](../rust-binaries.md)                                                                                      |
@@ -203,7 +199,9 @@ REA에는 Node.js 22.x(>=22.23.4), 24.x(>=24.22.1) 또는 26+ (>=26.12.1)와 npm
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-지원하는 네이티브 형식과 호스트는 제공자마다 다릅니다. [Hopper 및 Ghidra 설정](../getting-started/installation.md#hopper), [IDA 가이드](../providers/ida-provider.md)(선택 사항인 네이티브 MCP 브리지 포함), [Kuna](../kuna-provider.md), [실험적 Windows Ghidra 지원](../providers/windows-ghidra-p0.md)을 참고하세요. Ghidra는 [16비트 DOS 분석](../providers/ghidra-dos.md)도 지원합니다. 큰 바이너리를 분석할 때는 `REA_GHIDRA_STARTUP_TIMEOUT_MS` 또는 `REA_HOPPER_STARTUP_TIMEOUT_MS`로 제공자의 시작 제한 시간을 늘리세요. 제공자 선택은 [CLI 가이드](../getting-started/cli.md#choose-a-provider)를 참고하세요. 최신 npm 릴리스 이후 추가된 기능은 [릴리스에서의 사용 가능 여부](../getting-started/installation.md#released-package-and-main)를 확인하세요.
+[Ghidra로 이전](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
+
+지원하는 네이티브 형식과 호스트는 제공자마다 다릅니다. [Ghidra](../getting-started/installation.md#ghidra), [실험적 Windows Ghidra 지원](../providers/windows-ghidra-p0.md)을 참고하세요. Ghidra는 [16비트 DOS 분석](../providers/ghidra-dos.md)도 지원합니다. 큰 바이너리를 분석할 때는 `REA_GHIDRA_STARTUP_TIMEOUT_MS`로 제공자의 시작 제한 시간을 늘리세요. 제공자 선택은 [CLI 가이드](../getting-started/cli.md#choose-a-provider)를 참고하세요. 최신 npm 릴리스 이후 추가된 기능은 [릴리스에서의 사용 가능 여부](../getting-started/installation.md#released-package-and-main)를 확인하세요.
 
 ## 사례
 
@@ -295,16 +293,10 @@ REA는 에이전트가 스크린샷, 마우스, 키보드로 사용하는 Linux 
 </details>
 
 <details>
-<summary><strong>Hopper, Ghidra, IDA 또는 Kuna가 필요한가요?</strong></summary>
+<summary><strong>Ghidra가 필요한가요?</strong></summary>
 
-심층 네이티브 분석에는 이 중 하나를 사용합니다. 정적 JavaScript 및 .NET 검사에는 네이티브 분석 엔진이 필요하지 않습니다. 설정 과정에서 승인 후 Hopper를 설치할 수 있으며, Ghidra, IDA, Kuna는 기존 설치를 사용합니다. [제공자 설정](../getting-started/installation.md#hopper)을 참고하세요.
-
-</details>
-
-<details>
-<summary><strong>Hopper를 먼저 실행해야 하나요?</strong></summary>
-
-REA는 작업에 필요할 때 Hopper를 실행합니다. macOS에서는 처음 실행할 때 데모 모드를 선택하거나 라이선스를 활성화하라는 대화 상자가 나타날 수 있습니다. 첫 CLI/MCP 작업이나 무인 작업을 실행하기 전에 같은 사용자 세션에서 이 대화 상자를 완료하세요. 필요하면 Hopper를 직접 여세요. [Hopper 실행 및 문제 해결](../getting-started/installation.md#launcher-paths-and-troubleshooting)을 참고하세요.
+네이티브 분석에는 기존 Ghidra 설치를 사용합니다. 정적 JavaScript 및 .NET 검사에는 네이티브 분석 엔진이 필요하지 않습니다.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -401,4 +393,4 @@ REA에 도움을 보태 주세요! [issue를 등록](https://github.com/morluto/
 
 REA가 작성한 코드는 MIT 라이선스를 따릅니다. 제3자 자료에는 각자의 라이선스와 저작권 고지가 그대로 유지됩니다. 의존성 목록, 보존된 라이선스 원문, 외부 도구 약관은 [제3자 고지](../../THIRD_PARTY_NOTICES.md)를 참고하세요.
 
-IDA Pro / Hex-Rays 디컴파일러, Hopper, JEB 등 상용 도구는 해당 라이선스에 따라 **합법적으로 취득하고 사용 권한을 갖춰야 합니다.** REA는 어떤 도구의 라이선스, 키, 활성화 권한도 부여하지 않습니다. 체험판과 데모는 사용자, 기능, 자동화, 출력 공유 제한을 포함한 공급업체 약관을 따릅니다. 크랙 버전, 도난 키, 무단 키 공유, 라이선스 제한 우회는 허용되지 않습니다. 이 안내는 MIT 라이선스나 제3자 라이선스를 변경하지 않습니다.
+JEB 등 상용 도구는 해당 라이선스에 따라 **합법적으로 취득하고 사용 권한을 갖춰야 합니다.** REA는 어떤 도구의 라이선스, 키, 활성화 권한도 부여하지 않습니다. 체험판과 데모는 사용자, 기능, 자동화, 출력 공유 제한을 포함한 공급업체 약관을 따릅니다. 크랙 버전, 도난 키, 무단 키 공유, 라이선스 제한 우회는 허용되지 않습니다. 이 안내는 MIT 라이선스나 제3자 라이선스를 변경하지 않습니다.

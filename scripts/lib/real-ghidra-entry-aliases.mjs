@@ -196,6 +196,47 @@ export async function verifyGhidraEntryAliases({
       JSON.parse(stdout).normalized_result.procedure.address,
       alias.address,
     );
+    const aliasCli = async (command, ...arguments_) => {
+      const { stdout } = await exec(
+        process.execPath,
+        [entrypoint, command, path, ...arguments_, "--json"],
+        { env, timeout: 240000, maxBuffer: 16 * 1024 * 1024 },
+      );
+      return JSON.parse(stdout);
+    };
+    const searched = await aliasCli(
+      "search",
+      `^${escaped}$`,
+      "--kind",
+      "procedures",
+      "--mode",
+      "regex",
+    );
+    assert.equal(searched.operation, "search_procedures");
+    assert.ok(
+      searched.normalized_result.some(
+        ({ address, value, matched_aliases }) =>
+          address === alias.address &&
+          value === canonical.value &&
+          matched_aliases?.includes(alias.value) === true,
+      ),
+    );
+    const tracedCli = await aliasCli("trace", alias.value);
+    assert.equal(tracedCli.operation, "trace_feature");
+    assert.ok(
+      tracedCli.normalized_result.matches.some(
+        ({ type, address, matched_aliases }) =>
+          type === "procedure" &&
+          address === alias.address &&
+          matched_aliases?.includes(alias.value) === true,
+      ),
+    );
+    assert.ok(
+      tracedCli.normalized_result.references.some(
+        ({ target_address }) => target_address === alias.address,
+      ),
+      "CLI trace omitted the reference to the procedure selected by alias",
+    );
     for (const { symbol, expected } of xrefsSelectors) {
       for (const selector of [
         [symbol.value],

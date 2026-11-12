@@ -35,16 +35,6 @@ export const parseConformanceFixtureManifest = (manifest) => {
   return manifest;
 };
 
-export const HOPPER_C_ORACLE = Object.freeze({
-  mainProcedure: "main",
-  entryProcedure: "rea_entry",
-  branchProcedure: "rea_branch",
-  leafProcedure: "rea_leaf",
-  entryString: "REA_C_ENTRY",
-  leafString: "REA_C_LEAF",
-  globalName: "rea_c_global",
-});
-
 export const sha256 = (value) =>
   createHash("sha256").update(value).digest("hex");
 

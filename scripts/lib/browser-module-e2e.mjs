@@ -32,7 +32,7 @@ export async function verifyBrowserModules(
       ...process.env,
       REA_LOG_LEVEL: "silent",
       REA_BROWSER_EXECUTABLE: executable,
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-provider/hopper",
+      GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
     };
     const cli = async (...args) => {
       const { stdout } = await promisify(execFile)(

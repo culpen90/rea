@@ -1,7 +1,7 @@
-# Kuna: reuse before adding machinery
+# Kuna: reuse before adding machinery (historical)
 
 Read this reference for concrete examples of the skill's decisions. The records
-below concern static Linux analysis with caller-supplied Kuna. They do not
+below concern an earlier version of REA's static Linux analysis with caller-supplied Kuna. They do not
 establish parity with another provider or a general advantage for Code Mode,
 atomic tools, or any particular orchestration design.
 
@@ -14,8 +14,8 @@ and returns every encoding at that address: O(log n + matches), without a
 second retained lookup index.
 
 The owning implementation is
-[`KunaStringInventory.ts`](../../../../src/kuna/KunaStringInventory.ts), consumed
-by [`KunaStringQueries.ts`](../../../../src/kuna/KunaStringQueries.ts). Inspect
+[`KunaStringInventory.ts`](https://github.com/morluto/rea/blob/0909d89c966c30955fd0906b622ff25f3700789f/src/kuna/KunaStringInventory.ts), consumed
+by [`KunaStringQueries.ts`](https://github.com/morluto/rea/blob/0909d89c966c30955fd0906b622ff25f3700789f/src/kuna/KunaStringQueries.ts). Inspect
 their current versions before adapting the example. Numeric u64 addresses,
 same-address encodings, duplicate rejection, source digests, caller selection,
 and the existing session lifetime were part of the contract. Full listings and

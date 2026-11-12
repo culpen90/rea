@@ -27,17 +27,11 @@ export interface DoctorScopeReport {
   readonly target: string | null;
 }
 
-interface DoctorProviderState {
-  readonly hopperAvailable: boolean;
-  readonly hopperConfigured: boolean;
-  readonly providerInspections: readonly DoctorProviderInspection[] | undefined;
-}
-
 interface DoctorScopeInput {
   readonly checks: readonly DoctorCheck[];
   readonly registrations: readonly ClientRegistrationStatus[];
   readonly skillState: DoctorSkillState;
-  readonly providers: DoctorProviderState;
+  readonly providerInspections: readonly DoctorProviderInspection[] | undefined;
   readonly scope: DoctorScopeReport;
 }
 
@@ -65,7 +59,7 @@ export const scopeDoctorChecks = (
   readonly informationalChecks: readonly DoctorCheck[];
 } => {
   const providerChecks = input.checks.filter((candidate) =>
-    isProviderCheck(candidate.name, input.providers.providerInspections),
+    isProviderCheck(candidate.name, input.providerInspections),
   );
   const coreChecks = input.checks.filter(
     ({ name }) =>
@@ -86,16 +80,15 @@ export const scopeDoctorChecks = (
   const selectedProviderChecks = input.scope.providers.flatMap((providerId) =>
     providerId === DESKTOP_BUILD_PROVIDER_ID
       ? requiredDesktopBuildChecks(input.checks)
-      : selectedProviderChecksFor(providerId, providerChecks, input.providers),
+      : selectedProviderChecksFor(
+          providerId,
+          providerChecks,
+          input.providerInspections,
+        ),
   );
-  const hopperHostChecks = input.scope.providers.includes("hopper")
-    ? input.checks.filter(({ name }) => name === "host")
-    : [];
-  // parseConfig rejects these before the MCP server starts. Hopper's own
-  // scope already includes hopper-startup-timeout through its provider checks.
+  // Native analysis settings are checked before the MCP server starts.
   const blocksMcpStartup = (check: DoctorCheck): boolean =>
-    check.name.startsWith("runtime-configuration:") ||
-    check.name === "hopper-startup-timeout";
+    check.name.startsWith("runtime-configuration:");
   const blocksProcess = (check: DoctorCheck): boolean => {
     const setting = check.details?.setting;
     return (
@@ -106,19 +99,12 @@ export const scopeDoctorChecks = (
   };
   const exercisesMcpStartup =
     input.scope.clients.length > 0 || input.scope.providers.length > 0;
-  const startupChecks = (
-    exercisesMcpStartup
-      ? input.checks.filter(blocksMcpStartup)
-      : input.checks.filter(blocksProcess)
-  ).filter(
-    (check) =>
-      check.name !== "hopper-startup-timeout" ||
-      !input.scope.providers.includes("hopper"),
+  const startupChecks = input.checks.filter(
+    exercisesMcpStartup ? blocksMcpStartup : blocksProcess,
   );
   const scopeChecks = [
     ...coreChecks,
     ...startupChecks,
-    ...hopperHostChecks,
     ...selectedProviderChecks,
     ...clientChecks,
     ...environmentChecks,
@@ -129,7 +115,6 @@ export const scopeDoctorChecks = (
     healthy:
       coreChecks.every(({ ok }) => ok) &&
       startupChecks.every(({ ok }) => ok) &&
-      hopperHostChecks.every(({ ok }) => ok) &&
       clientChecks.every(({ ok }) => ok) &&
       skillChecks.every(({ ok }) => ok) &&
       selectedProviderChecks.every(({ ok }) => ok),
@@ -160,24 +145,18 @@ const isProviderCheck = (
   name: string,
   inspections: readonly DoctorProviderInspection[] | undefined,
 ): boolean =>
-  name.startsWith("hopper") ||
   inspections?.some(({ id }) => doctorProviderCheckName(id, name)) === true;
 
 const selectedProviderChecksFor = (
   providerId: string,
   checks: readonly DoctorCheck[],
-  providers: DoctorProviderState,
+  inspections: readonly DoctorProviderInspection[] | undefined,
 ): readonly DoctorCheck[] => {
   const selected = checks.filter(({ name }) =>
-    providerId === "hopper"
-      ? name.startsWith("hopper")
-      : doctorProviderCheckName(providerId, name),
+    doctorProviderCheckName(providerId, name),
   );
   const available =
-    providerId === "hopper"
-      ? providers.hopperAvailable
-      : providers.providerInspections?.find(({ id }) => id === providerId)
-          ?.available === true;
+    inspections?.find(({ id }) => id === providerId)?.available === true;
   if (available && selected.every(({ ok }) => ok)) return selected;
   if (selected.some(({ ok }) => !ok)) return selected;
   return [

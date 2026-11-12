@@ -85,9 +85,6 @@ it.skipIf(process.platform === "win32")(
     ];
     const discovery = await discoverSetupState({
       host,
-      providerConfigured: true,
-      forceHopperInstall: false,
-      proposeHopper: false,
       initialDoctor,
     });
     expect(discovery.defaultClientIds).toEqual(["cursor"]);
@@ -155,9 +152,6 @@ it.each([
     ];
     const discovery = await discoverSetupState({
       host,
-      providerConfigured: true,
-      forceHopperInstall: false,
-      proposeHopper: false,
       initialDoctor,
     });
     expect(discovery.defaultClientIds).toEqual([]);
@@ -211,9 +205,6 @@ it("offers detected missing and manual clients without treating absent launcher 
   ];
   const discovery = await discoverSetupState({
     host,
-    providerConfigured: true,
-    forceHopperInstall: false,
-    proposeHopper: false,
     initialDoctor,
   });
   expect(discovery.defaultClientIds).toEqual([]);

@@ -59,13 +59,13 @@ it.each(["operation attribution", "explicit redaction"])(
   "preserves structured adjustable limits through %s",
   (boundary) => {
     const original = refusal().bindLimit(
-      analysisSettingLimit("regex.matching_deadline_ms", 123, "runtime"),
+      analysisSettingLimit("ghidra.startup_timeout_ms", 123, "runtime"),
     );
     const copied =
       boundary === "operation attribution"
         ? analysisClientFailureForOperation(
             original,
-            "hopper",
+            "ghidra",
             "search_strings",
           )
         : redactExplicitFailure(original, ["explicit-secret"]);

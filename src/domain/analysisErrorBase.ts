@@ -31,12 +31,6 @@ const ANALYSIS_ERROR_TAGS = [
   "EvidenceIntegrityError",
   "EvidenceFileError",
   "UnknownRegistryError",
-  "HopperTimeoutError",
-  "HopperCancelledError",
-  "HopperProtocolError",
-  "HopperRemoteError",
-  "HopperProcessError",
-  "HopperStartError",
   "ConfigurationError",
   "NoBinaryOpenError",
   "BinaryTargetError",
@@ -438,7 +432,6 @@ import type {
 } from "./process/processCapture.js";
 import type { FileOffsetPartialObservation } from "./native/fileOffsetPartialObservation.js";
 import type { NativeCallPartialObservation } from "./native/nativeCallPartialObservation.js";
-import type { HopperCallerReconciliationPartial } from "./native/hopperCallerReconciliation.js";
 import type {
   ElectronActiveObservationResult,
   ElectronActivePartialObservation,
@@ -525,7 +518,6 @@ export type AnalysisPartialObservation =
   | FileSnapshotPartialObservation
   | PartialProcessCaptureObservation
   | NativeCallPartialObservation
-  | HopperCallerReconciliationPartial
   | FileOffsetPartialObservation
   | ElectronActivePartialObservation
   | ElectronActiveObservationResult

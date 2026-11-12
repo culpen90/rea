@@ -203,7 +203,7 @@ const registerNativeCommands = (
     [CLI_COMMANDS.listArchitectures, "list_architectures"],
   ] as const) {
     cli.command(command, {
-      description: `Run ${tool} without launching Hopper`,
+      description: `Inspect the local artifact with ${tool}`,
       args: z.object({
         path: localPathStringSchema.describe("Mach-O or app path"),
       }),
@@ -224,7 +224,7 @@ const registerNativeCommands = (
     });
   }
   cli.command(CLI_COMMANDS.inspectPlist, {
-    description: "Parse app plist metadata without launching Hopper",
+    description: "Parse app plist metadata",
     args: z.object({
       path: localPathStringSchema.describe("App or Mach-O path"),
     }),
@@ -255,7 +255,7 @@ const registerNativeCommands = (
       ),
   });
   cli.command(CLI_COMMANDS.demangleSwift, {
-    description: "Demangle Swift symbols without Hopper",
+    description: "Demangle Swift symbols",
     args: z.object({
       path: localPathStringSchema.describe(
         "Artifact path used for evidence identity",

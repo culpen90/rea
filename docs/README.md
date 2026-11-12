@@ -101,7 +101,7 @@ product pages. The VitePress documentation source is this `docs/` tree.
 - [RISC-V ELF analysis through Ghidra](providers/ghidra-riscv.md)
 - [Windows Ghidra P0](providers/windows-ghidra-p0.md)
 - [Headerless raw-binary analysis with Ghidra](providers/raw-binary.md)
-- [IDA provider](providers/ida-provider.md)
+- [Retired IDA provider](providers/ida-provider.md)
 - [JEB instrumentation and analysis](providers/jeb-analysis.md)
 
 ## Contracts and evidence
@@ -187,7 +187,7 @@ the exact commit messages and references from the release they describe.
 - [IL2CPP metadata](il2cpp-metadata.md)
 - [Static JavaScript route inventory](javascript-route-inventory.md)
 - [Linux kernel modules](kernel-modules.md)
-- [Kuna provider](kuna-provider.md)
+- [Retired Kuna provider](kuna-provider.md)
 - [Model file declarations](model-artifacts.md)
 - [Match native functions across builds](native-function-matching.md)
 - [Node.js single executable applications](node-sea.md)

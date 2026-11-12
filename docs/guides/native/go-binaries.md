@@ -3,7 +3,7 @@
 `inspect_go_binary` / `inspect-go-binary` answers which Go compiler version,
 modules, replacements and build settings are embedded in one selected local
 executable or library. It reads the file without running it and requires no
-Go installation, active binary target, Hopper, Ghidra or IDA.
+Go installation, active binary target, or native analysis provider.
 
 If a stable read completes but descriptor finalization fails or receives
 cancellation, the error retains the selected path, SHA-256 and byte length as

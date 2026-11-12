@@ -37,6 +37,7 @@ import {
   mcpDoctorDeadlineRecovery,
 } from "./mcpStartupPolicy.js";
 import { MCP_DOCTOR_ALIAS, MCP_DOCTOR_OPTIONS } from "./mcpDoctorOptions.js";
+import { snapshotEnvironment } from "./process/snapshotEnvironment.js";
 
 const OUTPUT_FORMATS = CLI_DOCUMENT_OUTPUT_FORMATS;
 type OutputFormat = (typeof OUTPUT_FORMATS)[number];
@@ -87,7 +88,8 @@ interface McpDoctorCheck {
 
 /** Diagnose the actual production stdio adapter with one startup-bounded SDK session. */
 export const runProductionMcpDoctor = async (options: McpDoctorOptions) => {
-  const parsedBudgets = parseMcpStartupBudgets(options.environment);
+  const environment = targetFreeEnvironment(options.environment);
+  const parsedBudgets = parseMcpStartupBudgets(environment);
   if (!parsedBudgets.ok)
     return {
       healthy: false as const,
@@ -110,7 +112,7 @@ export const runProductionMcpDoctor = async (options: McpDoctorOptions) => {
         stderr_truncated: false,
       },
     };
-  const expectation = doctorExpectationForEnvironment(options.environment);
+  const expectation = doctorExpectationForEnvironment(environment);
   const budget = parsedBudgets.value.doctor;
   const budgetMs = budget.milliseconds;
   const deadline = performance.now() + budgetMs;
@@ -124,7 +126,7 @@ export const runProductionMcpDoctor = async (options: McpDoctorOptions) => {
     command: options.command,
     args: [...options.args],
     cwd: options.cwd,
-    env: targetFreeEnvironment(options.environment),
+    env: environment,
     stderr: "pipe",
   });
   transport.stderr?.on("data", stderr.append);
@@ -568,20 +570,13 @@ const requestOptions = (deadline: number, signal: AbortSignal) => ({
 
 const targetFreeEnvironment = (
   environment: Readonly<Record<string, string | undefined>>,
-): Record<string, string> => {
-  const result = Object.fromEntries(
-    Object.entries(environment).filter(
-      (entry): entry is [string, string] => entry[1] !== undefined,
+): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(snapshotEnvironment(environment)).filter(
+      (entry): entry is [string, string] =>
+        entry[0] !== "REA_TARGET_PATH" && entry[1] !== undefined,
     ),
   );
-  for (const name of [
-    "HOPPER_TARGET_PATH",
-    "HOPPER_TARGET_KIND",
-    "HOPPER_LOADER_ARGS_JSON",
-  ])
-    delete result[name];
-  return result;
-};
 
 const doctorExpectationForEnvironment = (
   environment: Readonly<Record<string, string | undefined>>,

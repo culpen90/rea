@@ -167,7 +167,7 @@ const signalIsAborted = (signal: AbortSignal | undefined): boolean =>
   signal?.aborted === true;
 
 const PROFILE_REMEDIATION =
-  "Run rea doctor to check this provider's installation and version, then reopen the target, or select another analysis provider.";
+  "Run rea doctor to check this provider's installation and version, then reopen the target.";
 
 const rejectedProfile = (
   candidate: AnalysisProviderCandidate,

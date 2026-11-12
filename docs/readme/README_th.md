@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA เริ่มบริดจ์การวิเคราะห์ภายใน Hopper ขณะตรวจสอบไบนารีเนทีฟ" width="1200" />
-
-<br /><br />
-
 <table aria-label="ชุมชน REA">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@
 
 REA เชื่อมเอเจนต์ของคุณกับเครื่องมือสำหรับตรวจสอบไบนารีเนทีฟ แอป JavaScript และ Electron แอสเซมบลี .NET และเว็บไซต์ คุณใช้เครื่องมือเดียวกันจากเทอร์มินัลได้ การวิเคราะห์ทำงานบนเครื่องของคุณ และผลลัพธ์มีทั้งหลักฐานและข้อจำกัดที่ประกอบแต่ละข้อสรุป
 
-การตั้งค่าลงทะเบียน REA กับเอเจนต์และติดตั้งคำแนะนำการทำงานที่ตรงกัน การวิเคราะห์เนทีฟใช้ Hopper, Ghidra, IDA หรือ Kuna ที่มีอยู่ได้ และติดตั้ง Hopper ได้เมื่อคุณอนุมัติ การวิเคราะห์ JavaScript แบบสแตติกไม่ต้องใช้เอนจินวิเคราะห์เนทีฟ
+การตั้งค่าลงทะเบียน REA กับเอเจนต์และติดตั้งคำแนะนำการทำงานที่ตรงกัน การวิเคราะห์เนทีฟใช้ Ghidra ที่ติดตั้งไว้แล้ว การวิเคราะห์ JavaScript แบบสแตติกไม่ต้องใช้เอนจินวิเคราะห์เนทีฟ
 
 > **[เยี่ยมชมเว็บไซต์ REA](https://rea.tools/th/)** เพื่อดูคำแนะนำการตั้งค่า คู่มือพร้อมภาพประกอบ และกรณีศึกษาจริง
 
@@ -157,7 +153,7 @@ REA ต้องใช้ Node.js 22.x (>=22.23.4), 24.x (>=24.22.1) หรื�
 
 | เป้าหมาย                      | สิ่งที่ REA ส่งกลับ                                                                   | ข้อกำหนดและคู่มือ                                                                                                                                             |
 | ---------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ไบนารีเนทีฟ                    | โค้ดเทียม แอสเซมบลี สตริง สัญลักษณ์ การเรียก และการอ้างอิง                                | Hopper, Ghidra, IDA หรือ Kuna; [การวิเคราะห์เนทีฟ](../guides/native/native-investigation.md)                                                                  |
+| ไบนารีเนทีฟ                    | โค้ดเทียม แอสเซมบลี สตริง สัญลักษณ์ การเรียก และการอ้างอิง                                | Ghidra; [การวิเคราะห์เนทีฟ](../guides/native/native-investigation.md)                                                                                        |
 | โครงสร้าง ELF แบบออฟไลน์       | เซกชัน เซกเมนต์ สัญลักษณ์/รีโลเคชันต้นฉบับ และตัวเลือกกลไกป้องกันที่พบจากการวิเคราะห์แบบสถิต      | pwntools ที่ผู้ใช้จัดเตรียมบน Linux x64; [การวินิจฉัยไบนารี](../guides/native/binary-diagnostics.md)                                                                 |
 | PE certificates              | Authenticode WIN_CERTIFICATE entries and PKCS#7 signer/X.509 identity fields    | Built-in static PE inspection; [PE certificates](../pe-certificates.md)                                                                                   |
 | PE imports                   | Import and delay-load DLL names, ordinals, IAT RVAs and pefile import hash      | Built-in static PE inspection; [PE imports](../pe-imports.md)                                                                                             |
@@ -203,9 +199,11 @@ REA ต้องใช้ Node.js 22.x (>=22.23.4), 24.x (>=24.22.1) หรื�
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-สำหรับไบนารีขนาดใหญ่ เพิ่มเวลารอเริ่มต้นด้วย `REA_GHIDRA_STARTUP_TIMEOUT_MS` หรือ `REA_HOPPER_STARTUP_TIMEOUT_MS`
+[ย้ายไปใช้ Ghidra](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
 
-รูปแบบไบนารีเนทีฟและแพลตฟอร์มที่รองรับแตกต่างกันตามผู้ให้บริการวิเคราะห์ ดู[การตั้งค่า Hopper และ Ghidra](../getting-started/installation.md#hopper), [คู่มือ IDA](../providers/ida-provider.md) [Kuna](../kuna-provider.md) และ[การรองรับ Ghidra บน Windows แบบทดลอง](../providers/windows-ghidra-p0.md) Ghidra ยังรองรับ[การวิเคราะห์ DOS แบบ 16 บิต](../providers/ghidra-dos.md) สำหรับการเลือกผู้ให้บริการ ดู[คู่มือ CLI](../getting-started/cli.md#choose-a-provider) ตรวจสอบ[ความพร้อมใช้งานในแต่ละรุ่น](../getting-started/installation.md#released-package-and-main) สำหรับฟีเจอร์ที่เพิ่มหลังรุ่นล่าสุดบน npm
+สำหรับไบนารีขนาดใหญ่ เพิ่มเวลารอเริ่มต้นด้วย `REA_GHIDRA_STARTUP_TIMEOUT_MS`
+
+รูปแบบไบนารีเนทีฟและแพลตฟอร์มที่รองรับแตกต่างกันตามผู้ให้บริการวิเคราะห์ ดู[Ghidra](../getting-started/installation.md#ghidra), [การรองรับ Ghidra บน Windows แบบทดลอง](../providers/windows-ghidra-p0.md) Ghidra ยังรองรับ[การวิเคราะห์ DOS แบบ 16 บิต](../providers/ghidra-dos.md) สำหรับการเลือกผู้ให้บริการ ดู[คู่มือ CLI](../getting-started/cli.md#choose-a-provider) ตรวจสอบ[ความพร้อมใช้งานในแต่ละรุ่น](../getting-started/installation.md#released-package-and-main) สำหรับฟีเจอร์ที่เพิ่มหลังรุ่นล่าสุดบน npm
 
 ## ตัวอย่างการใช้งาน
 
@@ -295,16 +293,10 @@ REA ยังสร้างสภาพแวดล้อมของแอป�
 </details>
 
 <details>
-<summary><strong>จำเป็นต้องมี Hopper, Ghidra, IDA หรือ Kuna หรือไม่?</strong></summary>
+<summary><strong>จำเป็นต้องมี Ghidra หรือไม่?</strong></summary>
 
-การวิเคราะห์เนทีฟเชิงลึกต้องใช้หนึ่งในเครื่องมือเหล่านี้ การตรวจสอบ JavaScript และ .NET แบบสถิตทำงานได้โดยไม่มีเอนจินวิเคราะห์เนทีฟ ขั้นตอนตั้งค่าสามารถติดตั้ง Hopper หลังได้รับอนุมัติ ส่วน Ghidra, IDA และ Kuna ใช้การติดตั้งที่คุณมีอยู่แล้ว ดู[การตั้งค่าผู้ให้บริการวิเคราะห์](../getting-started/installation.md#hopper)
-
-</details>
-
-<details>
-<summary><strong>ต้องเริ่ม Hopper ก่อนหรือไม่?</strong></summary>
-
-REA เริ่ม Hopper เมื่อการดำเนินการต้องใช้ บน macOS อาจมีหน้าต่างเมื่อรันครั้งแรกให้เลือกโหมดทดลองหรือเปิดใช้ใบอนุญาต ดู[การเริ่ม Hopper และการแก้ไขปัญหา](../getting-started/installation.md#launcher-paths-and-troubleshooting)
+การวิเคราะห์เนทีฟใช้ Ghidra ที่ติดตั้งไว้แล้ว
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -402,7 +394,7 @@ licenses and copyright notices; see [Third-party notices](../../THIRD_PARTY_NOTI
 for the dependency inventory, preserved license texts, and external-tool terms.
 
 **You must legally obtain and be authorized to use commercial tools**, including
-IDA Pro / Hex-Rays decompilers, Hopper, and JEB, under their applicable licenses.
+JEB, under its applicable license.
 REA grants no tool license, key, or activation entitlement. Trials and demos
 remain subject to vendor terms, including user, feature, automation, and output
 sharing restrictions. Cracked copies, stolen keys, unauthorized key sharing,

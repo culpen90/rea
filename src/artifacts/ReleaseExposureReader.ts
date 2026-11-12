@@ -835,11 +835,6 @@ interface ScanState {
    * lookup identity, each with the resolved spellings declarations wrote.
    */
   mapTargets: Map<string, Set<string>>;
-  /**
-   * Map targets a member or sibling reached through a declared spelling. Any
-   * other spelling in the same lookup bucket is a distinct occurrence.
-   */
-  claimedMapTargets: Set<string>;
   /** Completion per source occurrence, indexed by exact resolved spelling. */
   examinedMembers: Map<string, Map<string, Set<MemberCompletion>>>;
   /**
@@ -906,7 +901,6 @@ const createState = (
   limitations: [],
   mapsRead: 0,
   mapTargets: new Map(),
-  claimedMapTargets: new Set(),
   examinedMembers: new Map(),
   scriptTargets: new Map(),
   scriptTargetBytes: 0,
@@ -1207,7 +1201,7 @@ const examineMapMember = async (
   // Another spelling of a declared target is undeclared until the scan ends.
   const undeclared =
     member.logical.toLowerCase().endsWith(".map") &&
-    !claimMapTarget(state, member.location);
+    !isExactMapTarget(state, member.location);
   const declared: SourceMapReference & Pick<MemberView, "read"> = {
     ...(undeclared
       ? namedMapReference(member.logical, member.location)
@@ -2076,15 +2070,10 @@ const noteMapTarget = (state: ScanState, location: string): void => {
  * Whether a declaration wrote this exact location. A lookup bucket alone
  * does not prove which of its occurrences a declaration means.
  */
-const claimMapTarget = (state: ScanState, location: string): boolean => {
-  const key = memberLocationKey(state, location);
-  if (
-    state.mapTargets.get(key)?.has(anchoredLocation(state, location)) !== true
-  )
-    return false;
-  state.claimedMapTargets.add(key);
-  return true;
-};
+const isExactMapTarget = (state: ScanState, location: string): boolean =>
+  state.mapTargets
+    .get(memberLocationKey(state, location))
+    ?.has(anchoredLocation(state, location)) === true;
 
 /**
  * Lookup identity for a member location. Inventory reports logical paths in
@@ -2186,7 +2175,7 @@ const completedTarget = (
 
 /**
  * A declared map or script target that was never reached was not assessed.
- * When no declared spelling was reached, another spelling of the target may
+ * When a declared spelling was never reached, another spelling of the target may
  * be the declared map, so its linker-map guess is no companion evidence.
  */
 const noteUnreachedTargets = (state: ScanState): void => {
@@ -2195,9 +2184,11 @@ const noteUnreachedTargets = (state: ScanState): void => {
       completedTarget(state, spelling, "map"),
     );
     if (!examined) state.skippedMaps += 1;
-    if (state.claimedMapTargets.has(target)) continue;
     const guesses = state.linkerMapGuesses.get(target);
     if (guesses === undefined) continue;
+    const occurrences = state.examinedMembers.get(target);
+    if ([...spellings].every((spelling) => occurrences?.has(spelling)))
+      continue;
     state.linkerMapGuesses.delete(target);
     state.skippedCompanions += guesses.size;
     if (examined) state.skippedMaps += guesses.size;
@@ -3264,8 +3255,12 @@ const scanSiblings = async (
     if (isJavaScriptSourceMapName(entry.name)) continue;
     // A declared map stays a source map and a loaded script stays a script,
     // and `noteUnreachedTargets` counts either one.
-    if (claimMapTarget(state, sibling) || isScriptTarget(state, sibling))
+    if (isExactMapTarget(state, sibling)) {
+      // Sibling discovery resolves the spelling without reading its map.
+      recordMemberCompletion(state, sibling, { map: false, script: false });
       continue;
+    }
+    if (isScriptTarget(state, sibling)) continue;
     // A link is not followed, so a linker map it names stays unread, not absent.
     if (entry.isSymbolicLink()) {
       state.skippedCompanions += 1;

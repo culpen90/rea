@@ -13,8 +13,6 @@ import {
   providerStartupTimeoutSchema,
   ghidraDecompileTimeoutSchema,
 } from "./providerStartupTimeout.js";
-import { regexMatchingDeadlineMsSchema } from "./regexMatchingDeadline.js";
-import { regexWorkerHeapRequestMiBSchema } from "./regexWorkerHeapRequest.js";
 import { captureDecoderOldGenerationMiBSchema } from "./captureDecoderHeap.js";
 import { parseNativeMatchingAllowance } from "./nativeMatchingAllowance.js";
 import { bridgeMaxRequestBytesSchema } from "./bridgeMaxRequestBytes.js";
@@ -37,20 +35,14 @@ const environmentSchemas: Readonly<Record<string, z.ZodType<number, string>>> =
     REA_GHIDRA_VALUE_FLOW_MAX_EDGES: ghidraValueFlowCountSchema,
     REA_GHIDRA_DECOMPILE_MAX_PAYLOAD_MIB: ghidraDecompilePayloadMiBSchema,
     REA_GHIDRA_STARTUP_TIMEOUT_MS: providerStartupTimeoutSchema,
-    REA_HOPPER_STARTUP_TIMEOUT_MS: providerStartupTimeoutSchema,
     REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS: ghidraDecompileTimeoutSchema,
     REA_JADX_OPERATION_TIMEOUT_MS: providerStartupTimeoutSchema,
-    REA_REGEX_MATCHING_DEADLINE_MS: regexMatchingDeadlineMsSchema,
-    REA_REGEX_WORKER_HEAP_REQUEST_MIB: regexWorkerHeapRequestMiBSchema,
     REA_CAPTURE_DECODER_OLD_GENERATION_MIB:
       captureDecoderOldGenerationMiBSchema,
     REA_BRIDGE_MAX_REQUEST_BYTES: bridgeMaxRequestBytesSchema,
     REA_DEBUGGER_COMMAND_DEADLINE_MS: debuggerCommandDeadlineMsSchema,
     REA_DEBUGGER_MAX_COMMAND_OUTPUT_BYTES: debuggerMaxCommandOutputBytesSchema,
-    REA_HOPPER_CALLER_SCAN_BUDGET_MS: providerStartupTimeoutSchema,
     REA_JEB_MCP_TIMEOUT_MS: providerStartupTimeoutSchema,
-    REA_KUNA_PROJECT_TIMEOUT_MS: providerStartupTimeoutSchema,
-    REA_KUNA_TIMEOUT_MS: providerStartupTimeoutSchema,
     REA_PWNTOOLS_MAX_INPUT_BYTES: pwntoolsInputBytesSchema,
     REA_WINDOWS_CHANGE_TIME_DRIFT_MS: windowsChangeTimeDriftMsSchema,
     REA_WINDOWS_CHANGE_TIME_SETTLE_POLL_MS: windowsChangeTimeSettlePollMsSchema,

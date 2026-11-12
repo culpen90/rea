@@ -13,8 +13,7 @@ import { cliTest } from "../../support/cli/cliFixture.js";
 
 // Registration configuration tests must not discover installed providers or
 // plan provider-environment edits based on the machine running the suite.
-const missingHopperAndGhidraEnvironment = (home: string) => ({
-  HOPPER_LAUNCHER_PATH: join(home, "missing-hopper"),
+const missingGhidraEnvironment = (home: string) => ({
   GHIDRA_INSTALL_DIR: join(home, "missing-ghidra"),
   JAVA_HOME: join(home, "missing-java"),
 });
@@ -25,15 +24,11 @@ cliTest(
     const home = await createTestTempDirectory("rea-selected-registration-");
     const config = join(home, ".qwen/settings.json");
     const selected = {
-      HOPPER_LAUNCHER_PATH: join(home, "missing-hopper"),
-      HOPPER_LOADER_ARGS_JSON: '["", "--loader", "Mach-O"]',
       GHIDRA_INSTALL_DIR: join(home, "offline-ghidra"),
       GHIDRA_HEADLESS_MAXMEM: "512M",
       GHIDRA_MAXMEM: "3G",
       JAVA_HOME: join(home, "offline-jdk"),
-      REA_IDA_MCP_CONFIG: join(home, "offline-ida.json"),
       REA_JADX_MCP_JAR: join(home, "offline-jadx.jar"),
-      REA_KUNA_COMMAND: join(home, "offline-kuna"),
       REA_ADB_PATH: join(home, "offline-adb"),
       REA_APKTOOL_COMMAND: join(home, "offline-apktool"),
       REA_TSHARK_COMMAND: join(home, "offline-tshark"),
@@ -90,7 +85,7 @@ cliTest(
       REA_UNKNOWN_SETTING: "do not copy",
       REA_PROCESS_RUN_ID: "do not copy",
       REA_TOKEN: "do not copy",
-      HOPPER_TARGET_PATH: "do not copy",
+      REA_TARGET_PATH: "do not copy",
     };
     const run = () =>
       cli.run({
@@ -117,8 +112,6 @@ cliTest(
     environment.REA_MCP_TOOL_FAMILIES = selected.REA_MCP_TOOL_FAMILIES;
     selected.REA_OBJDUMP_COMMAND = join(home, "replacement-objdump");
     environment.REA_OBJDUMP_COMMAND = selected.REA_OBJDUMP_COMMAND;
-    selected.HOPPER_LOADER_ARGS_JSON = "[]";
-    environment.HOPPER_LOADER_ARGS_JSON = selected.HOPPER_LOADER_ARGS_JSON;
     // Empty headless heap explicitly selects the lower-priority caller value.
     selected.GHIDRA_HEADLESS_MAXMEM = "";
     selected.GHIDRA_MAXMEM = "768M";
@@ -154,7 +147,7 @@ cliTest(
       HOME: home,
       USERPROFILE: home,
       QWEN_HOME: join(home, ".qwen"),
-      ...missingHopperAndGhidraEnvironment(home),
+      ...missingGhidraEnvironment(home),
       REA_MCP_INPUT_SCHEMA_PROFILE: "compact",
       REA_MCP_OUTPUT_SCHEMA_PROFILE: "compact",
     };
@@ -229,7 +222,7 @@ cliTest.skipIf(process.platform !== "win32")(
       HOME: home,
       USERPROFILE: home,
       XDG_CONFIG_HOME: join(home, ".config"),
-      ...missingHopperAndGhidraEnvironment(home),
+      ...missingGhidraEnvironment(home),
     };
     const doctor = await cli.run({
       arguments: ["doctor", "--client", "cursor", "--skill=false", "--json"],
@@ -278,9 +271,9 @@ const scenarios = [
     client: "cursor",
     format: "json",
     path: ".cursor/mcp.json",
-    setting: "HOPPER_LOADER_ARGS_JSON",
-    invalid: { HOPPER_LOADER_ARGS_JSON: "{" },
-    repaired: { HOPPER_LOADER_ARGS_JSON: '["", "--loader", "Mach-O"]' },
+    setting: "REA_REFERENCE_SECRET_PATTERNS_JSON",
+    invalid: { REA_REFERENCE_SECRET_PATTERNS_JSON: "{" },
+    repaired: { REA_REFERENCE_SECRET_PATTERNS_JSON: '[".env"]' },
   },
   {
     client: "dsh",
@@ -337,7 +330,7 @@ cliTest.for([
       USERPROFILE: home,
       XDG_CONFIG_HOME: join(home, ".config"),
       DSH_HOME: join(home, ".dsh"),
-      ...missingHopperAndGhidraEnvironment(home),
+      ...missingGhidraEnvironment(home),
     };
     const registration = (env: Readonly<Record<string, string>>) => {
       const entry = clientRegistrationEntry(
@@ -456,7 +449,7 @@ for (const scenario of scenarios)
         USERPROFILE: home,
         XDG_CONFIG_HOME: join(home, ".config"),
         DSH_HOME: join(home, ".dsh"),
-        ...missingHopperAndGhidraEnvironment(home),
+        ...missingGhidraEnvironment(home),
       };
       const registration = (env: Readonly<Record<string, string>>) => {
         const server = {
@@ -589,7 +582,7 @@ cliTest(
       REA_GHIDRA_LANGUAGE_ID: "x86:LE:32:default",
     });
     const upperContent = content({
-      ...missingHopperAndGhidraEnvironment(home),
+      ...missingGhidraEnvironment(home),
       REA_GHIDRA_COMPILER_SPEC_ID: "borlandcpp",
     });
     await writeFile(lower, lowerContent);
@@ -598,7 +591,7 @@ cliTest(
       HOME: home,
       USERPROFILE: home,
       XDG_CONFIG_HOME: join(home, ".config"),
-      ...missingHopperAndGhidraEnvironment(home),
+      ...missingGhidraEnvironment(home),
     };
     const run = (args: readonly string[]) =>
       cli.run({ arguments: [...args, "--json"], cwd: home, environment });
@@ -675,16 +668,13 @@ cliTest(
       XDG_CONFIG_HOME: join(home, ".config"),
       CODEX_HOME: codexHome,
       KIMI_CODE_HOME: kimiHome,
-      ...missingHopperAndGhidraEnvironment(home),
+      ...missingGhidraEnvironment(home),
       REA_ANALYSIS_PROVIDER: "auto",
       REA_BRIDGE_MAX_REQUEST_BYTES: "33554432",
       REA_GHIDRA_STARTUP_TIMEOUT_MS: "2700001",
-      REA_HOPPER_STARTUP_TIMEOUT_MS: "2800002",
       REA_JEB_MCP_TIMEOUT_MS: "2900003",
       REA_MCP_INPUT_SCHEMA_PROFILE: "full",
       REA_CAPTURE_DECODER_OLD_GENERATION_MIB: "256",
-      REA_REGEX_MATCHING_DEADLINE_MS: "10000",
-      REA_REGEX_WORKER_HEAP_REQUEST_MIB: "256",
       REA_MCP_INITIALIZE_BUDGET_MS: "16000",
       REA_MCP_TOOLS_LIST_BUDGET_MS: "6000",
       REA_MCP_FIRST_CATALOG_BUDGET_MS: "21000",
@@ -721,8 +711,6 @@ cliTest(
     expect(codexConfig).toContain(
       'REA_CAPTURE_DECODER_OLD_GENERATION_MIB = "256"',
     );
-    expect(codexConfig).toContain('REA_REGEX_MATCHING_DEADLINE_MS = "10000"');
-    expect(codexConfig).toContain('REA_REGEX_WORKER_HEAP_REQUEST_MIB = "256"');
     expect(codexConfig).toContain('REA_MCP_INITIALIZE_BUDGET_MS = "16000"');
     expect(codexConfig).toContain('REA_MCP_TOOLS_LIST_BUDGET_MS = "6000"');
     expect(codexConfig).toContain('REA_MCP_FIRST_CATALOG_BUDGET_MS = "21000"');
@@ -740,12 +728,9 @@ cliTest(
         REA_ANALYSIS_PROVIDER: "auto",
         REA_BRIDGE_MAX_REQUEST_BYTES: "33554432",
         REA_GHIDRA_STARTUP_TIMEOUT_MS: "2700001",
-        REA_HOPPER_STARTUP_TIMEOUT_MS: "2800002",
         REA_JEB_MCP_TIMEOUT_MS: "2900003",
         REA_MCP_INPUT_SCHEMA_PROFILE: "full",
         REA_CAPTURE_DECODER_OLD_GENERATION_MIB: "256",
-        REA_REGEX_MATCHING_DEADLINE_MS: "10000",
-        REA_REGEX_WORKER_HEAP_REQUEST_MIB: "256",
         REA_MCP_INITIALIZE_BUDGET_MS: "16000",
         REA_MCP_TOOLS_LIST_BUDGET_MS: "6000",
         REA_MCP_FIRST_CATALOG_BUDGET_MS: "21000",
@@ -769,146 +754,10 @@ cliTest(
   120_000,
 );
 
-for (const [client, provider] of [
-  ["codex", "ida"],
-  ["kimi", "ida"],
-  ["kimi", "auto"],
-] as const)
-  cliTest(
-    `public ${client} setup and doctor use the effective IDA registration request budget with ${provider} selection`,
-    async ({ cli }) => {
-      const home = await createTestTempDirectory(
-        "rea-ida-registration-budget-",
-      );
-      const clientHome = join(home, client);
-      await mkdir(clientHome, { recursive: true });
-      const idaConfig = join(home, "ida.json");
-      const writeRegistration = (timeoutMs: number) =>
-        writeFile(
-          idaConfig,
-          JSON.stringify({
-            url: "http://127.0.0.1:12345/mcp",
-            headers: { Authorization: "Bearer fixture-credential" },
-            timeoutMs,
-          }),
-        );
-      await writeRegistration(1_800_001);
-      const environment = {
-        HOME: home,
-        USERPROFILE: home,
-        XDG_CONFIG_HOME: join(home, ".config"),
-        CODEX_HOME: clientHome,
-        KIMI_CODE_HOME: clientHome,
-        ...missingHopperAndGhidraEnvironment(home),
-      };
-      const setupArguments = [
-        "setup",
-        "--client",
-        client,
-        "--skill=false",
-        "--yes",
-        "--json",
-      ];
-      const configured = await cli.run({
-        arguments: setupArguments,
-        cwd: home,
-        environment: {
-          ...environment,
-          REA_ANALYSIS_PROVIDER: provider,
-          REA_IDA_MCP_CONFIG: idaConfig,
-        },
-      });
-      expect(configured.exitCode, configured.stdout).toBe(0);
-      const config = join(
-        clientHome,
-        client === "codex" ? "config.toml" : "mcp.json",
-      );
-      const text = await readFile(config, "utf8");
-      expect(
-        effectiveClientServer(
-          parseClientConfiguration(text, client === "codex" ? "toml" : "kimi"),
-          "rea",
-        ),
-      ).toMatchObject({
-        ...(client === "codex"
-          ? { tool_timeout_sec: 1921 }
-          : { toolTimeoutMs: 1_920_001 }),
-        env: { REA_ANALYSIS_PROVIDER: provider, REA_IDA_MCP_CONFIG: idaConfig },
-      });
-      expect(text).not.toContain("fixture-credential");
-      const run = (arguments_: readonly string[]) =>
-        cli.run({ arguments: arguments_, cwd: home, environment });
-      const healthy = await run(["doctor", "--client", client, "--json"]);
-      expect(healthy.exitCode, healthy.stdout).toBe(0);
-      expect(JSON.stringify(healthy.json)).not.toContain('"advisory"');
-
-      // Only the stored client's provider path identifies this changed budget;
-      // the doctor/setup process has no IDA configuration in its environment.
-      await writeRegistration(2_400_001);
-      const doctor = await run(["doctor", "--client", client, "--json"]);
-      expect(doctor.exitCode, doctor.stdout).toBe(0);
-      expect(doctor.json).toMatchObject({
-        identity: {
-          registrations: expect.arrayContaining([
-            expect.objectContaining({
-              client,
-              state: "aligned",
-              advisory: expect.stringContaining(
-                client === "codex"
-                  ? "tool_timeout_sec = 2521 seconds"
-                  : "toolTimeoutMs = 2520001 ms",
-              ),
-            }),
-          ]),
-        },
-      });
-      const repeated = await run(setupArguments);
-      expect(repeated.exitCode, repeated.stdout).toBe(0);
-      expect(repeated.json).toMatchObject({
-        status: "ready",
-        plannedActions: [],
-        appliedActions: [],
-      });
-      expect(await readFile(config, "utf8")).toBe(text);
-      await expect(access(`${config}.rea.backup`)).rejects.toMatchObject({
-        code: "ENOENT",
-      });
-      if (provider === "ida") {
-        await writeRegistration(0);
-        const invalidDoctor = await run([
-          "doctor",
-          "--client",
-          client,
-          "--json",
-        ]);
-        expect(invalidDoctor.exitCode).toBe(1);
-        expect(invalidDoctor.json).toMatchObject({
-          identity: {
-            registrations: expect.arrayContaining([
-              expect.objectContaining({
-                client,
-                state: "invalid",
-                remediation: expect.stringContaining("REA_IDA_MCP_CONFIG"),
-              }),
-            ]),
-          },
-        });
-        const invalidSetup = await run(setupArguments);
-        expect(invalidSetup.exitCode).toBe(1);
-        expect(invalidSetup.stdout).toContain("REA_IDA_MCP_CONFIG");
-        expect(await readFile(config, "utf8")).toBe(text);
-        await expect(access(`${config}.rea.backup`)).rejects.toMatchObject({
-          code: "ENOENT",
-        });
-      }
-    },
-    120_000,
-  );
-
 for (const invalidSetting of [
   { setting: "REA_MCP_INPUT_SCHEMA_PROFILE", value: "unknown" },
-  { setting: "REA_GHIDRA_STARTUP_TIMEOUT_MS", value: "0" },
-  { setting: "REA_JEB_MCP_TIMEOUT_MS", value: "1.5" },
+  { setting: "REA_GHIDRA_LANGUAGE_ID", value: "" },
+  { setting: "REA_JEB_MCP_URL", value: "https://example.invalid/mcp" },
 ] as const)
   cliTest(
     `setup rejects malformed selected ${invalidSetting.setting} before writing`,
@@ -924,7 +773,7 @@ for (const invalidSetting of [
         USERPROFILE: home,
         XDG_CONFIG_HOME: join(home, ".config"),
         KIMI_CODE_HOME: kimiHome,
-        ...missingHopperAndGhidraEnvironment(home),
+        ...missingGhidraEnvironment(home),
         [invalidSetting.setting]: invalidSetting.value,
       };
       const result = await cli.run({
@@ -997,7 +846,7 @@ cliTest(
         XDG_CONFIG_HOME: join(home, ".config"),
         VSCODE_APPDATA: selectedData,
         VSCODE_PORTABLE: "",
-        ...missingHopperAndGhidraEnvironment(home),
+        ...missingGhidraEnvironment(home),
       },
     });
     expect(setup.exitCode, setup.stdout + setup.stderr).toBe(0);

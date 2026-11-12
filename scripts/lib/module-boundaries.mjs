@@ -20,8 +20,6 @@ const MIGRATED_PROVIDER_ROOTS = new Set([
   "android",
   "firmware",
   "ghidra",
-  "hopper",
-  "ida",
   "inspector",
   "javascript",
 ]);

@@ -2292,35 +2292,6 @@ msgstr ""
 "REA는 .NET 등의 관리형 어셈블리, Android APK, 펌웨어, 패키지 리소스도 분석합니다. 실제 분석 과정은 {ph0}사례 "
 "소개{ph1}에서 확인하세요."
 
-#: website/public/faq/index.html:354
-msgctxt "page:faq/index.html"
-msgid "Do I need Hopper, Ghidra or IDA?"
-msgstr "Hopper, Ghidra 또는 IDA가 필요한가요?"
-
-# Reviewed for readable instructions and accurate software terminology.
-#: website/public/faq/index.html:355
-msgctxt "page:faq/index.html"
-msgid ""
-"Deep native analysis uses one of them. Static JavaScript and .NET inspection"
-" work with the supplied files and do not need a native analysis engine."
-msgstr ""
-"네이티브 프로그램을 깊이 분석할 때는 이 중 하나를 사용합니다. JavaScript와 .NET의 정적 분석은 제공된 파일로 수행하므로 "
-"네이티브 분석 엔진이 필요하지 않습니다."
-
-# Reviewed for readable instructions and accurate software terminology.
-#. {ph0}: <a href="../get-started/#native">
-#. {ph1}: </a>
-#: website/public/faq/index.html:360
-#, python-brace-format
-msgctxt "page:faq/index.html"
-msgid ""
-"Connect your existing Ghidra or IDA installation, or let setup detect Hopper"
-" and propose an installation. Your host and target determine which provider "
-"can be used. {ph0}Set up native analysis{ph1}."
-msgstr ""
-"기존 Ghidra나 IDA를 연결하세요. 또는 설정 명령으로 Hopper를 찾아 설치 계획을 확인할 수 있습니다. 사용할 수 있는 분석 "
-"도구는 운영체제와 대상에 따라 달라집니다. {ph0}네이티브 분석 설정{ph1}."
-
 #: website/public/faq/index.html:368
 msgctxt "page:faq/index.html"
 msgid "Can I use REA without a coding agent?"
@@ -2479,25 +2450,6 @@ msgid ""
 msgstr ""
 "변경 계획을 확인하고 클라이언트를 다시 시작하세요. 등록은 정상이지만 도구가 보이지 않으면 클라이언트의 MCP 연결 오류를 확인하세요. "
 "{ph0}추가 설정 진단{ph1}."
-
-#: website/public/faq/index.html:502
-msgctxt "page:faq/index.html"
-msgid "Do I need to start Hopper first?"
-msgstr "Hopper를 먼저 실행해야 하나요?"
-
-# Reviewed for readable instructions and accurate software terminology.
-#. {ph0}: <a href="../get-started/#native">
-#. {ph1}: </a >
-#: website/public/faq/index.html:503
-#, python-brace-format
-msgctxt "page:faq/index.html"
-msgid ""
-"REA starts Hopper when an operation needs it. On macOS, complete the first-"
-"run choice of demo mode or license activation before unattended analysis. "
-"{ph0}See native provider setup{ph1}."
-msgstr ""
-"REA는 작업에 필요할 때 Hopper를 실행합니다. macOS에서는 자동 분석 전에 첫 실행 화면에서 데모 모드나 라이선스 활성화를 "
-"선택해야 합니다. {ph0}네이티브 분석 도구 설정{ph1}."
 
 #: website/public/faq/index.html:512
 msgctxt "page:faq/index.html"
@@ -3392,29 +3344,11 @@ msgctxt "page:get-started/index.html"
 msgid "Connect Ghidra on Windows"
 msgstr "Windows에서 Ghidra 연결"
 
-#: website/public/get-started/index.html:1159
-msgctxt "page:get-started/index.html"
-msgid ""
-"Windows x64 has experimental, read-only support for native x86 and x64 PE "
-"applications and DLLs on fixed local NTFS drives. Use an existing Ghidra "
-"12.1.x installation and a 64-bit JDK 21 or newer:"
-msgstr ""
-"Windows x64에서는 고정 로컬 NTFS 드라이브의 네이티브 x86 및 x64 PE 앱과 DLL을 실험적으로 읽기 전용 분석할 수 "
-"있습니다. 기존 Ghidra 12.1.x 설치와 64비트 JDK 21 이상을 사용하세요."
-
 #: website/public/get-started/index.html:1182
 msgctxt "page:get-started/index.html"
 msgid ""
 "Replace the two paths with your installations, then review setup's plan."
 msgstr "두 경로를 실제 설치 경로로 바꾸고 설정 계획을 검토하세요."
-
-#: website/public/get-started/index.html:1061
-msgctxt "page:get-started/index.html"
-msgid ""
-"Connect Hopper on macOS or Linux. Run the setup command above; it detects an"
-" existing installation or offers an installation plan for your approval."
-msgstr ""
-"macOS 또는 Linux에서 Hopper를 연결하세요. 위 설정 명령은 기존 설치를 찾거나, 승인할 수 있는 설치 계획을 제안합니다."
 
 #: website/public/get-started/index.html:1725
 msgctxt "page:get-started/index.html"
@@ -4824,41 +4758,6 @@ msgstr "REA는 명령어, 호출 관계, 바이트를 제공합니다. 에이전
 msgctxt "page:guides/native/index.html"
 msgid "Ask about the behavior"
 msgstr "동작 질문하기"
-
-#. {ph0}: <a href="../../get-started/#agent" >
-#. {ph1}: </a >
-#. {ph2}: <a href="../../get-started/#native" >
-#. {ph3}: </a >
-#: website/public/guides/native/index.html:302
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"After {ph0}connecting REA to your agent{ph1} and {ph2}setting up a native "
-"analysis tool{ph3}, provide the local executable and a question:"
-msgstr ""
-"{ph0}에이전트에 REA를 연결{ph1}하고 {ph2}네이티브 분석 도구를 설정{ph3}한 뒤, 로컬 실행 파일과 질문을 전달하세요:"
-
-#: website/public/guides/native/index.html:313
-msgctxt "page:guides/native/index.html"
-msgid "Which analysis tool should I use?"
-msgstr "어떤 분석 도구를 쓰면 되나요?"
-
-#: website/public/guides/native/index.html:314
-msgctxt "page:guides/native/index.html"
-msgid "REA needs one of these to read native programs:"
-msgstr "REA로 네이티브 프로그램을 읽으려면 다음 중 하나가 필요합니다:"
-
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:323
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"{ph0}Ghidra{ph1} (macOS or Linux; experimental on Windows): free, but needs "
-"an existing Ghidra 12.1.x installation and a 64-bit JDK 21 or newer."
-msgstr ""
-"{ph0}Ghidra{ph1} (macOS 또는 Linux, Windows에서는 실험적 지원): 무료이지만 기존 Ghidra 12.1.x"
-" 설치와 64비트 JDK 21 이상이 필요합니다."
 
 #. {ph0}: <a href="../../get-started/#native">
 #. {ph1}: </a>
@@ -12673,13 +12572,6 @@ msgid ""
 msgstr ""
 "MCP는 에이전트가 REA를 호출할 수 있게 하는 연결 방식입니다. 스킬은 소프트웨어를 조사하는 절차를 에이전트에 알려 줍니다."
 
-#: website/public/get-started/index.html:873
-msgctxt "page:get-started/index.html"
-msgid ""
-"For the first exercise, you can skip the optional Hopper installation. "
-"Restart your client when setup finishes."
-msgstr "첫 실습에서는 선택 사항인 Hopper 설치를 건너뛰어도 됩니다. 설정을 마치면 클라이언트를 다시 시작하세요."
-
 #. {ph0}: <code>codex</code>
 #. {ph1}: <code>"healthy": true</code>
 #: website/public/get-started/index.html:906
@@ -12814,80 +12706,15 @@ msgid ""
 "REA uses for that kind of software."
 msgstr "대상에 맞는 항목을 선택하세요. 프로바이더는 REA가 해당 소프트웨어를 분석할 때 사용하는 로컬 분석 도구입니다."
 
-#: website/public/get-started/index.html:1019
-msgctxt "page:get-started/index.html"
-msgid "Native executables and libraries · Hopper, Ghidra or IDA"
-msgstr "네이티브 실행 파일과 라이브러리 · Hopper, Ghidra, IDA"
-
-#: website/public/get-started/index.html:1022
-msgctxt "page:get-started/index.html"
-msgid ""
-"Install one analysis tool on the computer running REA. The host is your "
-"operating system; the target is the program you want to inspect."
-msgstr "REA를 실행하는 컴퓨터에 분석 도구 하나를 설치하세요. 호스트는 여러분의 운영체제이고, 대상은 분석하려는 프로그램입니다."
-
 #: website/public/get-started/index.html:1031
 msgctxt "page:get-started/index.html"
 msgid "Provider"
 msgstr "분석 도구(프로바이더)"
 
-#: website/public/get-started/index.html:1040
-msgctxt "page:get-started/index.html"
-msgid "Unavailable"
-msgstr "사용 불가"
-
 #: website/public/get-started/index.html:1046
 msgctxt "page:get-started/index.html"
 msgid "x64 · experimental"
 msgstr "x64 · 실험적 지원"
-
-#: website/public/get-started/index.html:1052
-msgctxt "page:get-started/index.html"
-msgid "Verified profiles"
-msgstr "검증된 구성"
-
-#: website/public/get-started/index.html:1053
-msgctxt "page:get-started/index.html"
-msgid "Verified headless profile"
-msgstr "검증된 헤드리스 구성"
-
-#: website/public/get-started/index.html:1054
-msgctxt "page:get-started/index.html"
-msgid "See provider guide"
-msgstr "분석 도구 가이드 참고"
-
-#: website/public/get-started/index.html:1060
-msgctxt "page:get-started/index.html"
-msgid "Hopper · let setup install or connect it"
-msgstr "Hopper · 설정 과정에서 설치하거나 연결하기"
-
-#: website/public/get-started/index.html:1066
-msgctxt "page:get-started/index.html"
-msgid ""
-"Choose Hopper in setup and review its separate installation plan. On macOS, "
-"choose demo mode or activate your license when Hopper first opens. On Linux,"
-" setup prepares the supported demo and its private display."
-msgstr ""
-"설정에서 Hopper를 선택하고 별도로 제시되는 설치 계획을 확인하세요. macOS에서는 Hopper를 처음 열 때 데모 모드를 "
-"선택하거나 라이선스를 활성화하세요. Linux에서는 설정 과정에서 지원되는 데모와 전용 디스플레이를 준비합니다."
-
-#: website/public/get-started/index.html:1094
-msgctxt "page:get-started/index.html"
-msgid ""
-"If macOS asks for Automation permission, allow the app that starts REA in "
-"System Settings → Privacy & Security → Automation, then retry."
-msgstr ""
-"macOS가 자동화 권한을 요청하면 시스템 설정 → 개인정보 보호 및 보안 → 자동화에서 REA를 시작하는 앱을 허용한 뒤 다시 "
-"시도하세요."
-
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/getting-
-#. started/installation.md#hopper" >
-#. {ph1}: </a >
-#: website/public/get-started/index.html:1099
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid "{ph0}Hopper setup and troubleshooting{ph1}"
-msgstr "{ph0}Hopper 설정과 문제 해결{ph1}"
 
 #: website/public/get-started/index.html:1107
 msgctxt "page:get-started/index.html"
@@ -12971,55 +12798,6 @@ msgid ""
 "{ph0}Ghidra setup and architecture requirements{ph1} · {ph2}Windows Ghidra "
 "guide{ph3}"
 msgstr "{ph0}Ghidra 설정과 아키텍처 요구사항{ph1} · {ph2}Windows Ghidra 가이드{ph3}"
-
-#: website/public/get-started/index.html:1271
-msgctxt "page:get-started/index.html"
-msgid "IDA · connect an existing installation"
-msgstr "IDA · 기존 설치 연결하기"
-
-#: website/public/get-started/index.html:1272
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use the IDA provider guide to prepare an upstream MCP registration. Choose "
-"an attached GUI with the original binary open, or a headless supervisor that"
-" opens a private database."
-msgstr ""
-"IDA 분석 도구 가이드를 따라 연동할 MCP 서버의 등록 설정을 준비하세요. 원본 바이너리를 연 GUI에 연결하거나, 전용 "
-"데이터베이스를 여는 헤드리스 감독 프로세스를 선택하세요."
-
-#: website/public/get-started/index.html:1277
-msgctxt "page:get-started/index.html"
-msgid ""
-"Verified profiles include the Windows legacy GUI and headless supervisor, "
-"plus a macOS arm64 headless supervisor with IDA Professional 9.1. The "
-"optional native GUI bridge has its own version and platform requirements."
-msgstr ""
-"검증된 구성에는 Windows의 레거시 GUI와 헤드리스 감독 프로세스, IDA Professional 9.1을 사용하는 macOS "
-"arm64 헤드리스 감독 프로세스가 포함됩니다. 선택 사항인 네이티브 GUI 브리지에는 별도의 버전 및 플랫폼 요구사항이 있습니다."
-
-#: website/public/get-started/index.html:1372
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use the JSON registration file you prepared with the provider guide, then "
-"rerun setup and restart your agent."
-msgstr "분석 도구 가이드에서 준비한 JSON 등록 파일을 사용한 뒤 설정 명령어를 다시 실행하고 에이전트를 다시 시작하세요."
-
-#. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/providers/ida-
-#. provider.md" >
-#. {ph1}: </a >
-#: website/public/get-started/index.html:1376
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid "{ph0}IDA profiles, registration examples and verified platforms{ph1}"
-msgstr "{ph0}IDA 구성, 등록 예제, 검증된 플랫폼{ph1}"
-
-#: website/public/get-started/index.html:1384
-msgctxt "page:get-started/index.html"
-msgid ""
-"Once connected, give your agent the original executable's full path and name"
-" your provider:"
-msgstr "연결한 뒤 원본 실행 파일의 전체 경로와 사용할 분석 도구를 에이전트에 알려 주세요."
 
 #. {ph0}: <a href="../guides/native/">
 #. {ph1}: </a>
@@ -13343,49 +13121,6 @@ msgstr ""
 msgctxt "page:get-started/index.html"
 msgid "OpenCode · choose an AI model"
 msgstr "OpenCode · AI 모델 선택하기"
-
-#: website/public/get-started/index.html:1299
-msgctxt "page:get-started/index.html"
-msgid "Prepare the IDA registration file"
-msgstr "IDA 등록 파일 준비하기"
-
-#. {ph0}: <code>ida-mcp.json</code>
-#. {ph1}: <code>.txt</code>
-#: website/public/get-started/index.html:1300
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"Install and configure the upstream server using the IDA guide below. Then "
-"save its working registration as {ph0} in a text editor. On Windows, choose "
-"“All files” when saving in Notepad so it doesn't add {ph1}."
-msgstr ""
-"아래 IDA 가이드에 따라 연동할 서버를 설치하고 설정하세요. 동작이 확인된 등록 설정을 텍스트 편집기에서 {ph0}로 저장하세요. "
-"Windows 메모장에서 저장할 때는 ‘모든 파일’을 선택해 {ph1}가 붙지 않도록 하세요."
-
-#. {ph0}: <code>idb_open</code>
-#. {ph1}: <code>idb_list</code>
-#. {ph2}: <code>idb_close</code>
-#: website/public/get-started/index.html:1307
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"For a headless supervisor providing {ph0}, {ph1} and {ph2}, the file can "
-"look like this:"
-msgstr "{ph0}, {ph1}, {ph2}를 제공하는 헤드리스 감독 프로세스에는 다음과 같은 파일을 사용할 수 있습니다."
-
-#. {ph0}: <code>command</code>
-#. {ph1}: <code>args</code>
-#. {ph2}: <code>env</code>
-#: website/public/get-started/index.html:1330
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"For an attached legacy 1.4.0 GUI server, copy its working {ph0}, {ph1} and "
-"optional {ph2} into the file. Open the original binary in IDA and start its "
-"upstream plugin before asking REA to inspect it."
-msgstr ""
-"연결된 레거시 1.4.0 GUI 서버의 경우 동작이 확인된 {ph0}, {ph1}, 선택 사항인 {ph2}를 파일에 복사하세요. REA에"
-" 조사를 요청하기 전에 IDA에서 원본 바이너리를 열고 연동할 플러그인을 시작하세요."
 
 #: website/public/get-started/index.html:1499
 msgctxt "page:get-started/index.html"
@@ -13869,33 +13604,6 @@ msgid ""
 "{ph0}."
 msgstr "설정 안내에 따라 에이전트를 연결하세요. 안내가 나타나지 않으면 {ph0}를 실행하세요."
 
-#. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
-#. setup" >
-#. {ph1}: </a >
-#. {ph2}: <code>6.4.0</code>
-#: website/public/get-started/index.html:1283
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"The macOS headless profile and native GUI bridge require a {ph0}REA source "
-"build{ph1} or a release containing those changes. npm {ph2} does not include"
-" them."
-msgstr ""
-"macOS 헤드리스 구성과 네이티브 GUI 브리지에는 {ph0}REA 소스 빌드{ph1} 또는 해당 변경 사항이 포함된 릴리스가 "
-"필요합니다. npm {ph2}에는 포함되어 있지 않습니다."
-
-#. {ph0}: <code>node scripts/rea.mjs doctor --provider ida --json</code>
-#. {ph1}: <code>node scripts/rea.mjs setup</code>
-#. {ph2}: <code>npx</code>
-#: website/public/get-started/index.html:1292
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"From the built checkout, run {ph0} and {ph1} instead of the {ph2} commands "
-"below."
-msgstr "빌드한 소스 디렉터리에서 아래 {ph2} 명령 대신 {ph0}와 {ph1}을 실행하세요."
-
 #. {ph0}: <code>rea</code>
 #. {ph1}: <code>"$HOME/.local/bin/rea" setup</code>
 #: website/public/get-started/index.html:1716
@@ -13906,18 +13614,6 @@ msgid ""
 "installer. On Linux, the default setup command is {ph1}."
 msgstr ""
 "셸에서 {ph0}를 찾지 못하면 설치 프로그램이 출력한 실행 파일 경로를 사용하세요. Linux의 기본 설정 명령은 {ph1}입니다."
-
-#. {ph0}: <code>/absolute/path/to/program</code>
-#: website/public/get-started/index.html:1389
-#, python-brace-format
-msgctxt "page:get-started/index.html"
-msgid ""
-"Use REA with my configured provider to inspect {ph0}. List its functions and"
-" strings, then explain the part that handles user input with references to "
-"the code."
-msgstr ""
-"REA와 제가 설정한 분석 도구로 {ph0}를 조사해 주세요. 함수와 문자열을 나열한 뒤, 사용자 입력을 처리하는 부분을 코드 참조와 "
-"함께 설명해 주세요."
 
 #: website/public/blog/index.html:244
 #: website/public/blog/reverse-engineering-models/index.html:883
@@ -14801,22 +14497,6 @@ msgid ""
 "later. {ph7} requires npm 6.8.0 or later."
 msgstr ""
 
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:328
-#, python-brace-format
-msgctxt "page:guides/native/index.html"
-msgid ""
-"{ph0}IDA{ph1} (Windows; macOS arm64 headless): use an existing IDA setup "
-"with an MCP registration. The macOS headless profile requires a source build"
-" or a release that includes it."
-msgstr ""
-
-#: website/public/get-started/index.html:1042
-msgctxt "page:get-started/index.html"
-msgid "x86_64 installer on supported distributions"
-msgstr ""
-
 #. {ph0}: <a href="../../get-started/">
 #. {ph1}: </a>
 #. {ph2}: <a
@@ -14834,27 +14514,374 @@ msgid ""
 "another option."
 msgstr ""
 
-#: website/public/get-started/index.html:1072
-msgctxt "page:get-started/index.html"
-msgid ""
-"Automated Linux setup requires an x86_64 host running Ubuntu 24.04+, Fedora "
-"41+, Nobara 44+, Arch Linux, CachyOS or Omarchy. An existing Hopper launcher"
-" can also be configured on other supported Linux distributions. On Linux "
-"arm64, use Ghidra. Hopper is commercial software; its demo has vendor-"
-"defined limits."
+#: website/public/faq/index.html:356
+msgctxt "page:faq/index.html"
+msgid "When do I need Ghidra?"
 msgstr ""
 
-#. {ph0}: <strong>
-#. {ph1}: </strong>
-#: website/public/guides/native/index.html:316
+#: website/public/faq/index.html:357
+msgctxt "page:faq/index.html"
+msgid ""
+"REA uses Ghidra for deep native analysis. Static JavaScript and .NET "
+"inspection work with the supplied files."
+msgstr ""
+
+#. {ph0}: <a href="../get-started/#native">
+#. {ph1}: </a>
+#: website/public/faq/index.html:361
+#, python-brace-format
+msgctxt "page:faq/index.html"
+msgid ""
+"Point REA at your Ghidra installation. Your host and target determine which "
+"Ghidra operations are available. {ph0}Set up native analysis{ph1}."
+msgstr ""
+
+#: website/public/faq/index.html:502
+msgctxt "page:faq/index.html"
+msgid "Do I need to start Ghidra first?"
+msgstr ""
+
+#. {ph0}: <a href="../get-started/#native">
+#. {ph1}: </a >
+#: website/public/faq/index.html:503
+#, python-brace-format
+msgctxt "page:faq/index.html"
+msgid ""
+"REA starts Ghidra in headless mode when an operation needs it. {ph0}See "
+"native provider setup{ph1}."
+msgstr ""
+
+#: website/public/get-started/index.html:875
+msgctxt "page:get-started/index.html"
+msgid ""
+"Restart your client when setup finishes. The first exercise uses static "
+"JavaScript analysis and runs without Ghidra."
+msgstr ""
+
+#: website/public/get-started/index.html:1021
+msgctxt "page:get-started/index.html"
+msgid "Native executables and libraries · Ghidra"
+msgstr ""
+
+#: website/public/get-started/index.html:1022
+msgctxt "page:get-started/index.html"
+msgid ""
+"Install Ghidra on the computer running REA. The host is your operating "
+"system. The target is the program you want to inspect."
+msgstr ""
+
+#: website/public/get-started/index.html:1209
+msgctxt "page:get-started/index.html"
+msgid ""
+"Once connected, give your agent the original executable's full path and a "
+"question about the program."
+msgstr ""
+
+#. {ph0}: <code>/absolute/path/to/program</code>
+#: website/public/get-started/index.html:1214
+#, python-brace-format
+msgctxt "page:get-started/index.html"
+msgid ""
+"Use REA to inspect {ph0}. List its functions and strings, then explain the "
+"part that handles user input with references to the code."
+msgstr ""
+
+#. {ph0}: <a href="../../get-started/#agent" >
+#. {ph1}: </a >
+#. {ph2}: <a href="../../get-started/#native">
+#. {ph3}: </a>
+#: website/public/guides/native/index.html:304
 #, python-brace-format
 msgctxt "page:guides/native/index.html"
 msgid ""
-"{ph0}Hopper{ph1} (macOS or Linux): REA's setup detects it or offers to "
-"install it. On macOS, open Hopper once and choose demo mode or activate a "
-"license before your first analysis. Automated Linux setup requires x86_64; "
-"use Ghidra on Linux arm64."
+"After {ph0}connecting REA to your agent{ph1} and {ph2}setting up "
+"Ghidra{ph3}, provide the local executable and a question:"
 msgstr ""
+
+#: website/public/guides/native/index.html:314
+msgctxt "page:guides/native/index.html"
+msgid "What does Ghidra require?"
+msgstr ""
+
+#: website/public/get-started/index.html:1099
+msgctxt "page:get-started/index.html"
+msgid ""
+"Windows x64 has experimental, read-only support for native x86 and x64 PE "
+"applications and DLLs on fixed local NTFS drives. This example uses Ghidra "
+"12.1.4 and a 64-bit JDK 21:"
+msgstr ""
+
+#: website/public/guides/native/index.html:315
+msgctxt "page:guides/native/index.html"
+msgid ""
+"REA uses a local Ghidra installation and the 64-bit JDK required by that "
+"release. Ghidra support is experimental on Windows."
+msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Windows x64 has experimental, read-only support for native x86 and x64 PE "
+#~ "applications and DLLs on fixed local NTFS drives. Use an existing Ghidra "
+#~ "12.1.x installation and a 64-bit JDK 21 or newer:"
+#~ msgstr ""
+#~ "Windows x64에서는 고정 로컬 NTFS 드라이브의 네이티브 x86 및 x64 PE 앱과 DLL을 실험적으로 읽기 전용 분석할 수 "
+#~ "있습니다. 기존 Ghidra 12.1.x 설치와 64비트 JDK 21 이상을 사용하세요."
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid "Do I need Hopper, Ghidra or IDA?"
+#~ msgstr "Hopper, Ghidra 또는 IDA가 필요한가요?"
+
+# Reviewed for readable instructions and accurate software terminology.
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "Deep native analysis uses one of them. Static JavaScript and .NET inspection"
+#~ " work with the supplied files and do not need a native analysis engine."
+#~ msgstr ""
+#~ "네이티브 프로그램을 깊이 분석할 때는 이 중 하나를 사용합니다. JavaScript와 .NET의 정적 분석은 제공된 파일로 수행하므로 "
+#~ "네이티브 분석 엔진이 필요하지 않습니다."
+
+# Reviewed for readable instructions and accurate software terminology.
+#, python-brace-format
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "Connect your existing Ghidra or IDA installation, or let setup detect Hopper"
+#~ " and propose an installation. Your host and target determine which provider "
+#~ "can be used. {ph0}Set up native analysis{ph1}."
+#~ msgstr ""
+#~ "기존 Ghidra나 IDA를 연결하세요. 또는 설정 명령으로 Hopper를 찾아 설치 계획을 확인할 수 있습니다. 사용할 수 있는 분석 "
+#~ "도구는 운영체제와 대상에 따라 달라집니다. {ph0}네이티브 분석 설정{ph1}."
+
+#~ msgctxt "page:faq/index.html"
+#~ msgid "Do I need to start Hopper first?"
+#~ msgstr "Hopper를 먼저 실행해야 하나요?"
+
+# Reviewed for readable instructions and accurate software terminology.
+#, python-brace-format
+#~ msgctxt "page:faq/index.html"
+#~ msgid ""
+#~ "REA starts Hopper when an operation needs it. On macOS, complete the first-"
+#~ "run choice of demo mode or license activation before unattended analysis. "
+#~ "{ph0}See native provider setup{ph1}."
+#~ msgstr ""
+#~ "REA는 작업에 필요할 때 Hopper를 실행합니다. macOS에서는 자동 분석 전에 첫 실행 화면에서 데모 모드나 라이선스 활성화를 "
+#~ "선택해야 합니다. {ph0}네이티브 분석 도구 설정{ph1}."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Connect Hopper on macOS or Linux. Run the setup command above; it detects an"
+#~ " existing installation or offers an installation plan for your approval."
+#~ msgstr ""
+#~ "macOS 또는 Linux에서 Hopper를 연결하세요. 위 설정 명령은 기존 설치를 찾거나, 승인할 수 있는 설치 계획을 제안합니다."
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "After {ph0}connecting REA to your agent{ph1} and {ph2}setting up a native "
+#~ "analysis tool{ph3}, provide the local executable and a question:"
+#~ msgstr ""
+#~ "{ph0}에이전트에 REA를 연결{ph1}하고 {ph2}네이티브 분석 도구를 설정{ph3}한 뒤, 로컬 실행 파일과 질문을 전달하세요:"
+
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid "Which analysis tool should I use?"
+#~ msgstr "어떤 분석 도구를 쓰면 되나요?"
+
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid "REA needs one of these to read native programs:"
+#~ msgstr "REA로 네이티브 프로그램을 읽으려면 다음 중 하나가 필요합니다:"
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}Ghidra{ph1} (macOS or Linux; experimental on Windows): free, but needs "
+#~ "an existing Ghidra 12.1.x installation and a 64-bit JDK 21 or newer."
+#~ msgstr ""
+#~ "{ph0}Ghidra{ph1} (macOS 또는 Linux, Windows에서는 실험적 지원): 무료이지만 기존 Ghidra 12.1.x"
+#~ " 설치와 64비트 JDK 21 이상이 필요합니다."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For the first exercise, you can skip the optional Hopper installation. "
+#~ "Restart your client when setup finishes."
+#~ msgstr "첫 실습에서는 선택 사항인 Hopper 설치를 건너뛰어도 됩니다. 설정을 마치면 클라이언트를 다시 시작하세요."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Native executables and libraries · Hopper, Ghidra or IDA"
+#~ msgstr "네이티브 실행 파일과 라이브러리 · Hopper, Ghidra, IDA"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Install one analysis tool on the computer running REA. The host is your "
+#~ "operating system; the target is the program you want to inspect."
+#~ msgstr "REA를 실행하는 컴퓨터에 분석 도구 하나를 설치하세요. 호스트는 여러분의 운영체제이고, 대상은 분석하려는 프로그램입니다."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Unavailable"
+#~ msgstr "사용 불가"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Verified profiles"
+#~ msgstr "검증된 구성"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Verified headless profile"
+#~ msgstr "검증된 헤드리스 구성"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "See provider guide"
+#~ msgstr "분석 도구 가이드 참고"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Hopper · let setup install or connect it"
+#~ msgstr "Hopper · 설정 과정에서 설치하거나 연결하기"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Choose Hopper in setup and review its separate installation plan. On macOS, "
+#~ "choose demo mode or activate your license when Hopper first opens. On Linux,"
+#~ " setup prepares the supported demo and its private display."
+#~ msgstr ""
+#~ "설정에서 Hopper를 선택하고 별도로 제시되는 설치 계획을 확인하세요. macOS에서는 Hopper를 처음 열 때 데모 모드를 "
+#~ "선택하거나 라이선스를 활성화하세요. Linux에서는 설정 과정에서 지원되는 데모와 전용 디스플레이를 준비합니다."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "If macOS asks for Automation permission, allow the app that starts REA in "
+#~ "System Settings → Privacy & Security → Automation, then retry."
+#~ msgstr ""
+#~ "macOS가 자동화 권한을 요청하면 시스템 설정 → 개인정보 보호 및 보안 → 자동화에서 REA를 시작하는 앱을 허용한 뒤 다시 "
+#~ "시도하세요."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "{ph0}Hopper setup and troubleshooting{ph1}"
+#~ msgstr "{ph0}Hopper 설정과 문제 해결{ph1}"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "IDA · connect an existing installation"
+#~ msgstr "IDA · 기존 설치 연결하기"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use the IDA provider guide to prepare an upstream MCP registration. Choose "
+#~ "an attached GUI with the original binary open, or a headless supervisor that"
+#~ " opens a private database."
+#~ msgstr ""
+#~ "IDA 분석 도구 가이드를 따라 연동할 MCP 서버의 등록 설정을 준비하세요. 원본 바이너리를 연 GUI에 연결하거나, 전용 "
+#~ "데이터베이스를 여는 헤드리스 감독 프로세스를 선택하세요."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Verified profiles include the Windows legacy GUI and headless supervisor, "
+#~ "plus a macOS arm64 headless supervisor with IDA Professional 9.1. The "
+#~ "optional native GUI bridge has its own version and platform requirements."
+#~ msgstr ""
+#~ "검증된 구성에는 Windows의 레거시 GUI와 헤드리스 감독 프로세스, IDA Professional 9.1을 사용하는 macOS "
+#~ "arm64 헤드리스 감독 프로세스가 포함됩니다. 선택 사항인 네이티브 GUI 브리지에는 별도의 버전 및 플랫폼 요구사항이 있습니다."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use the JSON registration file you prepared with the provider guide, then "
+#~ "rerun setup and restart your agent."
+#~ msgstr "분석 도구 가이드에서 준비한 JSON 등록 파일을 사용한 뒤 설정 명령어를 다시 실행하고 에이전트를 다시 시작하세요."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "{ph0}IDA profiles, registration examples and verified platforms{ph1}"
+#~ msgstr "{ph0}IDA 구성, 등록 예제, 검증된 플랫폼{ph1}"
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Once connected, give your agent the original executable's full path and name"
+#~ " your provider:"
+#~ msgstr "연결한 뒤 원본 실행 파일의 전체 경로와 사용할 분석 도구를 에이전트에 알려 주세요."
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "Prepare the IDA registration file"
+#~ msgstr "IDA 등록 파일 준비하기"
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Install and configure the upstream server using the IDA guide below. Then "
+#~ "save its working registration as {ph0} in a text editor. On Windows, choose "
+#~ "“All files” when saving in Notepad so it doesn't add {ph1}."
+#~ msgstr ""
+#~ "아래 IDA 가이드에 따라 연동할 서버를 설치하고 설정하세요. 동작이 확인된 등록 설정을 텍스트 편집기에서 {ph0}로 저장하세요. "
+#~ "Windows 메모장에서 저장할 때는 ‘모든 파일’을 선택해 {ph1}가 붙지 않도록 하세요."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For a headless supervisor providing {ph0}, {ph1} and {ph2}, the file can "
+#~ "look like this:"
+#~ msgstr "{ph0}, {ph1}, {ph2}를 제공하는 헤드리스 감독 프로세스에는 다음과 같은 파일을 사용할 수 있습니다."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "For an attached legacy 1.4.0 GUI server, copy its working {ph0}, {ph1} and "
+#~ "optional {ph2} into the file. Open the original binary in IDA and start its "
+#~ "upstream plugin before asking REA to inspect it."
+#~ msgstr ""
+#~ "연결된 레거시 1.4.0 GUI 서버의 경우 동작이 확인된 {ph0}, {ph1}, 선택 사항인 {ph2}를 파일에 복사하세요. REA에"
+#~ " 조사를 요청하기 전에 IDA에서 원본 바이너리를 열고 연동할 플러그인을 시작하세요."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "The macOS headless profile and native GUI bridge require a {ph0}REA source "
+#~ "build{ph1} or a release containing those changes. npm {ph2} does not include"
+#~ " them."
+#~ msgstr ""
+#~ "macOS 헤드리스 구성과 네이티브 GUI 브리지에는 {ph0}REA 소스 빌드{ph1} 또는 해당 변경 사항이 포함된 릴리스가 "
+#~ "필요합니다. npm {ph2}에는 포함되어 있지 않습니다."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "From the built checkout, run {ph0} and {ph1} instead of the {ph2} commands "
+#~ "below."
+#~ msgstr "빌드한 소스 디렉터리에서 아래 {ph2} 명령 대신 {ph0}와 {ph1}을 실행하세요."
+
+#, python-brace-format
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Use REA with my configured provider to inspect {ph0}. List its functions and"
+#~ " strings, then explain the part that handles user input with references to "
+#~ "the code."
+#~ msgstr ""
+#~ "REA와 제가 설정한 분석 도구로 {ph0}를 조사해 주세요. 함수와 문자열을 나열한 뒤, 사용자 입력을 처리하는 부분을 코드 참조와 "
+#~ "함께 설명해 주세요."
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}IDA{ph1} (Windows; macOS arm64 headless): use an existing IDA setup "
+#~ "with an MCP registration. The macOS headless profile requires a source build"
+#~ " or a release that includes it."
+#~ msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid "x86_64 installer on supported distributions"
+#~ msgstr ""
+
+#~ msgctxt "page:get-started/index.html"
+#~ msgid ""
+#~ "Automated Linux setup requires an x86_64 host running Ubuntu 24.04+, Fedora "
+#~ "41+, Nobara 44+, Arch Linux, CachyOS or Omarchy. An existing Hopper launcher"
+#~ " can also be configured on other supported Linux distributions. On Linux "
+#~ "arm64, use Ghidra. Hopper is commercial software; its demo has vendor-"
+#~ "defined limits."
+#~ msgstr ""
+
+#, python-brace-format
+#~ msgctxt "page:guides/native/index.html"
+#~ msgid ""
+#~ "{ph0}Hopper{ph1} (macOS or Linux): REA's setup detects it or offers to "
+#~ "install it. On macOS, open Hopper once and choose demo mode or activate a "
+#~ "license before your first analysis. Automated Linux setup requires x86_64; "
+#~ "use Ghidra on Linux arm64."
+#~ msgstr ""
 
 #~ msgctxt "page:get-started/index.html"
 #~ msgid ""

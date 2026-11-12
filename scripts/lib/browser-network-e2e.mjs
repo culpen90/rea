@@ -67,7 +67,7 @@ export async function verifyBrowserNetworkEvidence(
       ...process.env,
       REA_LOG_LEVEL: "silent",
       REA_NETWORK_FIXTURE_SECRET: networkFixtureSecret,
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured-provider/hopper",
+      GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
     };
     const { stdout } = await promisify(execFile)(
       process.execPath,

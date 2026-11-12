@@ -85,7 +85,7 @@ bridge.exposeInMainWorld("fixture", {
       ),
       PATH: process.env.PATH,
       REA_LOG_LEVEL: "silent",
-      HOPPER_LAUNCHER_PATH: "/rea-unconfigured/hopper",
+      GHIDRA_INSTALL_DIR: "/rea-unconfigured-deep-provider/ghidra",
     },
     stderr: "pipe",
   });

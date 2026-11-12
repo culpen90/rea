@@ -36,10 +36,6 @@
 
 <br />
 
-<img src="../assets/rea-hopper-analysis.png" alt="REA menjalankan jembatan analisisnya di dalam Hopper saat memeriksa biner native" width="1200" />
-
-<br /><br />
-
 <table aria-label="Komunitas REA">
 <tr>
 <td align="center" width="360">
@@ -62,7 +58,7 @@ Melihat fitur dalam suatu aplikasi yang ingin Anda hadirkan di produk sendiri? M
 
 REA menghubungkan agen Anda dengan berbagai alat untuk memeriksa biner native, aplikasi JavaScript dan Electron, assembly .NET, serta situs web. Anda juga dapat menggunakan alat yang sama dari terminal. Analisis dijalankan secara lokal, dan hasilnya mencakup bukti serta keterbatasan yang mendasari setiap kesimpulan.
 
-Proses penyiapan mendaftarkan REA ke agen Anda dan memasang instruksi alur kerja yang sesuai. Analisis native dapat menggunakan instalasi Hopper, Ghidra, IDA, atau Kuna yang sudah ada. Proses penyiapan juga dapat memasang Hopper secara opsional setelah mendapatkan persetujuan. Analisis JavaScript statis tidak memerlukan mesin analisis native.
+Proses penyiapan mendaftarkan REA ke agen Anda dan memasang instruksi alur kerja yang sesuai. Analisis native menggunakan instalasi Ghidra yang sudah ada. Analisis JavaScript statis tidak memerlukan mesin analisis native.
 
 > **[Kunjungi situs web REA](https://rea.tools/id/)** untuk mendapatkan petunjuk penyiapan, panduan bergambar, dan studi kasus nyata.
 
@@ -159,7 +155,7 @@ Alat tambahan dan dukungan sistem host bergantung pada target yang dianalisis:
 
 | Target                     | Hasil yang diberikan REA                                                                              | Persyaratan dan panduan                                                                                                                                       |
 | -------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Biner native               | Pseudocode, assembly, string, simbol, pemanggilan, dan referensi                                      | Hopper, Ghidra, IDA, atau Kuna; [analisis native](../guides/native/native-investigation.md)                                                                   |
+| Biner native               | Pseudocode, assembly, string, simbol, pemanggilan, dan referensi                                      | Ghidra; [analisis native](../guides/native/native-investigation.md)                                                                                           |
 | Tata letak ELF offline     | Bagian, segmen, simbol/relokasi asli, dan kandidat mitigasi statis                                    | pwntools yang disediakan pemanggil pada Linux x64; [diagnostik biner](../guides/native/binary-diagnostics.md)                                                 |
 | PE certificates            | Authenticode WIN_CERTIFICATE entries and PKCS#7 signer/X.509 identity fields                          | Built-in static PE inspection; [PE certificates](../pe-certificates.md)                                                                                       |
 | PE imports                 | Import and delay-load DLL names, ordinals, IAT RVAs and pefile import hash                            | Built-in static PE inspection; [PE imports](../pe-imports.md)                                                                                                 |
@@ -205,11 +201,13 @@ Untuk pemeriksaan biner native secara offline, REA juga mendukung GNU objdump da
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Format native dan dukungan sistem host berbeda-beda menurut penyedia. Lihat [penyiapan Hopper dan Ghidra](../getting-started/installation.md#hopper), [panduan IDA](../providers/ida-provider.md), [Kuna](../kuna-provider.md), dan [dukungan eksperimental Ghidra di Windows](../providers/windows-ghidra-p0.md).
+[Beralih ke Ghidra](../getting-started/installation.md#migrate-an-older-native-provider-configuration)
+
+Format native dan dukungan sistem host berbeda-beda menurut penyedia. Lihat [Ghidra](../getting-started/installation.md#ghidra), [dukungan eksperimental Ghidra di Windows](../providers/windows-ghidra-p0.md).
 
 Ghidra juga mendukung [analisis DOS 16-bit](../providers/ghidra-dos.md).
 
-Untuk biner berukuran besar, tingkatkan batas waktu startup menggunakan `REA_GHIDRA_STARTUP_TIMEOUT_MS` / `REA_HOPPER_STARTUP_TIMEOUT_MS`.
+Untuk biner berukuran besar, tingkatkan batas waktu startup menggunakan `REA_GHIDRA_STARTUP_TIMEOUT_MS`.
 
 Untuk memilih penyedia, lihat [panduan CLI](../getting-started/cli.md#choose-a-provider).
 
@@ -303,20 +301,10 @@ Agen apa pun yang mendukung server MCP lokal dapat menggunakan REA. Proses penyi
 </details>
 
 <details>
-<summary><strong>Apakah saya memerlukan Hopper, Ghidra, IDA, atau Kuna?</strong></summary>
+<summary><strong>Apakah saya memerlukan Ghidra?</strong></summary>
 
-Analisis native mendalam menggunakan salah satu dari keempatnya. Pemeriksaan JavaScript dan .NET statis dapat dilakukan tanpa mesin analisis native.
-
-Proses penyiapan dapat memasang Hopper setelah memperoleh persetujuan. Ghidra, IDA, dan Kuna menggunakan instalasi yang sudah tersedia. Lihat [penyiapan penyedia](../getting-started/installation.md#hopper).
-
-</details>
-
-<details>
-<summary><strong>Apakah saya harus menjalankan Hopper terlebih dahulu?</strong></summary>
-
-REA akan menjalankan Hopper saat suatu operasi membutuhkannya. Di macOS, dialog saat pertama kali dijalankan mungkin meminta Anda memilih mode demo atau mengaktifkan lisensi.
-
-Lihat [startup dan pemecahan masalah Hopper](../getting-started/installation.md#launcher-paths-and-troubleshooting).
+Analisis native menggunakan instalasi Ghidra yang sudah ada. Pemeriksaan JavaScript dan .NET statis dapat dilakukan tanpa mesin analisis native.
+[Ghidra](../getting-started/installation.md#ghidra).
 
 </details>
 
@@ -420,7 +408,7 @@ licenses and copyright notices; see [Third-party notices](../../THIRD_PARTY_NOTI
 for the dependency inventory, preserved license texts, and external-tool terms.
 
 **You must legally obtain and be authorized to use commercial tools**, including
-IDA Pro / Hex-Rays decompilers, Hopper, and JEB, under their applicable licenses.
+JEB, under its applicable license.
 REA grants no tool license, key, or activation entitlement. Trials and demos
 remain subject to vendor terms, including user, feature, automation, and output
 sharing restrictions. Cracked copies, stolen keys, unauthorized key sharing,

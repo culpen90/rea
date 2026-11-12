@@ -666,12 +666,16 @@ describe("production MCP doctor probe validation", () => {
 });
 
 describe("production MCP doctor child lifecycle", () => {
-  it("captures startup exit diagnostics", async () => {
+  it("captures startup exit diagnostics without passing the selected eager target", async () => {
     const result = await runProductionMcpDoctor({
       command: process.execPath,
       args: [resolve("tests/fixtures/mcpDoctorExit.mjs")],
       cwd: process.cwd(),
-      environment: { ...process.env, REA_MCP_DOCTOR_DEADLINE_MS: "2000" },
+      environment: {
+        ...process.env,
+        REA_MCP_DOCTOR_DEADLINE_MS: "5000",
+        REA_TARGET_PATH: "/fixture/eager-target",
+      },
     });
     expect(result).toMatchObject({
       healthy: false,

@@ -16,8 +16,6 @@ import {
   classifyClientRegistrationCommand,
 } from "../../../src/application/ClientRegistrationIdentity.js";
 import { existingMaintenanceScope } from "../../../src/application/UpdateMaintenance.js";
-import { ConfigurationError } from "../../../src/domain/configurationErrors.js";
-import { err } from "../../../src/domain/result.js";
 import { PRODUCT_IDENTITY } from "../../../src/identity.js";
 import { CURRENT_ENTRYPOINT_PATH } from "../../../src/process/CurrentEntrypointPath.js";
 import { supportedClientRegistrationProfile } from "../../../src/application/SupportedClients.js";
@@ -162,53 +160,6 @@ describe("client registration environment validation", () => {
         remediation: expect.stringContaining("REA_MCP_TOOL_FAMILIES"),
       }),
     ]);
-  });
-
-  it("resolves provider budgets only for Kimi/Codex registrations", async () => {
-    const home = await createTestTempDirectory("rea-registration-budget-");
-    await mkdir(join(home, ".cursor"));
-    await mkdir(join(home, ".codex"));
-    await mkdir(join(home, ".lmstudio"));
-    await mkdir(join(home, ".kimi-code"));
-    const entry = {
-      command: "npx",
-      args: ["-y", PRODUCT_IDENTITY.registrationPackageSpecifier, "mcp"],
-    };
-    await writeFile(
-      join(home, ".cursor/mcp.json"),
-      JSON.stringify({ mcpServers: { rea: entry } }),
-    );
-    for (const path of [".lmstudio/mcp.json", ".kimi-code/mcp.json"])
-      await writeFile(
-        join(home, path),
-        JSON.stringify({ mcpServers: { rea: entry } }),
-      );
-    await writeFile(
-      join(home, ".codex/config.toml"),
-      `[mcp_servers.rea]\ncommand = "npx"\nargs = ["-y", "${PRODUCT_IDENTITY.registrationPackageSpecifier}", "mcp"]\n`,
-    );
-    const resolveProviderRequestBudget = async () =>
-      err(new ConfigurationError("budget unavailable"));
-
-    const statuses = await readClientRegistrationStatuses(
-      home,
-      "/current/rea",
-      {
-        resolveProviderRequestBudget,
-      },
-    );
-
-    const byClient = new Map(statuses.map((status) => [status.client, status]));
-    // The failing resolver must not invalidate non-Kimi/Codex registrations.
-    expect(byClient.has("cursor")).toBe(true);
-    expect(byClient.get("cursor")?.state).not.toBe("invalid");
-    expect(byClient.has("lm_studio")).toBe(true);
-    expect(byClient.get("lm_studio")?.state).not.toBe("invalid");
-    for (const client of ["codex", "kimi"])
-      expect(byClient.get(client)).toMatchObject({
-        state: "invalid",
-        remediation: expect.stringContaining("budget unavailable"),
-      });
   });
 });
 
@@ -535,7 +486,6 @@ describe("Ghidra multi-function deadline registration advice", () => {
   it.each([
     { provider: "ghidra", timeout: 10, hasBatchScope: true },
     { provider: "ghidra", timeout: 1800, hasBatchScope: true },
-    { provider: "hopper", timeout: 1800, hasBatchScope: false },
   ])(
     "preserves a selected $timeout-second $provider deadline and describes its scope",
     async ({ provider, timeout, hasBatchScope }) => {

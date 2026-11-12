@@ -68,10 +68,6 @@ export interface AddressedName {
 }
 
 /** An analyzed bookmark retains a missing provider label as null. */
-export const analysisBookmarkSchema = z.strictObject({
-  address: z.string(),
-  name: z.string().nullable(),
-});
 /** Count only complete canonical inventories, using the advertised row contracts. */
 export const parseNativeInventoryCount = (
   value: JsonValue,

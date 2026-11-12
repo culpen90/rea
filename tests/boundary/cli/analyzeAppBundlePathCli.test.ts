@@ -46,11 +46,9 @@ describe("analyze app bundle path spellings", () => {
     });
     expect(result.exitCode).toBe(1);
     expect(result.json).toMatchObject({
-      code: "capability_unavailable",
+      code: "configuration_invalid",
       details: {
-        operation: "open_binary",
-        selection_reason: "unknown_provider",
-        requested_provider_id: "missing-provider",
+        settings: [{ setting: "REA_ANALYSIS_PROVIDER" }],
       },
     });
   });

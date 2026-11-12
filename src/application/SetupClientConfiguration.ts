@@ -36,8 +36,7 @@ import {
 } from "./ClientConfigurationPublication.js";
 import {
   clientRegistrationEnvironment,
-  clientRegistrationEnvironmentDetailsWithBudget,
-  type ProviderRequestBudgetResolver,
+  clientRegistrationEnvironmentDetailsForTimeouts,
 } from "./ClientRegistrationEnvironment.js";
 
 import {
@@ -95,7 +94,6 @@ export const configureClientConfiguration = async (
   client: SetupClient,
   environment: SetupProviderEnvironment = {},
   command: readonly string[] = currentClientRegistrationCommand(),
-  resolveProviderRequestBudget?: ProviderRequestBudgetResolver,
 ): Promise<ClientConfigurationResult> => {
   if (command.length === 0)
     return {
@@ -117,7 +115,6 @@ export const configureClientConfiguration = async (
         { client, transactionPath },
         environment,
         command,
-        resolveProviderRequestBudget,
       ),
     );
   } catch (cause: unknown) {
@@ -134,7 +131,6 @@ const configureClientDocument = async (
   }: { readonly client: SetupClient; readonly transactionPath: string },
   environment: SetupProviderEnvironment,
   command: readonly string[],
-  resolveProviderRequestBudget?: ProviderRequestBudgetResolver,
 ): Promise<ClientConfigurationResult> => {
   const format = client.format;
   if (format === undefined || format === "unsupported")
@@ -197,13 +193,12 @@ const configureClientDocument = async (
     const policy = await readClientPolicyBlock(
       client,
       parsed,
-      await clientConfigurationDesired(
+      clientConfigurationDesired(
         client,
         environment,
         command,
         parsed,
         files.value,
-        resolveProviderRequestBudget,
       ),
     );
     if (!policy.ok) {
@@ -230,7 +225,7 @@ const configureClientDocument = async (
         }
       : { status: "failed", reason: "readback" };
   }
-  const desired = await clientConfigurationDesired(
+  const desired = clientConfigurationDesired(
     client,
     environment,
     command,
@@ -239,7 +234,6 @@ const configureClientDocument = async (
       servers: { ...fallback.value, ...parsed.servers },
     },
     files.value,
-    resolveProviderRequestBudget,
   );
   if (registrationCurrent(parsed, desired)) return { status: "unchanged" };
   return persistClientConfiguration({
@@ -446,58 +440,11 @@ const persistClientConfiguration = async ({
   });
 };
 
-/** Determine whether an existing client configuration matches the desired registration. */
-export const clientConfigurationAligned = async (
-  client: SetupClient,
-  providerEnvironment: SetupProviderEnvironment,
-  command: readonly string[],
-  resolveProviderRequestBudget?: ProviderRequestBudgetResolver,
-): Promise<boolean> => {
-  if (client.configPathError !== undefined) return false;
-  try {
-    const files = await readClientConfigurationFiles(
-      client,
-      undefined,
-      undefined,
-      providerEnvironment,
-    );
-    if (!files.ok) {
-      throwCleanupFailure(files.error);
-      return false;
-    }
-    const original = await readRegularFileText(client.configPath);
-    const parsed = clientConfigurationForWrite(
-      parseClientConfiguration(original, client.format),
-      files.value,
-    );
-    const desired = await clientConfigurationDesired(
-      client,
-      providerEnvironment,
-      command,
-      parsed,
-      files.value,
-      resolveProviderRequestBudget,
-    );
-    const policy = await readClientPolicyBlock(client, parsed, desired);
-    if (!policy.ok) {
-      throwCleanupFailure(policy.error);
-      return false;
-    }
-    return policy.value === undefined && registrationCurrent(parsed, desired);
-  } catch (cause: unknown) {
-    if (cause instanceof RegularFileCleanupFailure) throw cause;
-    // Unreadable configuration is treated as not aligned so setup repairs it.
-    void cause;
-    return false;
-  }
-};
-
 /** Preflight one client configuration before setup presents any mutations. */
 export const inspectClientConfiguration = async (
   client: SetupClient,
   providerEnvironment: SetupProviderEnvironment,
   command: readonly string[],
-  resolveProviderRequestBudget?: ProviderRequestBudgetResolver,
 ): Promise<ClientConfigurationInspection> => {
   let inspection: ClientConfigurationInspection;
   try {
@@ -505,7 +452,6 @@ export const inspectClientConfiguration = async (
       client,
       providerEnvironment,
       command,
-      resolveProviderRequestBudget,
     );
   } catch (cause: unknown) {
     if (!(cause instanceof ConfigurationError)) throw cause;
@@ -527,7 +473,6 @@ const inspectClientDocument = async (
   client: SetupClient,
   providerEnvironment: SetupProviderEnvironment,
   command: readonly string[],
-  resolveProviderRequestBudget?: ProviderRequestBudgetResolver,
 ): Promise<ClientConfigurationInspection> => {
   if (client.configPathError !== undefined)
     return { status: "invalid", remediation: client.configPathError };
@@ -586,13 +531,12 @@ const inspectClientDocument = async (
       const policy = await readClientPolicyBlock(
         client,
         undefined,
-        await clientConfigurationDesired(
+        clientConfigurationDesired(
           client,
           providerEnvironment,
           command,
           undefined,
           files.value,
-          resolveProviderRequestBudget,
         ),
       );
       if (!policy.ok) {
@@ -630,13 +574,12 @@ const inspectClientDocument = async (
     );
     if (ownershipBlocker !== undefined)
       return { status: "invalid", remediation: ownershipBlocker };
-    const desired = await clientConfigurationDesired(
+    const desired = clientConfigurationDesired(
       client,
       providerEnvironment,
       command,
       parsed,
       files.value,
-      resolveProviderRequestBudget,
     );
     const policy = await readClientPolicyBlock(client, parsed, desired);
     if (!policy.ok) {
@@ -887,14 +830,13 @@ const registrationCurrent = (
   !Object.hasOwn(parsed.legacyServers, PRODUCT_IDENTITY.mcpServerKey) &&
   !clientServerListedDisabled(parsed, PRODUCT_IDENTITY.mcpServerKey);
 
-const clientConfigurationDesired = async (
+const clientConfigurationDesired = (
   client: SetupClient,
   providerEnvironment: SetupProviderEnvironment,
   command: readonly string[],
   parsed: ClientConfigurationDocument | undefined,
   sources: readonly ClientConfigurationSource[],
-  resolveProviderRequestBudget?: ProviderRequestBudgetResolver,
-): Promise<unknown> => {
+): unknown => {
   const effective = effectiveClientConfiguration(sources, {
     client,
     document: parsed,
@@ -920,14 +862,11 @@ const clientConfigurationDesired = async (
     if (!desired.ok) throw desired.error;
     return desired.value;
   }
-  const validated = await clientRegistrationEnvironmentDetailsWithBudget(
+  const validated = clientRegistrationEnvironmentDetailsForTimeouts(
     effective,
     client.name,
     providerEnvironment,
     "effective",
-    client.name === "codex" || client.name === "kimi"
-      ? resolveProviderRequestBudget
-      : undefined,
   );
   if (!validated.ok) throw validated.error;
   // Preserve explicitly configured server settings, never the ambient process

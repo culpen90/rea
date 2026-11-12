@@ -5,7 +5,11 @@ import {
   jsonValueSchema,
   type JsonValue,
 } from "../../../src/domain/jsonValue.js";
-import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
+import {
+  Client,
+  InMemoryTransport,
+  type ClientOptions,
+} from "@modelcontextprotocol/client";
 import type { AnalysisOperationPort } from "../../../src/application/AnalysisProvider.js";
 import { createServer } from "../../../src/server/createServer.js";
 
@@ -26,9 +30,13 @@ export const resources: Array<{ close(): Promise<void> }> = [];
 export const connect = async (
   analysis: AnalysisOperationPort,
   environment: Readonly<NodeJS.ProcessEnv> = process.env,
+  clientOptions?: ClientOptions,
 ) => {
   const server = createServer({ kind: "fixed", analysis }, { environment });
-  const client = new Client({ name: "enhanced-test", version: "1.0.0" });
+  const client = new Client(
+    { name: "enhanced-test", version: "1.0.0" },
+    clientOptions,
+  );
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
   resources.push(client, server);

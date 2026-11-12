@@ -4,7 +4,7 @@
 and version declared by one selected local `.pyc` file's magic, how its 16-byte
 header records source identity, and which nested code objects its decoded
 marshal graph contains. It reads the file without running bytecode and requires
-no Python installation, active binary target, Hopper, Ghidra, or IDA.
+no Python installation, active binary target, or native analysis provider.
 
 ```bash
 rea inspect-python-pyc /absolute/path/to/module.pyc --json

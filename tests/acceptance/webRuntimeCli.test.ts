@@ -16,7 +16,6 @@ const entrypoint = fileURLToPath(
 const environment = () => ({
   ...process.env,
   REA_LOG_LEVEL: "silent",
-  HOPPER_LAUNCHER_PATH: "/rea-unconfigured-provider/hopper",
 });
 
 const executionProgress = z.object({

@@ -37,9 +37,17 @@ export async function verifyRepositorySkill({ root, workspace, commands }) {
   ).stdout
     .split("\0")
     .filter(Boolean);
+  const deleted = new Set(
+    (
+      await commands.exec("git", ["ls-files", "--deleted", "-z"], {
+        cwd: root,
+      })
+    ).stdout.split("\0"),
+  );
   for (const entry of tracked) {
     const mode = entry.slice(0, 6);
     const path = entry.slice(7);
+    if (deleted.has(path)) continue;
     const destination = join(snapshot, path);
     // A GitHub clone without submodule initialization has only these directories.
     if (mode === "160000") {

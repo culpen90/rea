@@ -30,7 +30,7 @@ that stronger dependency-reproducibility guarantee.
 
 The runner is GitHub-hosted Ubuntu 24.04 with Bash, npm, and `ps` from `procps`.
 Other Linux images must supply `procps`; REA's supervised process controls use it.
-This static JavaScript operation needs no Hopper, Ghidra, IDA, Java, browser,
+This static JavaScript operation needs no native analysis provider, Java, browser,
 Docker, GPU, external API key, or user-supplied GitHub secret. The workflow only
 requests `contents: read`; artifact upload uses the runner's normal Actions
 credentials.

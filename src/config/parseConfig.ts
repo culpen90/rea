@@ -1,52 +1,14 @@
-import { accessSync, constants, statSync } from "node:fs";
-
-import {
+import type {
   ConfigurationError,
-  type ConfigurationSettingIssue,
+  ConfigurationSettingIssue,
 } from "../domain/configurationErrors.js";
-import { err, ok, type Result } from "../domain/result.js";
+import { ok, type Result } from "../domain/result.js";
 import { launchAnalysisSetting } from "./analysisSettings.js";
 import type { AnalysisSettingId } from "../domain/analysisSettings.js";
 import { parseEnvironment } from "./environment.js";
-import { providerStartupTimeoutSchema } from "./providerStartupTimeout.js";
-import { homeDirectoryFromEnvironment } from "./homeDirectory.js";
-import {
-  DEFAULT_GHIDRA_STARTUP_TIMEOUT_MS,
-  DEFAULT_HOPPER_CALLER_SCAN_BUDGET_MS,
-  DEFAULT_HOPPER_STARTUP_TIMEOUT_MS,
-} from "../domain/analysisResourceLimits.js";
+import { DEFAULT_GHIDRA_STARTUP_TIMEOUT_MS } from "../domain/analysisResourceLimits.js";
 import { DEFAULT_BRIDGE_MAX_REQUEST } from "./bridgeMaxRequestBytes.js";
-import { hopperCallerScanBudgetFromEnvironment } from "./hopperCallerScanBudget.js";
-import { DEFAULT_REGEX_MATCHING_DEADLINE } from "./regexMatchingDeadline.js";
-import { DEFAULT_REGEX_WORKER_HEAP_REQUEST } from "./regexWorkerHeapRequest.js";
 import type { AppConfig } from "./types.js";
-import { hopperLauncherDiscovery } from "../application/HopperLauncherDiscovery.js";
-import { localMacHopperRenamedLauncherCandidates } from "../application/MacHopperPaths.js";
-const executableAvailable = (path: string): boolean => {
-  try {
-    accessSync(path, constants.X_OK);
-    return statSync(path).isFile();
-  } catch {
-    return false;
-  }
-};
-
-export const defaultHopperLauncherPath = (
-  platform: NodeJS.Platform,
-  homeDirectory: string,
-  executable: (path: string) => boolean = executableAvailable,
-): string => {
-  const discovery = hopperLauncherDiscovery(platform, homeDirectory);
-  for (const candidate of discovery.candidates)
-    if (executable(candidate)) return candidate;
-  if (discovery.probesMacApplicationBundles)
-    for (const candidate of localMacHopperRenamedLauncherCandidates(
-      homeDirectory,
-    ))
-      if (executable(candidate)) return candidate;
-  return discovery.fallback;
-};
-
 /**
  * Environment native analysis admits. JEB validates its own settings during
  * optional provider composition; that setting must not block unrelated
@@ -63,10 +25,9 @@ const nativeAnalysisEnvironment = (
   return appEnvironment;
 };
 
-/** Native admission issues and an explicitly configured timeout's independent facts. */
+/** Native admission issues collected without probing providers. */
 export interface NativeAnalysisConfigurationInspection {
   readonly issues: readonly ConfigurationSettingIssue[];
-  readonly configuredHopperStartupTimeout?: Result<number, ConfigurationError>;
 }
 
 /** Inspect native admission without probing launchers or losing mixed-invalid diagnostics. */
@@ -74,35 +35,7 @@ export const inspectNativeAnalysisConfiguration = (
   environment: Readonly<Record<string, string | undefined>>,
 ): NativeAnalysisConfigurationInspection => {
   const parsed = parseEnvironment(nativeAnalysisEnvironment(environment));
-  const issues = parsed.ok ? [] : parsed.error.settings;
-  const configuredTimeout = environment.REA_HOPPER_STARTUP_TIMEOUT_MS;
-  if (configuredTimeout === undefined) return { issues };
-  const admitted = launchAnalysisSetting(
-    "hopper.startup_timeout_ms",
-    environment,
-  );
-  if (parsed.ok && admitted.ok && admitted.value.value !== null)
-    return {
-      issues,
-      configuredHopperStartupTimeout: ok(admitted.value.value),
-    };
-  // Another setting may reject the aggregate before this supplied timeout's
-  // facts are available. Its dedicated diagnostic still uses the same schema.
-  const timeout = providerStartupTimeoutSchema.safeParse(configuredTimeout);
-  return {
-    issues,
-    configuredHopperStartupTimeout: timeout.success
-      ? ok(timeout.data)
-      : err(
-          new ConfigurationError("Invalid REA environment configuration", {
-            cause: timeout.error,
-            settings: timeout.error.issues.map(({ message }) => ({
-              setting: "REA_HOPPER_STARTUP_TIMEOUT_MS",
-              constraint: message,
-            })),
-          }),
-        ),
-  };
+  return { issues: parsed.ok ? [] : parsed.error.settings };
 };
 
 /** Parse provider configuration and runtime prerequisites at the composition root. */
@@ -122,7 +55,6 @@ export const parseConfig = (
     return undefined;
   };
   const ghidraStartup = admitted("ghidra.startup_timeout_ms");
-  const hopperStartup = admitted("hopper.startup_timeout_ms");
   const decompileTimeout = admitted("ghidra.decompile_timeout_seconds");
   const decompilePayload = admitted("ghidra.decompile_max_payload_mib");
   const valueFlowOperations = admitted("ghidra.value_flow_max_operations");
@@ -130,10 +62,7 @@ export const parseConfig = (
     "ghidra.value_flow_max_inputs_per_operation",
   );
   const valueFlowEdges = admitted("ghidra.value_flow_max_edges");
-  const callerScan = admitted("hopper.caller_scan_budget_ms");
   const bridgeBytes = admitted("bridge.max_request_bytes");
-  const regexDeadline = admitted("regex.matching_deadline_ms");
-  const regexHeap = admitted("regex.worker_heap_request_mib");
   return ok({
     ...(env.REA_MCP_TOOL_FAMILIES === undefined
       ? {}
@@ -154,9 +83,6 @@ export const parseConfig = (
       ? {}
       : { mcpToolCatalogProfile: env.REA_MCP_TOOL_CATALOG_PROFILE }),
     analysisProvider: env.REA_ANALYSIS_PROVIDER,
-    ...(env.REA_IDA_MCP_CONFIG === undefined
-      ? {}
-      : { idaMcpConfigPath: env.REA_IDA_MCP_CONFIG }),
     ...(env.REA_GHIDRA_PROJECT_PATH === undefined
       ? {}
       : {
@@ -208,28 +134,7 @@ export const parseConfig = (
       ? {}
       : { ghidraNativeAotJar: env.REA_GHIDRA_NATIVEAOT_JAR }),
     ilspyCmdPath: env.REA_ILSPY_CMD_PATH,
-    hopperLauncherPath:
-      env.HOPPER_LAUNCHER_PATH ??
-      defaultHopperLauncherPath(
-        process.platform,
-        homeDirectoryFromEnvironment(environment, process.platform),
-      ),
-    hopperStartupTimeoutMs: hopperStartup ?? DEFAULT_HOPPER_STARTUP_TIMEOUT_MS,
-    hopperStartupTimeoutSource:
-      environment.REA_HOPPER_STARTUP_TIMEOUT_MS === undefined ||
-      hopperStartup === undefined
-        ? "default"
-        : "setting",
-    hopperCallerScanBudget: hopperCallerScanBudgetFromEnvironment(
-      callerScan === undefined ||
-        environment.REA_HOPPER_CALLER_SCAN_BUDGET_MS === undefined
-        ? undefined
-        : environment.REA_HOPPER_CALLER_SCAN_BUDGET_MS,
-      callerScan ?? DEFAULT_HOPPER_CALLER_SCAN_BUDGET_MS,
-    ),
-    hopperTargetPath: env.HOPPER_TARGET_PATH,
-    hopperTargetKind: env.HOPPER_TARGET_KIND,
-    hopperLoaderArgs: env.loaderArgs,
+    initialTargetPath: env.REA_TARGET_PATH,
     logLevel: env.REA_LOG_LEVEL,
     referenceSourcePolicy: {
       secretPatterns: env.referenceSecretPatterns,
@@ -241,24 +146,6 @@ export const parseConfig = (
         ? DEFAULT_BRIDGE_MAX_REQUEST
         : {
             maximumBytes: bridgeBytes,
-            source: "setting",
-          },
-    regexMatchingDeadline:
-      regexDeadline === undefined ||
-      regexDeadline === null ||
-      environment.REA_REGEX_MATCHING_DEADLINE_MS === undefined
-        ? DEFAULT_REGEX_MATCHING_DEADLINE
-        : {
-            deadlineMs: regexDeadline,
-            source: "setting",
-          },
-    regexWorkerHeapRequest:
-      regexHeap === undefined ||
-      regexHeap === null ||
-      environment.REA_REGEX_WORKER_HEAP_REQUEST_MIB === undefined
-        ? DEFAULT_REGEX_WORKER_HEAP_REQUEST
-        : {
-            heapMiB: regexHeap,
             source: "setting",
           },
     invalidRuntimeSeeds,

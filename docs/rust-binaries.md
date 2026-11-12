@@ -3,7 +3,7 @@
 `inspect_rust_binary` / `inspect-rust-binary` answers which crate names,
 versions, sources, and dependency edges are embedded by cargo-auditable in one
 selected local executable or library. It reads the file without running it and
-requires no Rust installation, active binary target, Hopper, Ghidra, or IDA.
+requires no Rust installation, active binary target, or native analysis provider.
 
 ```bash
 rea inspect-rust-binary /absolute/path/to/application --json

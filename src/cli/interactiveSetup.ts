@@ -157,18 +157,6 @@ const selectSetupActions = async (
       if (included) selectedActionIds.push(skill.id);
     }
   }
-  const hopper = actions.find(({ kind }) => kind === "install_hopper");
-  if (hopper !== undefined) {
-    const included = await confirm({
-      ...promptStreams,
-      ...(signal === undefined ? {} : { signal }),
-      message: "Install Hopper for deep binary analysis?",
-      initialValue: false,
-      vertical: accessible,
-    });
-    if (isCancel(included)) return undefined;
-    if (included) selectedActionIds.push(hopper.id);
-  }
   return selectedActionIds;
 };
 
@@ -261,13 +249,18 @@ const renderReadyCapabilities = (
   writeLine("◆  What you can do now");
   const providers = readyProviders(result);
   if (providers.length > 0)
-    writeLine(`│  Deep analysis: ${humanList(providers)}`);
+    writeLine(`│  Available analysis providers: ${humanList(providers)}`);
+  const ghidraReady = result.doctor.availableProviders.includes("ghidra");
+  if (!ghidraReady)
+    writeLine(
+      `│  Check Ghidra for native analysis: ${cliInvocation(environment)} doctor --provider ghidra`,
+    );
   if (readyClients.length > 0)
     writeLine(`│  Agent access: ${humanList(readyClients)}`);
   if (result.doctor.identity?.skill.state === "aligned")
     writeLine("│  Guided reverse-engineering workflows: installed");
   writeLine(
-    `│  CLI: ${cliInvocation(environment)} ${providers.length > 0 ? "analyze /path/to/app" : "capabilities"}`,
+    `│  CLI: ${cliInvocation(environment)} ${ghidraReady ? "analyze /path/to/app" : "capabilities"}`,
   );
   const firstClient = readyClients[0];
   if (firstClient !== undefined)
@@ -291,7 +284,6 @@ const readyProviders = (result: SetupResult): readonly string[] =>
 
 /** Product spellings that title case would distort. Lookup ids stay lowercase. */
 const PROVIDER_DISPLAY_NAMES: Readonly<Record<string, string>> = {
-  ida: "IDA",
   jadx: "JADX",
 };
 
