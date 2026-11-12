@@ -8,6 +8,31 @@ import {
 import { ghidraJavaEnvironment } from "./GhidraInstallation.js";
 
 describe("Ghidra headless JVM environment", () => {
+  it.each([
+    { LC_CTYPE: "C.UTF-8" },
+    { LC_ALL: "C" },
+    { LC_CTYPE: "en_US.UTF-8" },
+    { LANG: "ja_JP.UTF-8" },
+  ])("preserves a Linux locale selected by the caller: %j", (selected) => {
+    const environment = ghidraJavaEnvironment(undefined, selected, "linux");
+    expect(environment.LC_CTYPE).toBe(selected.LC_CTYPE);
+    expect(environment).toMatchObject(selected);
+  });
+
+  it("defaults to UTF-8 path decoding when the Linux JVM has no selected locale", () => {
+    const unset = { LC_ALL: "", LC_CTYPE: "", LANG: "" };
+    expect(ghidraJavaEnvironment(undefined, unset, "linux")).toMatchObject({
+      ...unset,
+      LC_CTYPE: "C.UTF-8",
+    });
+    expect(ghidraJavaEnvironment(undefined, {}, "linux").LC_CTYPE).toBe(
+      "C.UTF-8",
+    );
+    expect(
+      ghidraJavaEnvironment(undefined, {}, "darwin").LC_CTYPE,
+    ).toBeUndefined();
+  });
+
   it("passes Windows paths with spaces to Java's environment parser", () => {
     expect(
       ghidraHeadlessJavaOptions(

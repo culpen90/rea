@@ -788,6 +788,10 @@ reported as incompatible instead of being admitted from its directory name, and
 a header that cannot be read or recognized is reported as unknown. REA does not
 build or install native tools, or change Gatekeeper quarantine settings.
 
+On Linux, REA defaults Ghidra's JVM to UTF-8 path decoding when the launcher
+supplies no locale. If you select a locale explicitly, choose a UTF-8 locale
+when your paths contain non-ASCII characters.
+
 The adapter exposes 27 read-only operations: fifteen inventory/name/search
 operations and twelve function-analysis operations. These cover metadata,
 decompilation, assembly, resolved calls, typed references, xrefs, function

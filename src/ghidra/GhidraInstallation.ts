@@ -833,15 +833,22 @@ export const ghidraInstallationDiagnostics = (
   })),
 });
 
-/** Environment that makes an explicitly selected JDK win over PATH discovery. */
+/** Selected environment for Ghidra's JVM probes and analysis processes. */
 export const ghidraJavaEnvironment = (
   javaHome: string | undefined,
   environment: Readonly<NodeJS.ProcessEnv>,
   platform: NodeJS.Platform = process.platform,
 ): NodeJS.ProcessEnv => {
   const selectedEnvironment = snapshotEnvironment(environment, platform);
+  // Linux OpenJDK decodes native path arguments using LC_CTYPE. A minimal
+  // agent environment with no locale falls back to ASCII, even on JDK 21.
+  const hasLocale =
+    selectedEnvironment.LC_ALL ||
+    selectedEnvironment.LC_CTYPE ||
+    selectedEnvironment.LANG;
   const boundedEnvironment = {
     ...selectedEnvironment,
+    ...(platform === "linux" && !hasLocale ? { LC_CTYPE: "C.UTF-8" } : {}),
     _JAVA_OPTIONS: "",
     JAVA_TOOL_OPTIONS: "",
     JDK_JAVA_OPTIONS: "",
