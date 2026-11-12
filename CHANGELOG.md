@@ -13,6 +13,7 @@
 
 ### Fixes
 
+- Preserve Unicode paths in Ghidra launches on Linux when the agent leaves the locale unset. [f004798](https://github.com/culpen90/rea/commit/f00479800ddd6e30eac9ac7ec3d37afc4c609861). Thanks @culpen90.
 - Preserve distinct linker map filenames that normalize to the same lookup key. Report the retained process capture resource when cleanup is incomplete.
 
 ### ⚠ BREAKING CHANGES
@@ -35,7 +36,7 @@ native analysis. To update the fork, install the tarball from its next GitHub
 release. npm based plugin installers require a version published on npm.
 `rea update` can replace this build with the upstream npm release.
 
-Full contribution record: [10 commits and 2 merged PRs](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/releases/6.9.0-culpen90.1.contributions.json).
+Full contribution record: [14 commits and 2 merged PRs](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/releases/6.9.0-culpen90.1.contributions.json).
 
 ## [6.8.0](https://github.com/morluto/rea/compare/rea-agents-6.7.0...rea-agents-6.8.0) (2026-10-25)
 
