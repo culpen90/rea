@@ -36,7 +36,7 @@ native analysis. To update the fork, install the tarball from its next GitHub
 release. npm based plugin installers require a version published on npm.
 `rea update` can replace this build with the upstream npm release.
 
-Full contribution record: [14 commits and 2 merged PRs](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/releases/6.9.0-culpen90.1.contributions.json).
+Full contribution record: [16 commits and 2 merged PRs](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/releases/6.9.0-culpen90.1.contributions.json).
 
 ## [6.8.0](https://github.com/morluto/rea/compare/rea-agents-6.7.0...rea-agents-6.8.0) (2026-10-25)
 

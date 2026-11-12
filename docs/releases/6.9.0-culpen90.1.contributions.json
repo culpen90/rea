@@ -3,7 +3,7 @@
   "repository": "culpen90/rea",
   "version": "6.9.0-culpen90.1",
   "base": "0909d89c966c30955fd0906b622ff25f3700789f",
-  "target": "f00479800ddd6e30eac9ac7ec3d37afc4c609861",
+  "target": "839f0eaa7b808c4312b641bb7ac36135eaba640d",
   "commits": [
     {
       "sha": "2d80c1b1330c7cdfb6c6573d6c81b3435516ff40",
@@ -237,6 +237,40 @@
       "subject": "fix(ghidra): preserve Unicode paths with no Linux locale",
       "body": "fix(ghidra): preserve Unicode paths with no Linux locale\n",
       "parents": ["468e64b3f13038ebc12a8591524bb54d2c874bad"],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": []
+    },
+    {
+      "sha": "a6752324465ea9aaf626e0ff7063657c2b81eacd",
+      "subject": "docs(release): record Linux Ghidra path fix",
+      "body": "docs(release): record Linux Ghidra path fix\n",
+      "parents": ["f00479800ddd6e30eac9ac7ec3d37afc4c609861"],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": []
+    },
+    {
+      "sha": "839f0eaa7b808c4312b641bb7ac36135eaba640d",
+      "subject": "test(electron): use the suite timeout for active MCP scenarios",
+      "body": "test(electron): use the suite timeout for active MCP scenarios\n",
+      "parents": ["a6752324465ea9aaf626e0ff7063657c2b81eacd"],
       "authors": [
         {
           "name": "culpen90",
