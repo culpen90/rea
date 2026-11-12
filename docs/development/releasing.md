@@ -1,8 +1,13 @@
 # Releasing REA
 
-Pushes to main automatically open or refresh a Release Please PR with the next
-version and changelog. Review its migration notes and wait for its current CI
-checks to pass. Merging that PR into main starts publication automatically.
+Release preparation, publication, and recovery run only in the publishing
+repository, `morluto/rea`. Other copies can run development CI without access to
+that repository's release history or publishing credentials.
+
+In the publishing repository, pushes to main automatically open or refresh a
+Release Please PR with the next version and changelog. Review its migration notes
+and wait for its current CI checks to pass. Merging that PR into main starts
+publication automatically.
 
 The Release workflow validates the merged release metadata and ancestry before
 creating a tag. npm and MCP Registry publication use the exact reviewed merge

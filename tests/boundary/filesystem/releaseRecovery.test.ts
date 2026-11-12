@@ -212,7 +212,9 @@ it("limits recovery to verification and dependent MCP publication from the relea
       parse(await readFile(".github/workflows/release-recovery.yml", "utf8")),
     );
   expect(Object.keys(workflow.on)).toEqual(["workflow_dispatch"]);
-  expect(workflow.jobs.verify.if).toBe("github.ref == 'refs/heads/main'");
+  expect(workflow.jobs.verify.if).toBe(
+    "github.repository == 'morluto/rea' && github.ref == 'refs/heads/main'",
+  );
   expect(workflow.jobs.verify.permissions).toEqual({
     contents: "read",
     actions: "read",
