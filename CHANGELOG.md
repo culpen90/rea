@@ -1,7 +1,5 @@
 # Changelog
 
-The next release changes analysis-setting output (#9885). `update_analysis_settings`, `inspect_analysis_settings`, and limit errors no longer include `rea_restart_required`, `restart_required`, `restartRequired`, or `effect`. Read `update_mode` (`runtime`, `restart`, or `parameter`) and `pending_restart`. `runtime` means the setter can change the active value. `restart` means this process keeps the value it started with. `parameter` means this call supplied the value, so `update_analysis_settings` cannot change it; artifact reader limits, web-network capture budgets, and an explicit `analysis_timeout_ms`, `max_heap_mb`, or `command_timeout_ms` use it. There is no compatibility alias. Release Please should copy this migration into that release's breaking-changes section.
-
 ## [6.9.0-culpen90.1](https://github.com/culpen90/rea/releases/tag/rea-agents-6.9.0-culpen90.1) (2026-11-12)
 
 ### Highlights
@@ -20,6 +18,7 @@ The next release changes analysis-setting output (#9885). `update_analysis_setti
 ### ⚠ BREAKING CHANGES
 
 - Replace Hopper, IDA, and Kuna selections with `ghidra` or `auto` and reopen the original executable. For universal Mach-O files, select a thin slice. Move `HOPPER_TARGET_PATH` to `REA_TARGET_PATH` and replace GUI cursor and bookmark commands with explicit address lookups. [Migration guide](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/getting-started/installation.md#migrate-an-older-native-provider-configuration) · [PR #2](https://github.com/culpen90/rea/pull/2). Thanks @culpen90.
+- In analysis settings and limit errors, read `update_mode` and `pending_restart` in place of `effect`, `rea_restart_required`, `restart_required`, and `restartRequired`. The mode tells you whether a setting updates at runtime, requires restart, or belongs to this call's parameters. [Upstream PR #9885](https://github.com/morluto/rea/pull/9885).
 
 ### Install
 
@@ -33,7 +32,8 @@ rea --version
 For a local MCP client, set the command to the installed `rea` executable
 with argument `mcp`. Install Ghidra and its supported JDK separately for deep
 native analysis. To update the fork, install the tarball from its next GitHub
-release. Registry based plugin installers and `rea update` use npm.
+release. npm based plugin installers require a version published on npm.
+`rea update` can replace this build with the upstream npm release.
 
 Full contribution record: [10 commits and 2 merged PRs](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/releases/6.9.0-culpen90.1.contributions.json).
 

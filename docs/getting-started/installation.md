@@ -11,13 +11,13 @@ Setup previews configuration changes and asks for approval before applying them.
 | Run unreleased code                   | [Run REA from a checkout](#run-rea-from-a-checkout)                                                   |
 | Diagnose one task                     | [Scoped readiness checks](#check-readiness-for-your-task)                                             |
 | Configure native analysis             | [Ghidra](#ghidra) or [migrate an older registration](#migrate-an-older-native-provider-configuration) |
+| Update or remove REA                  | [Maintenance](#diagnose-update-and-remove)                                                            |
+| Resolve a client-specific problem     | [Client configuration](client-configuration.md)                                                       |
 
 For the `6.9.0-culpen90.1` prerelease, use the tarball and installation
 instructions on [GitHub Releases](https://github.com/culpen90/rea/releases/tag/rea-agents-6.9.0-culpen90.1).
 Run the installed `rea` executable for the CLI or `rea mcp` for a local MCP
-client. npm registry examples in this guide require an npm-published version.
-| Update or remove REA                  | [Maintenance](#diagnose-update-and-remove)                                                            |
-| Resolve a client-specific problem     | [Client configuration](client-configuration.md)                                                       |
+client.
 
 ## Start setup
 
@@ -1551,8 +1551,10 @@ For analysis engines, ask the connected server: have the agent call
 server the plugin started can use, with reasons and remediation. See
 [MCP contracts](../reference/mcp-contracts.md).
 
-A plugin does not put `rea` on your `PATH`. To check an engine from a
-terminal, use the package runner at the version the plugin pins:
+A plugin does not put `rea` on your `PATH`. For an npm-published plugin,
+check an engine from a terminal by running the package at the version the
+plugin pins. The GitHub prerelease uses the installed
+`rea doctor --provider ghidra --json` command.
 
 <!-- x-release-please-start-version -->
 
@@ -1568,6 +1570,9 @@ The server inherits the client's environment, so a setting such as
 `GHIDRA_INSTALL_DIR` that exists only in your terminal does not reach it.
 
 ### Cursor Marketplace
+
+The GitHub prerelease uses a local MCP registration with `rea mcp`. The
+marketplace instructions below apply to npm-published versions.
 
 Cursor's Marketplace installs this public repository as one plugin. The
 install includes both the `reverse-engineer-anything` skill and the `rea` MCP
