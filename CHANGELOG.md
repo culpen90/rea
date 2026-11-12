@@ -2,6 +2,41 @@
 
 The next release changes analysis-setting output (#9885). `update_analysis_settings`, `inspect_analysis_settings`, and limit errors no longer include `rea_restart_required`, `restart_required`, `restartRequired`, or `effect`. Read `update_mode` (`runtime`, `restart`, or `parameter`) and `pending_restart`. `runtime` means the setter can change the active value. `restart` means this process keeps the value it started with. `parameter` means this call supplied the value, so `update_analysis_settings` cannot change it; artifact reader limits, web-network capture budgets, and an explicit `analysis_timeout_ms`, `max_heap_mb`, or `command_timeout_ms` use it. There is no compatibility alias. Release Please should copy this migration into that release's breaking-changes section.
 
+## [6.9.0-culpen90.1](https://github.com/culpen90/rea/releases/tag/rea-agents-6.9.0-culpen90.1) (2026-11-12)
+
+### Highlights
+
+- Ghidra is the only deep native analysis provider for the CLI and MCP.
+
+### Changes
+
+- Keep a binary open for supported static inspection when the default `auto` selection cannot bind Ghidra. Standalone artifact and managed code inspection also remain available without Ghidra.
+- This is the first GitHub prerelease of the `culpen90/rea` fork. The [upstream history since REA 6.8.0](https://github.com/morluto/rea/compare/rea-agents-6.8.0...0909d89c966c30955fd0906b622ff25f3700789f) shows the inherited changes.
+
+### Fixes
+
+- Preserve distinct linker map filenames that normalize to the same lookup key. Report the retained process capture resource when cleanup is incomplete.
+
+### ⚠ BREAKING CHANGES
+
+- Replace Hopper, IDA, and Kuna selections with `ghidra` or `auto` and reopen the original executable. For universal Mach-O files, select a thin slice. Move `HOPPER_TARGET_PATH` to `REA_TARGET_PATH` and replace GUI cursor and bookmark commands with explicit address lookups. [Migration guide](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/getting-started/installation.md#migrate-an-older-native-provider-configuration) · [PR #2](https://github.com/culpen90/rea/pull/2). Thanks @culpen90.
+
+### Install
+
+Install with a supported Node.js version such as 24.22.1:
+
+```sh
+npm install -g --ignore-scripts https://github.com/culpen90/rea/releases/download/rea-agents-6.9.0-culpen90.1/rea-agents-6.9.0-culpen90.1.tgz
+rea --version
+```
+
+For a local MCP client, set the command to the installed `rea` executable
+with argument `mcp`. Install Ghidra and its supported JDK separately for deep
+native analysis. To update the fork, install the tarball from its next GitHub
+release. Registry based plugin installers and `rea update` use npm.
+
+Full contribution record: [10 commits and 2 merged PRs](https://github.com/culpen90/rea/blob/rea-agents-6.9.0-culpen90.1/docs/releases/6.9.0-culpen90.1.contributions.json).
+
 ## [6.8.0](https://github.com/morluto/rea/compare/rea-agents-6.7.0...rea-agents-6.8.0) (2026-10-25)
 
 ### Highlights

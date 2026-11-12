@@ -11,6 +11,11 @@ Setup previews configuration changes and asks for approval before applying them.
 | Run unreleased code                   | [Run REA from a checkout](#run-rea-from-a-checkout)                                                   |
 | Diagnose one task                     | [Scoped readiness checks](#check-readiness-for-your-task)                                             |
 | Configure native analysis             | [Ghidra](#ghidra) or [migrate an older registration](#migrate-an-older-native-provider-configuration) |
+
+For the `6.9.0-culpen90.1` prerelease, use the tarball and installation
+instructions on [GitHub Releases](https://github.com/culpen90/rea/releases/tag/rea-agents-6.9.0-culpen90.1).
+Run the installed `rea` executable for the CLI or `rea mcp` for a local MCP
+client. npm registry examples in this guide require an npm-published version.
 | Update or remove REA                  | [Maintenance](#diagnose-update-and-remove)                                                            |
 | Resolve a client-specific problem     | [Client configuration](client-configuration.md)                                                       |
 
@@ -1552,7 +1557,7 @@ terminal, use the package runner at the version the plugin pins:
 <!-- x-release-please-start-version -->
 
 ```bash
-npx -y rea-agents@6.8.0 doctor --provider ghidra --json
+npx -y rea-agents@6.9.0-culpen90.1 doctor --provider ghidra --json
 ```
 
 <!-- x-release-please-end -->
@@ -1585,7 +1590,7 @@ therefore runs the published package instead of a local build:
   "mcpServers": {
     "rea": {
       "command": "npx",
-      "args": ["-y", "rea-agents@6.8.0", "mcp"]
+      "args": ["-y", "rea-agents@6.9.0-culpen90.1", "mcp"]
     }
   }
 }

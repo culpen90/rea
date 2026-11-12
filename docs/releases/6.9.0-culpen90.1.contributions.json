@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "repository": "culpen90/rea",
+  "version": "6.9.0-culpen90.1",
+  "base": "0909d89c966c30955fd0906b622ff25f3700789f",
+  "target": "8ac6d0170576a4f5f46d9115f6582938bfba2bb6",
+  "commits": [
+    {
+      "sha": "2d80c1b1330c7cdfb6c6573d6c81b3435516ff40",
+      "subject": "feat(native)!: make Ghidra the sole deep analysis provider",
+      "body": "feat(native)!: make Ghidra the sole deep analysis provider\n\nRoute deep native CLI and MCP analysis through Ghidra. Remove retired provider adapters, installers, GUI tools, and verification lanes. Keep static inspection and historical Evidence available, and document how to migrate existing registrations.\n\nBREAKING CHANGE: Hopper, IDA, and Kuna no longer provide deep native analysis. Select ghidra or auto and reopen the original executable. Use REA_TARGET_PATH for eager MCP startup.\n",
+      "parents": [
+        "0909d89c966c30955fd0906b622ff25f3700789f"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "88de26a539aaa6a7225623dbd6c7cd8745c55808",
+      "subject": "test(providers): retain regression coverage for remaining adapters",
+      "body": "test(providers): retain regression coverage for remaining adapters\n",
+      "parents": [
+        "2d80c1b1330c7cdfb6c6573d6c81b3435516ff40"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "d2c7cb0c584c397bc24f7fe31429d697afc9778d",
+      "subject": "test(native): align verification with Ghidra-only analysis",
+      "body": "test(native): align verification with Ghidra-only analysis\n",
+      "parents": [
+        "88de26a539aaa6a7225623dbd6c7cd8745c55808"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "4138d2722a02f69ddcf513ee2bd681060de4f0b9",
+      "subject": "fix(artifacts): retain distinct linker map occurrences",
+      "body": "fix(artifacts): retain distinct linker map occurrences\n",
+      "parents": [
+        "d2c7cb0c584c397bc24f7fe31429d697afc9778d"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "0c22a5baf2ed8c5419d9d43eed1734ba7d4995a9",
+      "subject": "test(ci): update assertions for current runtime contracts",
+      "body": "test(ci): update assertions for current runtime contracts\n",
+      "parents": [
+        "4138d2722a02f69ddcf513ee2bd681060de4f0b9"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "d5a7c450fc9466e9b2fa086b738fb1a2dffc39f7",
+      "subject": "test(ci): verify retained results and operation admission",
+      "body": "test(ci): verify retained results and operation admission\n",
+      "parents": [
+        "0c22a5baf2ed8c5419d9d43eed1734ba7d4995a9"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "ce35f8fa1aa5d0e000173592af3cb1218b0a6816",
+      "subject": "fix(cli): report retained process capture cleanup",
+      "body": "fix(cli): report retained process capture cleanup\n",
+      "parents": [
+        "d5a7c450fc9466e9b2fa086b738fb1a2dffc39f7"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "45016e4436cb794223d01c7cf2544f333e4982b3",
+      "subject": "Merge pull request #2 from culpen90/feat/ghidra-only-native-analysis",
+      "body": "Merge pull request #2 from culpen90/feat/ghidra-only-native-analysis\n\nfeat(native)!: make Ghidra the sole deep analysis provider",
+      "parents": [
+        "0909d89c966c30955fd0906b622ff25f3700789f",
+        "ce35f8fa1aa5d0e000173592af3cb1218b0a6816"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        2
+      ]
+    },
+    {
+      "sha": "9867a17071a6e2dd3d1685228dbe880d641bd759",
+      "subject": "fix(ci): restrict release jobs to the publishing repository",
+      "body": "fix(ci): restrict release jobs to the publishing repository\n",
+      "parents": [
+        "45016e4436cb794223d01c7cf2544f333e4982b3"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        3
+      ]
+    },
+    {
+      "sha": "8ac6d0170576a4f5f46d9115f6582938bfba2bb6",
+      "subject": "Merge pull request #3 from culpen90/fix/release-repository-guard",
+      "body": "Merge pull request #3 from culpen90/fix/release-repository-guard\n\nfix(ci): restrict release jobs to the publishing repository",
+      "parents": [
+        "45016e4436cb794223d01c7cf2544f333e4982b3",
+        "9867a17071a6e2dd3d1685228dbe880d641bd759"
+      ],
+      "authors": [
+        {
+          "name": "culpen90",
+          "email": "sinnomine@duck.com",
+          "user": {
+            "login": "culpen90",
+            "__typename": "User"
+          }
+        }
+      ],
+      "pullRequests": [
+        3
+      ]
+    }
+  ],
+  "pullRequests": [
+    {
+      "number": 2,
+      "title": "feat(native)!: make Ghidra the sole deep analysis provider",
+      "url": "https://github.com/culpen90/rea/pull/2",
+      "author": {
+        "login": "culpen90",
+        "__typename": "User"
+      },
+      "mergeCommit": {
+        "oid": "45016e4436cb794223d01c7cf2544f333e4982b3"
+      },
+      "issues": []
+    },
+    {
+      "number": 3,
+      "title": "fix(ci): restrict release jobs to the publishing repository",
+      "url": "https://github.com/culpen90/rea/pull/3",
+      "author": {
+        "login": "culpen90",
+        "__typename": "User"
+      },
+      "mergeCommit": {
+        "oid": "8ac6d0170576a4f5f46d9115f6582938bfba2bb6"
+      },
+      "issues": []
+    }
+  ]
+}
