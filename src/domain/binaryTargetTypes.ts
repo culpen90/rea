@@ -56,12 +56,6 @@ export const ELF_METADATA_ARCHITECTURES = [
 export type ElfMetadataArchitecture =
   (typeof ELF_METADATA_ARCHITECTURES)[number];
 
-/** Families whose ISA and ABI need a separate ELF declaration to be admitted. */
-export const isElfMetadataArchitecture = (
-  architecture: BinaryArchitecture,
-): architecture is ElfMetadataArchitecture =>
-  (ELF_METADATA_ARCHITECTURES as readonly string[]).includes(architecture);
-
 /** Recognized family with no ELF metadata member; the header alone is the fact. */
 export type HeaderArchitecture = Exclude<
   BinaryArchitecture,

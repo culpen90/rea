@@ -72,14 +72,3 @@ export const providerRetryAction = (
       return "unknown";
   }
 };
-
-/** Use one stage when every retained request agrees, otherwise unknown. */
-export const sharedProviderFailureStage = (
-  requests: readonly ProviderOperationRequest[],
-): ProviderFailureStage | null => {
-  const first = requests[0]?.stage;
-  if (first === undefined) return null;
-  return requests.every((request) => request.stage === first)
-    ? first
-    : "unknown";
-};
